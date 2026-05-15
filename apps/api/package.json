@@ -1,0 +1,13 @@
+{
+  "name": "@alune/api",
+  "private": true,
+  "scripts": {
+    "dev": "uv run fastapi dev app/main.py",
+    "lint": "uv run ruff check .",
+    "lint:fix": "uv run ruff check . --fix",
+    "format": "uv run ruff format .",
+    "format:check": "uv run ruff format . --check",
+    "typecheck": "uv run ty check",
+    "test": "uv run pytest"
+  }
+}
