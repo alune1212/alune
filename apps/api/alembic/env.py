@@ -11,6 +11,7 @@ from alembic import context
 from app.core.config import get_settings
 from app.db.base import Base
 from app.modules.auth.models import User
+from app.modules.permissions.models import Permission, Role
 from app.modules.system.models import SystemInfo
 
 config = context.config

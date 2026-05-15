@@ -10,15 +10,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { navigationItems } from "@/config/navigation";
+import { getVisibleNavigationItems } from "@/config/navigation";
 import { useAuth } from "@/features/auth/auth-provider";
 import { platformName } from "@alune/shared";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
-function MobileNavigation() {
+type MobileNavigationProps = {
+  permissions: readonly string[];
+};
+
+function MobileNavigation({ permissions }: MobileNavigationProps) {
+  const visibleNavigationItems = getVisibleNavigationItems(permissions);
+
   return (
     <div className="space-y-2 px-1">
-      {navigationItems.map((item) =>
+      {visibleNavigationItems.map((item) =>
         item.to ? (
           <Button key={item.label} variant="ghost" className="w-full justify-start" asChild>
             <Link to={item.to}>
@@ -59,7 +65,7 @@ export function Topbar() {
             <SheetHeader>
               <SheetTitle>{platformName}</SheetTitle>
             </SheetHeader>
-            <MobileNavigation />
+            <MobileNavigation permissions={auth.user?.permissions ?? []} />
           </SheetContent>
         </Sheet>
         <div>

@@ -2,14 +2,17 @@ import { Link } from "@tanstack/react-router";
 import { Building2, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { navigationItems } from "@/config/navigation";
+import { getVisibleNavigationItems } from "@/config/navigation";
+import { useAuth } from "@/features/auth/auth-provider";
 import { cn } from "@/lib/utils";
 import { useUiStore } from "@/stores/ui-store";
 import { platformName } from "@alune/shared";
 
 export function Sidebar() {
+  const auth = useAuth();
   const isCollapsed = useUiStore((state) => state.isSidebarCollapsed);
   const toggleSidebar = useUiStore((state) => state.toggleSidebar);
+  const visibleNavigationItems = getVisibleNavigationItems(auth.user?.permissions ?? []);
 
   return (
     <aside
@@ -42,7 +45,7 @@ export function Sidebar() {
         </Button>
       </div>
       <nav className="flex flex-1 flex-col gap-1 px-3 py-4">
-        {navigationItems.map((item) => (
+        {visibleNavigationItems.map((item) => (
           "to" in item ? (
             <Link
               key={item.label}

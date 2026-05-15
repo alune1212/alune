@@ -73,7 +73,13 @@ cd apps/api
 FIRST_SUPERUSER_PASSWORD=change-this-password uv run python -m app.modules.auth.seed
 ```
 
-The seed command is idempotent by username. It refuses the placeholder password `please-change-me`.
+The seed command is idempotent by username. It refuses the placeholder password `please-change-me`. It creates:
+
+- the first superuser
+- the default `admin` role
+- default menu permissions
+- default action permissions
+- user/role and role/permission links
 
 ## Start Local Development Servers
 
@@ -125,6 +131,7 @@ docker compose exec -T postgres psql -U app -d company_admin -c "\\dt"
 curl -s -X POST http://localhost:8000/api/v1/auth/login \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "username=admin&password=change-this-password"
+docker compose exec -T postgres psql -U app -d company_admin -c "select code, type from permissions order by code;"
 ```
 
 Expected DB health success:

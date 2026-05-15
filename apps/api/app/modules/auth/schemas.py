@@ -1,7 +1,7 @@
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class Token(BaseModel):
@@ -18,3 +18,4 @@ class UserPublic(BaseModel):
     full_name: str | None
     is_active: bool
     is_superuser: bool
+    permissions: list[str] = Field(default_factory=list)

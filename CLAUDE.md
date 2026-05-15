@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## 项目概述
 
-alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线和登录 MVP。
+alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP 和权限基础。
 
 ## Quick Start
 
@@ -101,9 +101,10 @@ alune-platform/
 - **入口**: `app/main.py` - 使用 lifespan 管理引擎生命周期
 - **配置**: `app/core/config.py` - pydantic-settings，支持 `.env` 文件
 - **数据库**: `app/db/session.py` - asyncpg 驱动，`get_db_session` 依赖注入
-- **迁移**: `alembic/` + `alembic.ini` - 迁移创建 `system_info` 和 `users` 表
+- **迁移**: `alembic/` + `alembic.ini` - 迁移创建 `system_info`、`users`、`roles`、`permissions` 和关联表
 - **基类**: `app/db/base.py` - `Base` + `TimestampMixin`（`created_at`/`updated_at`）
 - **认证**: `app/modules/auth/` - 用户表、密码哈希、JWT 登录、当前用户依赖
+- **权限**: `app/modules/permissions/` - 角色、权限、关联表、默认权限、权限校验依赖
 - **模块化**: `app/modules/<feature>/router.py` - 每个功能模块独立路由
 - **统一响应**: `app/common/response.py` - `ApiResponse[DataT]` 泛型模型
 - **异常处理**: `app/core/exceptions.py` - 全局异常处理器
@@ -118,7 +119,8 @@ alune-platform/
 - **功能模块**: `src/features/<feature>/` - 按功能划分页面
 - **导航配置**: `src/config/navigation.ts` - 共享导航项
 - **认证前端**: `src/features/auth/` - 登录页、AuthProvider、token storage、受保护路由
-- **API client**: `packages/api-client/src/index.ts` - 当前是临时 health client，后续替换为 Orval 生成结果
+- **菜单权限**: `src/config/navigation.ts` - 根据 `/api/v1/auth/me` 返回的权限码过滤菜单
+- **API client**: `packages/api-client/src/index.ts` - 当前是临时手写 client（health、auth、current user permissions），后续替换为 Orval 生成结果
 - **Shared constants**: `packages/shared/src/index.ts` - 当前导出 `platformName`
 - **路径别名**: `@/*` -> `./src/*`
 
@@ -155,6 +157,7 @@ alune-platform/
 - **路径别名**: 前端 `@/*` 映射到 `./src/*`，在 tsconfig.app.json 和 vite.config.ts 中配置
 - **API 响应格式**: 所有端点返回 `ApiResponse[DataT]` 泛型模型
 - **认证状态**: token 存储在浏览器 `localStorage`；当前用户由 TanStack Query 请求 `/api/v1/auth/me`
+- **权限状态**: `/api/v1/auth/me` 返回 `permissions: string[]`；后端可用 `require_permission("permission:code")` 做操作权限校验
 
 ## 测试
 
@@ -172,4 +175,4 @@ alune-platform/
 
 ## 当前阶段边界
 
-已完成阶段 0、1、2、3、4 的最小 MVP。不包含：复杂权限、用户管理、部门管理、复杂业务模块。下一阶段建议：权限基础。
+已完成阶段 0、1、2、3、4、5 的最小 MVP。不包含：用户管理页面、角色管理页面、部门管理、复杂业务模块。下一阶段建议：内部系统底座。

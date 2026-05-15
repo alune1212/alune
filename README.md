@@ -178,12 +178,16 @@ pnpm test
 
 ## 当前阶段边界
 
-已完成阶段 0、阶段 1、阶段 2、阶段 3、阶段 4 的最小 MVP。当前包含登录 MVP，但不包含复杂权限、用户管理、部门管理和业务模块。下一阶段建议进入权限基础：roles、permissions、user_roles、role_permissions，以及最小后端权限校验依赖。
+已完成阶段 0、阶段 1、阶段 2、阶段 3、阶段 4、阶段 5 的最小 MVP。当前包含登录 MVP 和权限基础，但不包含用户管理页面、角色管理页面、部门管理和业务模块。下一阶段建议进入内部系统底座：用户管理、角色管理、部门管理、操作日志、登录日志、字典管理和文件附件基础。
 
 ## 当前数据库
 
 - `system_info` - 系统基础信息表，通过 Alembic migration 创建。
 - `users` - 登录 MVP 用户表，通过 Alembic migration 创建。
+- `roles` - 角色表，通过 Alembic migration 创建。
+- `permissions` - 菜单/操作权限表，通过 Alembic migration 创建。
+- `user_roles` - 用户角色关联表。
+- `role_permissions` - 角色权限关联表。
 
 ## 当前 API
 
@@ -192,4 +196,4 @@ pnpm test
 | GET | `/api/v1/health` | API 存活检查 |
 | GET | `/api/v1/health/db` | PostgreSQL 连接检查；数据库不可用时返回 503 |
 | POST | `/api/v1/auth/login` | OAuth2 password 登录，返回 JWT access token |
-| GET | `/api/v1/auth/me` | 根据 Bearer token 返回当前用户 |
+| GET | `/api/v1/auth/me` | 根据 Bearer token 返回当前用户和权限码 |

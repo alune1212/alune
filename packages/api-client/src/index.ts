@@ -24,6 +24,7 @@ export type UserPublic = {
   full_name: string | null;
   is_active: boolean;
   is_superuser: boolean;
+  permissions: string[];
 };
 
 export type LoginCredentials = {

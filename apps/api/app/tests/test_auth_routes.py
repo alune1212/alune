@@ -17,6 +17,13 @@ class FakeUserSession:
     async def scalar(self, _: object) -> User | None:
         return self.user
 
+    async def scalars(self, _: object):
+        class FakeScalarResult:
+            def all(self) -> list[str]:
+                return ["menu:dashboard", "action:dashboard:read"]
+
+        return FakeScalarResult()
+
 
 def build_active_user() -> User:
     return User(
@@ -97,3 +104,4 @@ async def test_me_returns_current_user_from_bearer_token() -> None:
     assert payload["success"] is True
     assert payload["data"]["username"] == "admin"
     assert payload["data"]["email"] == "admin@example.com"
+    assert payload["data"]["permissions"] == ["action:dashboard:read", "menu:dashboard"]

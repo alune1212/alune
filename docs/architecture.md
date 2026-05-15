@@ -1,6 +1,6 @@
 # Architecture
 
-`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation intentionally stops at the stage 0-4 MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, and a narrow login flow.
+`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation intentionally stops at the stage 0-5 MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, and the first RBAC baseline.
 
 ## Monorepo Layout
 
@@ -43,6 +43,7 @@ Important modules:
 - `app/modules/health/router.py` implements API and database health checks.
 - `app/modules/system/models.py` defines the `system_info` table model.
 - `app/modules/auth/` implements the login MVP: `users` model, password hashing, JWT creation, current-user dependency, and auth router.
+- `app/modules/permissions/` implements the RBAC baseline: roles, permissions, association tables, default permission registry, permission queries, and `require_permission`.
 - `alembic/` contains migration environment and versioned schema changes.
 
 ## Frontend
@@ -58,6 +59,7 @@ The app uses:
 - App shell layout in `src/components/layout/`.
 - Dashboard page in `src/features/dashboard/dashboard-page.tsx`.
 - Login page and auth provider in `src/features/auth/`.
+- Navigation permission filtering in `src/config/navigation.ts`.
 
 The dashboard and login flow call `@alune/api-client`. That package is still hand-written for the MVP and has a TODO to replace it with Orval-generated output from FastAPI `/openapi.json`.
 
@@ -75,6 +77,7 @@ flowchart LR
   DBCheck --> Postgres["PostgreSQL 18"]
   Login --> Postgres
   Me --> Postgres
+  Me --> Permissions["roles / permissions / links"]
   API --> Redis["Redis 8 (reserved for later modules)"]
   Alembic["Alembic upgrade head"] --> Postgres
 ```
@@ -100,7 +103,7 @@ PostgreSQL 18 stores data under a major-version-specific cluster directory. The 
 | GET | `/api/v1/health` | Confirm API process is alive. |
 | GET | `/api/v1/health/db` | Run `SELECT 1` through SQLAlchemy AsyncSession. Returns 503 if PostgreSQL is unavailable. |
 | POST | `/api/v1/auth/login` | OAuth2 password login. Returns a JWT access token. |
-| GET | `/api/v1/auth/me` | Returns the current active user from a Bearer token. |
+| GET | `/api/v1/auth/me` | Returns the current active user and permission codes from a Bearer token. |
 
 ## Current Database Schema
 
@@ -108,8 +111,12 @@ PostgreSQL 18 stores data under a major-version-specific cluster directory. The 
 | --- | --- |
 | `system_info` | Minimal baseline table for system metadata and migration verification. |
 | `users` | Login MVP user account table with password hash and active/superuser flags. |
+| `roles` | RBAC role definitions. |
+| `permissions` | Menu and action permission definitions. |
+| `user_roles` | User-to-role assignments. |
+| `role_permissions` | Role-to-permission assignments. |
 
 ## Not Implemented Yet
 
-- Roles, permissions, departments, approvals, reports, file attachments.
+- User/role management pages, departments, approvals, reports, file attachments.
 - Production reverse proxy or deployment topology.

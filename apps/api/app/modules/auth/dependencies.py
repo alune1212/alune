@@ -38,3 +38,6 @@ async def get_current_user(token: BearerToken, session: DatabaseSession) -> User
         raise credentials_exception()
 
     return user
+
+
+CurrentUser = Annotated[User, Depends(get_current_user)]
