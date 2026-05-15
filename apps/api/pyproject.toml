@@ -40,6 +40,9 @@ indent-style = "space"
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["app/tests"]
+filterwarnings = [
+  "ignore:Accessing argon2.__version__ is deprecated.*:DeprecationWarning:passlib.handlers.argon2"
+]
 
 [tool.ty]
 

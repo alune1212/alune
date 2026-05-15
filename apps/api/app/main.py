@@ -8,6 +8,7 @@ from app.core.config import get_settings
 from app.core.exceptions import register_exception_handlers
 from app.core.logging import configure_logging
 from app.db.session import dispose_engine
+from app.modules.auth.router import router as auth_router
 from app.modules.health.router import router as health_router
 
 
@@ -37,6 +38,7 @@ def create_app() -> FastAPI:
     )
 
     register_exception_handlers(application)
+    application.include_router(auth_router, prefix="/api/v1")
     application.include_router(health_router, prefix="/api/v1")
 
     return application

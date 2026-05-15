@@ -1,6 +1,6 @@
 # Architecture
 
-`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation intentionally stops at the stage 0-3 MVP: infrastructure, health checks, a dashboard shell, and the first Alembic-managed database table.
+`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation intentionally stops at the stage 0-4 MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, and a narrow login flow.
 
 ## Monorepo Layout
 
@@ -42,6 +42,7 @@ Important modules:
 - `app/common/response.py` defines the generic `ApiResponse[DataT]` envelope.
 - `app/modules/health/router.py` implements API and database health checks.
 - `app/modules/system/models.py` defines the `system_info` table model.
+- `app/modules/auth/` implements the login MVP: `users` model, password hashing, JWT creation, current-user dependency, and auth router.
 - `alembic/` contains migration environment and versioned schema changes.
 
 ## Frontend
@@ -56,8 +57,9 @@ The app uses:
 - shadcn/ui-compatible primitives in `src/components/ui/`.
 - App shell layout in `src/components/layout/`.
 - Dashboard page in `src/features/dashboard/dashboard-page.tsx`.
+- Login page and auth provider in `src/features/auth/`.
 
-The dashboard calls `fetchHealthStatus` from `@alune/api-client`. That package is still hand-written for the MVP and has a TODO to replace it with Orval-generated output from FastAPI `/openapi.json`.
+The dashboard and login flow call `@alune/api-client`. That package is still hand-written for the MVP and has a TODO to replace it with Orval-generated output from FastAPI `/openapi.json`.
 
 ## Runtime Data Flow
 
@@ -65,9 +67,14 @@ The dashboard calls `fetchHealthStatus` from `@alune/api-client`. That package i
 flowchart LR
   Browser["Browser"] --> Web["Vite dev server or Nginx static web"]
   Web --> HealthClient["@alune/api-client fetchHealthStatus"]
+  Web --> AuthClient["@alune/api-client loginWithPassword / fetchCurrentUser"]
   HealthClient --> API["FastAPI /api/v1/health"]
+  AuthClient --> Login["/api/v1/auth/login"]
+  AuthClient --> Me["/api/v1/auth/me"]
   API --> DBCheck["/api/v1/health/db"]
   DBCheck --> Postgres["PostgreSQL 18"]
+  Login --> Postgres
+  Me --> Postgres
   API --> Redis["Redis 8 (reserved for later modules)"]
   Alembic["Alembic upgrade head"] --> Postgres
 ```
@@ -92,15 +99,17 @@ PostgreSQL 18 stores data under a major-version-specific cluster directory. The 
 | --- | --- | --- |
 | GET | `/api/v1/health` | Confirm API process is alive. |
 | GET | `/api/v1/health/db` | Run `SELECT 1` through SQLAlchemy AsyncSession. Returns 503 if PostgreSQL is unavailable. |
+| POST | `/api/v1/auth/login` | OAuth2 password login. Returns a JWT access token. |
+| GET | `/api/v1/auth/me` | Returns the current active user from a Bearer token. |
 
 ## Current Database Schema
 
 | Table | Purpose |
 | --- | --- |
 | `system_info` | Minimal baseline table for system metadata and migration verification. |
+| `users` | Login MVP user account table with password hash and active/superuser flags. |
 
 ## Not Implemented Yet
 
-- Login and JWT issuance endpoints.
-- Users, roles, permissions, departments, approvals, reports, file attachments.
+- Roles, permissions, departments, approvals, reports, file attachments.
 - Production reverse proxy or deployment topology.

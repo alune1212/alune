@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## 项目概述
 
-alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis 本地依赖和 Alembic 数据库迁移基线。
+alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线和登录 MVP。
 
 ## Quick Start
 
@@ -43,6 +43,7 @@ pnpm docker:app   # 启动完整 Docker 栈（含 API 和 Web）
 pnpm docker:down  # 停止所有 Docker 服务
 pnpm docker:logs  # 查看 Docker 服务日志
 pnpm db:upgrade   # 执行 Alembic upgrade head
+pnpm db:seed      # 创建本地管理员，需要 FIRST_SUPERUSER_PASSWORD
 ```
 
 ### 后端（apps/api）
@@ -58,6 +59,7 @@ uv run ruff format .             # Ruff format
 uv run ty check                  # 类型检查
 uv run alembic upgrade head      # 执行数据库迁移
 uv run alembic revision --autogenerate -m "message"  # 生成迁移
+FIRST_SUPERUSER_PASSWORD=change-this-password uv run python -m app.modules.auth.seed
 ```
 
 ### 前端（apps/web）
@@ -99,7 +101,9 @@ alune-platform/
 - **入口**: `app/main.py` - 使用 lifespan 管理引擎生命周期
 - **配置**: `app/core/config.py` - pydantic-settings，支持 `.env` 文件
 - **数据库**: `app/db/session.py` - asyncpg 驱动，`get_db_session` 依赖注入
-- **迁移**: `alembic/` + `alembic.ini` - 当前首个迁移创建 `system_info`
+- **迁移**: `alembic/` + `alembic.ini` - 迁移创建 `system_info` 和 `users` 表
+- **基类**: `app/db/base.py` - `Base` + `TimestampMixin`（`created_at`/`updated_at`）
+- **认证**: `app/modules/auth/` - 用户表、密码哈希、JWT 登录、当前用户依赖
 - **模块化**: `app/modules/<feature>/router.py` - 每个功能模块独立路由
 - **统一响应**: `app/common/response.py` - `ApiResponse[DataT]` 泛型模型
 - **异常处理**: `app/core/exceptions.py` - 全局异常处理器
@@ -113,6 +117,7 @@ alune-platform/
 - **布局**: `src/components/layout/` - AppShell > Sidebar + Topbar
 - **功能模块**: `src/features/<feature>/` - 按功能划分页面
 - **导航配置**: `src/config/navigation.ts` - 共享导航项
+- **认证前端**: `src/features/auth/` - 登录页、AuthProvider、token storage、受保护路由
 - **API client**: `packages/api-client/src/index.ts` - 当前是临时 health client，后续替换为 Orval 生成结果
 - **Shared constants**: `packages/shared/src/index.ts` - 当前导出 `platformName`
 - **路径别名**: `@/*` -> `./src/*`
@@ -149,6 +154,7 @@ alune-platform/
 - **数据库建表**: 生产 schema 变更必须走 Alembic migration，不使用 `create_all`
 - **路径别名**: 前端 `@/*` 映射到 `./src/*`，在 tsconfig.app.json 和 vite.config.ts 中配置
 - **API 响应格式**: 所有端点返回 `ApiResponse[DataT]` 泛型模型
+- **认证状态**: token 存储在浏览器 `localStorage`；当前用户由 TanStack Query 请求 `/api/v1/auth/me`
 
 ## 测试
 
@@ -166,4 +172,4 @@ alune-platform/
 
 ## 当前阶段边界
 
-已完成阶段 0、1、2、3 的最小 MVP。不包含：登录、权限、用户管理、复杂业务模块。下一阶段建议：登录 MVP。
+已完成阶段 0、1、2、3、4 的最小 MVP。不包含：复杂权限、用户管理、部门管理、复杂业务模块。下一阶段建议：权限基础。

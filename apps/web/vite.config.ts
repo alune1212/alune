@@ -11,6 +11,20 @@ export default defineConfig({
     }
   },
   test: {
-    environment: "jsdom"
+    environment: "jsdom",
+    environmentOptions: {
+      jsdom: {
+        url: "http://localhost:5173"
+      }
+    }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          tanstack: ["@tanstack/react-query", "@tanstack/react-router"]
+        }
+      }
+    }
   }
 });

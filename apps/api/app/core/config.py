@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     jwt_secret_key: str = "please-change-me"
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
+    first_superuser_username: str = "admin"
+    first_superuser_email: str = "admin@example.com"
+    first_superuser_password: str | None = None
 
     @field_validator("api_cors_origins", mode="before")
     @classmethod
@@ -41,7 +44,7 @@ class Settings(BaseSettings):
         if not isinstance(parsed_value, list):
             msg = "API_CORS_ORIGINS JSON value must be a list"
             raise ValueError(msg)
-        return [s for origin in parsed_value if (s := str(origin).strip())]
+        return [str(origin).strip() for origin in parsed_value if str(origin).strip()]
 
 
 @lru_cache

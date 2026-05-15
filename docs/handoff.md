@@ -11,6 +11,7 @@
 - Added Dockerfiles for API and Web images.
 - Added Nginx config for serving the frontend SPA.
 - Added Alembic migration environment and the first `system_info` table migration.
+- Added login MVP with `users` migration, password hashing, JWT login, current-user API, frontend login page, and protected dashboard route.
 - Verified Docker dependency services with PostgreSQL and Redis healthy.
 - Verified `/api/v1/health/db` returns 200 when the API can reach Docker PostgreSQL.
 
@@ -24,6 +25,7 @@ docker compose exec -T postgres pg_isready -U app -d company_admin
 docker compose exec -T redis redis-cli ping
 docker compose --profile app build api web
 UV_CACHE_DIR=.uv-cache pnpm db:upgrade
+FIRST_SUPERUSER_PASSWORD=change-this-password UV_CACHE_DIR=.uv-cache pnpm db:seed
 UV_CACHE_DIR=.uv-cache pnpm lint
 UV_CACHE_DIR=.uv-cache pnpm typecheck
 UV_CACHE_DIR=.uv-cache pnpm test
@@ -50,12 +52,11 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 
 ## Recommended Next Phase
 
-Stage 4 should add the login MVP:
+Stage 5 should add the permission baseline:
 
-- Add a `users` table through Alembic.
-- Add password hashing.
-- Add login and current-user API endpoints.
-- Add JWT access tokens.
-- Add frontend login page and protected routes.
+- Add `roles`, `permissions`, `user_roles`, and `role_permissions`.
+- Add backend permission-check dependencies.
+- Add menu/action permission conventions.
+- Render frontend navigation from permission data.
 
-Do not start RBAC, department management, approval flows, or business modules before the login MVP is in place.
+Do not start department management, approval flows, or business modules before the permission baseline is in place.

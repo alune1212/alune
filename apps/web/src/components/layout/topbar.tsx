@@ -1,5 +1,5 @@
-import { Link } from "@tanstack/react-router";
-import { Menu, Settings, UserCircle } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { LogOut, Menu, UserCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { navigationItems } from "@/config/navigation";
+import { useAuth } from "@/features/auth/auth-provider";
 import { platformName } from "@alune/shared";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
@@ -37,6 +38,14 @@ function MobileNavigation() {
 }
 
 export function Topbar() {
+  const auth = useAuth();
+  const navigate = useNavigate();
+
+  function handleLogout() {
+    auth.logout();
+    navigate({ to: "/login" });
+  }
+
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6 lg:px-8">
       <div className="flex items-center gap-3">
@@ -70,11 +79,11 @@ export function Topbar() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuLabel>Admin</DropdownMenuLabel>
+            <DropdownMenuLabel>{auth.user?.username ?? "Account"}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Settings className="size-4" />
-              Settings
+            <DropdownMenuItem onSelect={handleLogout}>
+              <LogOut className="size-4" />
+              Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

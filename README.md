@@ -80,6 +80,12 @@ pnpm docker:deps
 pnpm db:upgrade
 ```
 
+创建本地管理员：
+
+```bash
+FIRST_SUPERUSER_PASSWORD=change-this-password pnpm db:seed
+```
+
 使用 Docker 启动完整 MVP 栈：
 
 ```bash
@@ -140,6 +146,7 @@ pnpm docker:down
 pnpm docker:logs
 pnpm db:upgrade
 pnpm db:revision
+pnpm db:seed
 ```
 
 后端：
@@ -150,6 +157,7 @@ uv run pytest
 uv run ruff check .
 uv run ty check
 uv run alembic upgrade head
+FIRST_SUPERUSER_PASSWORD=change-this-password uv run python -m app.modules.auth.seed
 ```
 
 前端：
@@ -170,11 +178,12 @@ pnpm test
 
 ## 当前阶段边界
 
-已完成阶段 0、阶段 1、阶段 2、阶段 3 的最小 MVP。当前不包含登录、权限、用户管理和复杂业务模块。下一阶段建议进入登录 MVP：用户表、密码哈希、登录接口、当前用户接口和前端登录页。
+已完成阶段 0、阶段 1、阶段 2、阶段 3、阶段 4 的最小 MVP。当前包含登录 MVP，但不包含复杂权限、用户管理、部门管理和业务模块。下一阶段建议进入权限基础：roles、permissions、user_roles、role_permissions，以及最小后端权限校验依赖。
 
 ## 当前数据库
 
 - `system_info` - 系统基础信息表，通过 Alembic migration 创建。
+- `users` - 登录 MVP 用户表，通过 Alembic migration 创建。
 
 ## 当前 API
 
@@ -182,3 +191,5 @@ pnpm test
 | --- | --- | --- |
 | GET | `/api/v1/health` | API 存活检查 |
 | GET | `/api/v1/health/db` | PostgreSQL 连接检查；数据库不可用时返回 503 |
+| POST | `/api/v1/auth/login` | OAuth2 password 登录，返回 JWT access token |
+| GET | `/api/v1/auth/me` | 根据 Bearer token 返回当前用户 |

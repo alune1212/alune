@@ -12,8 +12,9 @@ Project guidance for Codex and other AI agents working in this repository.
 - PostgreSQL 18 and Redis 8 through Docker Compose.
 - API/Web Docker images for a complete MVP stack.
 - Alembic migration baseline with the `system_info` table.
+- Login MVP with `users`, password hashing, JWT login, `/auth/me`, frontend login, and a protected dashboard.
 
-Do not add login, RBAC, user management, approval flows, reports, or business modules unless the user explicitly asks for the next phase.
+Do not add RBAC, user management pages, approval flows, reports, or business modules unless the user explicitly asks for the next phase.
 
 ## Key Commands
 
@@ -43,6 +44,7 @@ pnpm docker:app
 pnpm docker:logs
 pnpm docker:down
 pnpm db:upgrade
+FIRST_SUPERUSER_PASSWORD=change-this-password pnpm db:seed
 ```
 
 If ports 8000 or 5173 are already occupied:
@@ -58,21 +60,25 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 - Implemented API routes:
   - `GET /api/v1/health`
   - `GET /api/v1/health/db`
+  - `POST /api/v1/auth/login`
+  - `GET /api/v1/auth/me`
 - Backend settings live in `apps/api/app/core/config.py`.
 - Async SQLAlchemy engine/session lives in `apps/api/app/db/session.py`.
 - Alembic config lives in `apps/api/alembic.ini` and `apps/api/alembic/`.
 - Current database table: `system_info`.
+- Current auth table: `users`.
 - Frontend entry: `apps/web/src/app/main.tsx`.
 - TanStack Router setup: `apps/web/src/app/router.tsx` and `apps/web/src/routes/`.
 - App shell: `apps/web/src/components/layout/`.
 - Dashboard page: `apps/web/src/features/dashboard/dashboard-page.tsx`.
+- Login page and auth provider: `apps/web/src/features/auth/`.
 - Navigation config: `apps/web/src/config/navigation.ts`.
 - Temporary hand-written API client: `packages/api-client/src/index.ts`; keep the TODO to replace it with Orval-generated code later.
 - Shared constants: `packages/shared/src/index.ts`.
 
 ## Guardrails
 
-- Keep stage 0-3 minimal. Avoid over-abstracting before real business modules exist.
+- Keep stage 0-4 minimal. Avoid over-abstracting before real business modules exist.
 - Use TanStack Query for server state and Zustand only for UI state.
 - Keep shadcn/ui-compatible primitives under `apps/web/src/components/ui/`.
 - Keep backend modules under `apps/api/app/modules/<feature>/`.

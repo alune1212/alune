@@ -17,6 +17,7 @@
     "db:upgrade": "pnpm --filter @alune/api db:upgrade",
     "db:downgrade": "pnpm --filter @alune/api db:downgrade",
     "db:revision": "pnpm --filter @alune/api db:revision",
+    "db:seed": "pnpm --filter @alune/api db:seed",
     "lint": "turbo run lint",
     "format": "turbo run format",
     "typecheck": "turbo run typecheck",

@@ -11,6 +11,7 @@
     "test": "uv run pytest",
     "db:upgrade": "uv run alembic upgrade head",
     "db:downgrade": "uv run alembic downgrade -1",
-    "db:revision": "uv run alembic revision --autogenerate"
+    "db:revision": "uv run alembic revision --autogenerate",
+    "db:seed": "uv run python -m app.modules.auth.seed"
   }
 }
