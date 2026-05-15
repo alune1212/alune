@@ -10,6 +10,7 @@
 - Added Docker Compose for PostgreSQL 18, Redis 8, API, and Web.
 - Added Dockerfiles for API and Web images.
 - Added Nginx config for serving the frontend SPA.
+- Added Alembic migration environment and the first `system_info` table migration.
 - Verified Docker dependency services with PostgreSQL and Redis healthy.
 - Verified `/api/v1/health/db` returns 200 when the API can reach Docker PostgreSQL.
 
@@ -22,6 +23,7 @@ docker compose up -d postgres redis
 docker compose exec -T postgres pg_isready -U app -d company_admin
 docker compose exec -T redis redis-cli ping
 docker compose --profile app build api web
+UV_CACHE_DIR=.uv-cache pnpm db:upgrade
 UV_CACHE_DIR=.uv-cache pnpm lint
 UV_CACHE_DIR=.uv-cache pnpm typecheck
 UV_CACHE_DIR=.uv-cache pnpm test
@@ -48,11 +50,12 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 
 ## Recommended Next Phase
 
-Stage 3 should add Alembic:
+Stage 4 should add the login MVP:
 
-- Add `apps/api/alembic.ini` and migration environment.
-- Create the first base table, preferably `system_info`.
-- Verify `uv run alembic upgrade head`.
-- Document migration commands in `docs/runbook.md`.
+- Add a `users` table through Alembic.
+- Add password hashing.
+- Add login and current-user API endpoints.
+- Add JWT access tokens.
+- Add frontend login page and protected routes.
 
-Do not start login, RBAC, user management, or business modules before the migration baseline is in place.
+Do not start RBAC, department management, approval flows, or business modules before the login MVP is in place.

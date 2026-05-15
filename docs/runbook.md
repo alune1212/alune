@@ -38,6 +38,28 @@ docker compose exec -T postgres pg_isready -U app -d company_admin
 docker compose exec -T redis redis-cli ping
 ```
 
+## Run Database Migrations
+
+```bash
+pnpm db:upgrade
+```
+
+Equivalent backend command:
+
+```bash
+cd apps/api
+uv run alembic upgrade head
+```
+
+Create future migrations with:
+
+```bash
+cd apps/api
+uv run alembic revision --autogenerate -m "describe change"
+```
+
+Do not use `Base.metadata.create_all()` for production schema changes.
+
 ## Start Local Development Servers
 
 Backend:
@@ -84,6 +106,7 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 curl -s http://localhost:8000/api/v1/health
 curl -s http://localhost:8000/api/v1/health/db
 curl -s http://localhost:8000/docs
+docker compose exec -T postgres psql -U app -d company_admin -c "\\dt"
 ```
 
 Expected DB health success:
@@ -101,6 +124,7 @@ UV_CACHE_DIR=.uv-cache pnpm test
 pnpm build
 docker compose config
 docker compose --profile app config
+pnpm db:upgrade
 ```
 
 `UV_CACHE_DIR=.uv-cache` keeps uv cache writes inside the workspace when running from constrained agent environments.

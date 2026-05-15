@@ -8,6 +8,9 @@
     "format": "uv run ruff format .",
     "format:check": "uv run ruff format . --check",
     "typecheck": "uv run ty check",
-    "test": "uv run pytest"
+    "test": "uv run pytest",
+    "db:upgrade": "uv run alembic upgrade head",
+    "db:downgrade": "uv run alembic downgrade -1",
+    "db:revision": "uv run alembic revision --autogenerate"
   }
 }

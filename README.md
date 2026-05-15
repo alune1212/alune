@@ -5,7 +5,7 @@
 ## 技术栈
 
 - 前端：React 19、TypeScript、Vite、Tailwind CSS v4、shadcn/ui、Radix UI、TanStack Router、TanStack Query、Zustand、Sonner。
-- 后端：Python 3.14、uv、FastAPI、Pydantic v2、pydantic-settings、SQLAlchemy 2.0 Async、asyncpg、Ruff、ty、pytest。
+- 后端：Python 3.14、uv、FastAPI、Pydantic v2、pydantic-settings、SQLAlchemy 2.0 Async、asyncpg、Alembic、Ruff、ty、pytest。
 - 工程化：pnpm workspace、Turborepo、Docker Compose。
 
 ## 目录结构
@@ -74,6 +74,12 @@ docker compose up -d postgres redis
 pnpm docker:deps
 ```
 
+执行数据库迁移：
+
+```bash
+pnpm db:upgrade
+```
+
 使用 Docker 启动完整 MVP 栈：
 
 ```bash
@@ -132,6 +138,8 @@ pnpm docker:deps
 pnpm docker:app
 pnpm docker:down
 pnpm docker:logs
+pnpm db:upgrade
+pnpm db:revision
 ```
 
 后端：
@@ -141,6 +149,7 @@ cd apps/api
 uv run pytest
 uv run ruff check .
 uv run ty check
+uv run alembic upgrade head
 ```
 
 前端：
@@ -161,7 +170,11 @@ pnpm test
 
 ## 当前阶段边界
 
-已完成阶段 0、阶段 1、阶段 2 的最小 MVP。当前不包含登录、权限、用户管理、复杂业务模块和 Alembic migration。下一阶段建议进入数据库迁移：添加 Alembic，并创建第一张基础表。
+已完成阶段 0、阶段 1、阶段 2、阶段 3 的最小 MVP。当前不包含登录、权限、用户管理和复杂业务模块。下一阶段建议进入登录 MVP：用户表、密码哈希、登录接口、当前用户接口和前端登录页。
+
+## 当前数据库
+
+- `system_info` - 系统基础信息表，通过 Alembic migration 创建。
 
 ## 当前 API
 

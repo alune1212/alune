@@ -1,6 +1,6 @@
 # Architecture
 
-`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation intentionally stops at the stage 0-2 MVP: infrastructure, health checks, and a dashboard shell.
+`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation intentionally stops at the stage 0-3 MVP: infrastructure, health checks, a dashboard shell, and the first Alembic-managed database table.
 
 ## Monorepo Layout
 
@@ -38,8 +38,11 @@ Important modules:
 
 - `app/core/config.py` reads environment variables with `pydantic-settings`.
 - `app/db/session.py` creates an async SQLAlchemy engine with `asyncpg`.
+- `app/db/base.py` defines SQLAlchemy declarative metadata for Alembic.
 - `app/common/response.py` defines the generic `ApiResponse[DataT]` envelope.
 - `app/modules/health/router.py` implements API and database health checks.
+- `app/modules/system/models.py` defines the `system_info` table model.
+- `alembic/` contains migration environment and versioned schema changes.
 
 ## Frontend
 
@@ -66,6 +69,7 @@ flowchart LR
   API --> DBCheck["/api/v1/health/db"]
   DBCheck --> Postgres["PostgreSQL 18"]
   API --> Redis["Redis 8 (reserved for later modules)"]
+  Alembic["Alembic upgrade head"] --> Postgres
 ```
 
 ## Docker Topology
@@ -89,9 +93,14 @@ PostgreSQL 18 stores data under a major-version-specific cluster directory. The 
 | GET | `/api/v1/health` | Confirm API process is alive. |
 | GET | `/api/v1/health/db` | Run `SELECT 1` through SQLAlchemy AsyncSession. Returns 503 if PostgreSQL is unavailable. |
 
+## Current Database Schema
+
+| Table | Purpose |
+| --- | --- |
+| `system_info` | Minimal baseline table for system metadata and migration verification. |
+
 ## Not Implemented Yet
 
-- Alembic migrations.
 - Login and JWT issuance endpoints.
 - Users, roles, permissions, departments, approvals, reports, file attachments.
 - Production reverse proxy or deployment topology.

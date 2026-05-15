@@ -29,19 +29,19 @@ class Settings(BaseSettings):
     @field_validator("api_cors_origins", mode="before")
     @classmethod
     def parse_cors_origins(cls, value: Any) -> list[str]:
-        if isinstance(value, str):
-            raw_value = value.strip()
-            if raw_value.startswith("["):
-                parsed_value = json.loads(raw_value)
-                if not isinstance(parsed_value, list):
-                    msg = "API_CORS_ORIGINS JSON value must be a list"
-                    raise ValueError(msg)
-                return [str(origin).strip() for origin in parsed_value if str(origin).strip()]
-            return [origin.strip() for origin in raw_value.split(",") if origin.strip()]
         if isinstance(value, list):
             return value
-        msg = "API_CORS_ORIGINS must be a comma-separated string or list"
-        raise ValueError(msg)
+        if not isinstance(value, str):
+            msg = "API_CORS_ORIGINS must be a comma-separated string or list"
+            raise ValueError(msg)
+        raw_value = value.strip()
+        if not raw_value.startswith("["):
+            return [origin.strip() for origin in raw_value.split(",") if origin.strip()]
+        parsed_value = json.loads(raw_value)
+        if not isinstance(parsed_value, list):
+            msg = "API_CORS_ORIGINS JSON value must be a list"
+            raise ValueError(msg)
+        return [s for origin in parsed_value if (s := str(origin).strip())]
 
 
 @lru_cache
