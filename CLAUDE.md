@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working with code in this repository. Codex and other agents should also read `AGENTS.md`.
 
 ## 项目概述
 
@@ -22,6 +22,12 @@ pnpm dev
 
 访问：前端 http://localhost:5173 | 后端 http://localhost:8000/docs
 
+如果 8000 或 5173 已被本机开发服务占用，完整 Docker 栈可以换端口：
+
+```bash
+API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker compose --profile app up --build
+```
+
 ## 常用命令
 
 ### 根目录（统一调度）
@@ -35,6 +41,7 @@ pnpm typecheck    # 运行所有类型检查
 pnpm docker:deps  # 启动 PostgreSQL 和 Redis
 pnpm docker:app   # 启动完整 Docker 栈（含 API 和 Web）
 pnpm docker:down  # 停止所有 Docker 服务
+pnpm docker:logs  # 查看 Docker 服务日志
 ```
 
 ### 后端（apps/api）
@@ -77,7 +84,9 @@ alune-platform/
 │   └── tsconfig/     # TypeScript 配置
 ├── infra/
 │   ├── docker/       # Dockerfile
-│   └── nginx/        # Nginx 配置
+│   ├── nginx/        # Nginx 配置
+│   └── postgres/     # PostgreSQL Docker notes
+├── docs/             # 面向接手者的架构、运维和交接文档
 └── docker-compose.yml
 ```
 
@@ -100,6 +109,8 @@ alune-platform/
 - **布局**: `src/components/layout/` - AppShell > Sidebar + Topbar
 - **功能模块**: `src/features/<feature>/` - 按功能划分页面
 - **导航配置**: `src/config/navigation.ts` - 共享导航项
+- **API client**: `packages/api-client/src/index.ts` - 当前是临时 health client，后续替换为 Orval 生成结果
+- **Shared constants**: `packages/shared/src/index.ts` - 当前导出 `platformName`
 - **路径别名**: `@/*` -> `./src/*`
 
 ### Docker Compose 服务
@@ -108,6 +119,7 @@ alune-platform/
 - **redis**: Redis 8，端口 6379
 - **api**: FastAPI 应用，端口 8000（profile: app）
 - **web**: Nginx 静态服务，端口 5173（profile: app）
+- PostgreSQL 18 volume 必须挂载到 `/var/lib/postgresql`，不要改回 `/var/lib/postgresql/data`
 
 ## 环境变量
 
@@ -138,6 +150,14 @@ alune-platform/
 - **后端**: pytest + pytest-asyncio，测试在 `app/tests/`
 - **前端**: Vitest + Testing Library，测试文件 `*.test.ts` / `*.test.tsx`
 - **API 测试**: 使用 httpx AsyncClient + ASGITransport
+
+## 文档同步
+
+- `README.md`：新人快速启动。
+- `docs/architecture.md`：架构、数据流、API surface。
+- `docs/runbook.md`：本地运行、Docker、冒烟检查和排障。
+- `docs/handoff.md`：当前阶段完成情况和下一阶段。
+- `AGENTS.md`：Codex/其他 agent 项目约定。
 
 ## 当前阶段边界
 

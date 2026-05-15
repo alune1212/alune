@@ -20,6 +20,10 @@ alune-platform/
 │   ├── eslint-config/
 │   ├── shared/
 │   └── tsconfig/
+├── docs/
+│   ├── architecture.md
+│   ├── handoff.md
+│   └── runbook.md
 ├── infra/
 │   ├── docker/
 │   ├── nginx/
@@ -30,6 +34,12 @@ alune-platform/
 ├── pnpm-workspace.yaml
 └── turbo.json
 ```
+
+## 文档
+
+- [Architecture](docs/architecture.md) - 当前架构、数据流和 API surface。
+- [Runbook](docs/runbook.md) - 本地启动、Docker、冒烟检查和排障。
+- [Handoff](docs/handoff.md) - 当前完成状态、已验证命令和下一阶段建议。
 
 ## 本地启动
 
@@ -121,6 +131,7 @@ pnpm build
 pnpm docker:deps
 pnpm docker:app
 pnpm docker:down
+pnpm docker:logs
 ```
 
 后端：
@@ -151,3 +162,10 @@ pnpm test
 ## 当前阶段边界
 
 已完成阶段 0、阶段 1、阶段 2 的最小 MVP。当前不包含登录、权限、用户管理、复杂业务模块和 Alembic migration。下一阶段建议进入数据库迁移：添加 Alembic，并创建第一张基础表。
+
+## 当前 API
+
+| Method | Path | 说明 |
+| --- | --- | --- |
+| GET | `/api/v1/health` | API 存活检查 |
+| GET | `/api/v1/health/db` | PostgreSQL 连接检查；数据库不可用时返回 503 |

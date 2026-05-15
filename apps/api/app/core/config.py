@@ -1,8 +1,9 @@
+import json
 from functools import lru_cache
-from typing import Any
+from typing import Annotated, Any
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -18,7 +19,9 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     api_host: str = "0.0.0.0"
     api_port: int = 8000
-    api_cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
+    api_cors_origins: Annotated[list[str], NoDecode] = Field(
+        default_factory=lambda: ["http://localhost:5173"],
+    )
     jwt_secret_key: str = "please-change-me"
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
@@ -27,7 +30,14 @@ class Settings(BaseSettings):
     @classmethod
     def parse_cors_origins(cls, value: Any) -> list[str]:
         if isinstance(value, str):
-            return [origin.strip() for origin in value.split(",") if origin.strip()]
+            raw_value = value.strip()
+            if raw_value.startswith("["):
+                parsed_value = json.loads(raw_value)
+                if not isinstance(parsed_value, list):
+                    msg = "API_CORS_ORIGINS JSON value must be a list"
+                    raise ValueError(msg)
+                return [str(origin).strip() for origin in parsed_value if str(origin).strip()]
+            return [origin.strip() for origin in raw_value.split(",") if origin.strip()]
         if isinstance(value, list):
             return value
         msg = "API_CORS_ORIGINS must be a comma-separated string or list"
