@@ -6,6 +6,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL 和 Redis 本地依赖。
 
+## Quick Start
+
+```bash
+# 1. 安装依赖
+pnpm install
+cd apps/api && uv sync && cd ../..
+
+# 2. 启动数据库
+pnpm docker:deps
+
+# 3. 启动开发服务器
+pnpm dev
+```
+
+访问：前端 http://localhost:5173 | 后端 http://localhost:8000/docs
+
 ## 常用命令
 
 ### 根目录（统一调度）
@@ -109,6 +125,13 @@ alune-platform/
 - **TypeScript/React**: 2 空格缩进，ESLint，严格模式
 - **提交信息**: 使用中文
 - **通用**: LF 换行符，UTF-8 编码，尾随空格自动移除（.editorconfig）
+
+## 关键模式
+
+- **Settings 单例**: `get_settings()` 使用 `@lru_cache` 缓存，全局单例
+- **数据库连接池**: `pool_pre_ping=True` 每次连接前检测可用性，避免使用失效连接
+- **路径别名**: 前端 `@/*` 映射到 `./src/*`，在 tsconfig.app.json 和 vite.config.ts 中配置
+- **API 响应格式**: 所有端点返回 `ApiResponse[DataT]` 泛型模型
 
 ## 测试
 
