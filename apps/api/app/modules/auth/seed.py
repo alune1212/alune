@@ -8,7 +8,7 @@ from app.db.session import AsyncSessionLocal, dispose_engine
 from app.modules.auth.models import User
 from app.modules.auth.repository import get_user_by_username
 from app.modules.auth.security import get_password_hash
-from app.modules.permissions.models import Role
+from app.modules.permissions.models import Permission, Role
 from app.modules.permissions.registry import ADMIN_ROLE_CODE, ADMIN_ROLE_NAME, DEFAULT_PERMISSIONS
 from app.modules.permissions.repository import (
     get_permission_by_code,
