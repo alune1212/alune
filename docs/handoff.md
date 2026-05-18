@@ -15,6 +15,7 @@
 - Added permission baseline with `roles`, `permissions`, `user_roles`, `role_permissions`, default permission seed data, backend `require_permission`, and frontend menu filtering from `/auth/me`.
 - Added stage 6A internal system foundation: user list API/page, role list API/page, department list/create API and page, plus database models for operation logs, login logs, dictionaries, and file attachments.
 - Added stage 6B internal system depth: user create/enable/disable, role permission assignment, department update/delete rules, login/operation log reads and writes, dictionary type/item APIs/pages, and file metadata APIs/pages.
+- Added stage 6C internal system hardening: local file binary upload/download, user role assignment API/page controls, department tree API/page view with recursive move guard, and search/pagination for users, departments, and file attachments.
 - Verified Docker dependency services with PostgreSQL and Redis healthy.
 - Verified `/api/v1/health/db` returns 200 when the API can reach Docker PostgreSQL.
 
@@ -34,6 +35,7 @@ UV_CACHE_DIR=.uv-cache pnpm typecheck
 UV_CACHE_DIR=.uv-cache pnpm test
 pnpm build
 UV_CACHE_DIR=.uv-cache uv run alembic check
+pnpm --filter @alune/web typecheck
 ```
 
 ## Current Services
@@ -56,12 +58,12 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 
 ## Recommended Next Phase
 
-Stage 6C should harden the internal system foundation:
+Stage 6D should continue hardening the internal system foundation:
 
-- Add real file binary upload/download backed by local storage first, then MinIO later.
-- Add department tree display and safer recursive move/delete checks.
-- Add user role assignment UI.
-- Add pagination and search for management tables.
-- Add operation log coverage to more write endpoints.
+- Add file type/size policy and optional antivirus scanning hooks before external file sharing.
+- Add user edit forms for profile fields, department assignment, and password reset.
+- Add dictionary item update/enable-disable/delete flows.
+- Add audit log pagination/search filters.
+- Add MinIO/object storage adapter once local file behavior is stable.
 
 Do not start approval flows, payroll, reports, or company-specific business modules before the internal system foundation is in place.

@@ -10,10 +10,35 @@ import { useAuth } from "@/features/auth/auth-provider";
 import {
   createDepartment,
   deleteDepartment,
+  fetchDepartmentTree,
   fetchDepartments,
   updateDepartment,
+  type DepartmentTreeNode,
   type DepartmentPublic
 } from "@alune/api-client";
+
+function DepartmentTree({ nodes, depth = 0 }: { nodes: DepartmentTreeNode[]; depth?: number }) {
+  if (nodes.length === 0) {
+    return <p className="text-sm text-slate-500">No departments found.</p>;
+  }
+
+  return (
+    <div className="space-y-2">
+      {nodes.map((node) => (
+        <div key={node.id}>
+          <div
+            className="flex items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+            style={{ marginLeft: depth * 16 }}
+          >
+            <span className="font-medium text-slate-950">{node.name}</span>
+            <span className="text-slate-500">{node.code}</span>
+          </div>
+          {node.children.length > 0 ? <DepartmentTree nodes={node.children} depth={depth + 1} /> : null}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export function DepartmentsPage() {
   const auth = useAuth();
@@ -21,9 +46,16 @@ export function DepartmentsPage() {
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const departmentsQuery = useQuery({
-    queryKey: ["internal", "departments"],
-    queryFn: () => fetchDepartments(auth.token!),
+    queryKey: ["internal", "departments", search, page],
+    queryFn: () => fetchDepartments(auth.token!, { q: search || undefined, page, pageSize: 10 }),
+    enabled: auth.token !== null
+  });
+  const departmentTreeQuery = useQuery({
+    queryKey: ["internal", "departments", "tree"],
+    queryFn: () => fetchDepartmentTree(auth.token!),
     enabled: auth.token !== null
   });
   const createMutation = useMutation({
@@ -50,7 +82,12 @@ export function DepartmentsPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "departments"] })
   });
 
-  const departments = departmentsQuery.data?.data ?? [];
+  const departmentsPage = departmentsQuery.data?.data;
+  const departments = departmentsPage?.items ?? [];
+  const totalPages = departmentsPage
+    ? Math.max(1, Math.ceil(departmentsPage.total / departmentsPage.page_size))
+    : 1;
+  const departmentTree = departmentTreeQuery.data?.data ?? [];
   const departmentColumns = useMemo<ColumnDef<DepartmentPublic>[]>(
     () => [
       {
@@ -127,10 +164,45 @@ export function DepartmentsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Department list</CardTitle>
-          <CardDescription>{departments.length} departments</CardDescription>
+          <CardTitle>Department tree</CardTitle>
+          <CardDescription>Nested view for parent and child departments.</CardDescription>
         </CardHeader>
         <CardContent>
+          <DepartmentTree nodes={departmentTree} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Department list</CardTitle>
+          <CardDescription>{departmentsPage?.total ?? 0} departments</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <Input
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
+              placeholder="Search code or name"
+            />
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" onClick={() => setPage((value) => Math.max(1, value - 1))}>
+                Previous
+              </Button>
+              <span className="min-w-20 text-center text-sm text-slate-600">
+                {page} / {totalPages}
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
           {departmentsQuery.isError ? (
             <p className="text-sm text-red-600">Unable to load departments.</p>
           ) : (

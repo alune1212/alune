@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     first_superuser_username: str = "admin"
     first_superuser_email: str = "admin@example.com"
     first_superuser_password: str | None = None
+    local_file_storage_dir: str = ".local/uploads"
 
     @field_validator("api_cors_origins", mode="before")
     @classmethod

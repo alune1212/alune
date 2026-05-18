@@ -29,4 +29,4 @@ class RolePermissionPublic(BaseModel):
 
 
 class RolePermissionUpdate(BaseModel):
-    permission_codes: list[str] = Field(default_factory=list)
+    permission_codes: list[str] = Field(default_factory=list, max_length=100)

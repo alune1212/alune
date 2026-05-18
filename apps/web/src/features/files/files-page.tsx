@@ -8,8 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/features/auth/auth-provider";
 import {
-  createFileAttachment,
+  downloadFileAttachment,
   fetchFileAttachments,
+  uploadFileAttachment,
   type FileAttachmentPublic
 } from "@alune/api-client";
 
@@ -24,54 +25,74 @@ const fileColumns: ColumnDef<FileAttachmentPublic>[] = [
 export function FilesPage() {
   const auth = useAuth();
   const queryClient = useQueryClient();
-  const [filename, setFilename] = useState("");
-  const [originalFilename, setOriginalFilename] = useState("");
-  const [storagePath, setStoragePath] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
 
   const filesQuery = useQuery({
-    queryKey: ["internal", "files"],
-    queryFn: () => fetchFileAttachments(auth.token!),
+    queryKey: ["internal", "files", search, page],
+    queryFn: () => fetchFileAttachments(auth.token!, { q: search || undefined, page, pageSize: 10 }),
     enabled: auth.token !== null
   });
 
-  const createMutation = useMutation({
-    mutationFn: () =>
-      createFileAttachment(auth.token!, {
-        filename,
-        original_filename: originalFilename,
-        storage_path: storagePath,
-        size_bytes: 0
-      }),
+  const uploadMutation = useMutation({
+    mutationFn: () => uploadFileAttachment(auth.token!, selectedFile!),
     onSuccess: () => {
-      setFilename("");
-      setOriginalFilename("");
-      setStoragePath("");
+      setSelectedFile(null);
       queryClient.invalidateQueries({ queryKey: ["internal", "files"] });
     }
   });
+  const downloadMutation = useMutation({
+    mutationFn: (file: FileAttachmentPublic) => downloadFileAttachment(auth.token!, file.id),
+    onSuccess: (blob, file) => {
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = file.original_filename;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    }
+  });
+
+  const filesPage = filesQuery.data?.data;
+  const files = filesPage?.items ?? [];
+  const totalPages = filesPage ? Math.max(1, Math.ceil(filesPage.total / filesPage.page_size)) : 1;
+  const columns: ColumnDef<FileAttachmentPublic>[] = [
+    ...fileColumns,
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => (
+        <Button type="button" variant="outline" onClick={() => downloadMutation.mutate(row.original)}>
+          Download
+        </Button>
+      )
+    }
+  ];
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
       <section>
         <h1 className="text-2xl font-semibold tracking-normal text-slate-950">Files</h1>
-        <p className="mt-2 text-sm text-slate-600">File attachment metadata; binary upload comes later.</p>
+        <p className="mt-2 text-sm text-slate-600">File attachments stored in the local API storage.</p>
       </section>
 
       <Card>
         <CardHeader>
-          <CardTitle>Create metadata</CardTitle>
-          <CardDescription>Register a file record without uploading binary content.</CardDescription>
+          <CardTitle>Upload file</CardTitle>
+          <CardDescription>Store binary content and register attachment metadata.</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
-          <Input value={originalFilename} onChange={(event) => setOriginalFilename(event.target.value)} placeholder="Original filename" />
-          <Input value={filename} onChange={(event) => setFilename(event.target.value)} placeholder="Stored filename" />
-          <Input value={storagePath} onChange={(event) => setStoragePath(event.target.value)} placeholder="Storage path" />
+        <CardContent className="grid gap-3 md:grid-cols-[1fr_auto]">
+          <Input
+            type="file"
+            onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)}
+          />
           <Button
             type="button"
-            onClick={() => createMutation.mutate()}
-            disabled={!originalFilename || !filename || !storagePath}
+            onClick={() => uploadMutation.mutate()}
+            disabled={!selectedFile || uploadMutation.isPending}
           >
-            Create
+            Upload
           </Button>
         </CardContent>
       </Card>
@@ -79,10 +100,35 @@ export function FilesPage() {
       <Card>
         <CardHeader>
           <CardTitle>Attachments</CardTitle>
-          <CardDescription>{filesQuery.data?.data.length ?? 0} files</CardDescription>
+          <CardDescription>{filesPage?.total ?? 0} files</CardDescription>
         </CardHeader>
-        <CardContent>
-          <DataTable columns={fileColumns} data={filesQuery.data?.data ?? []} emptyLabel="No files found." />
+        <CardContent className="space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <Input
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
+              placeholder="Search original filename"
+            />
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" onClick={() => setPage((value) => Math.max(1, value - 1))}>
+                Previous
+              </Button>
+              <span className="min-w-20 text-center text-sm text-slate-600">
+                {page} / {totalPages}
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+          <DataTable columns={columns} data={files} emptyLabel="No files found." />
         </CardContent>
       </Card>
     </div>

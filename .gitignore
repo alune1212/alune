@@ -14,6 +14,7 @@ __pycache__/
 # Build outputs
 dist/
 build/
+.local/
 .turbo/
 coverage/
 playwright-report/

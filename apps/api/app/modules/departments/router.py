@@ -1,8 +1,9 @@
 import asyncio
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
+from app.common.pagination import Page
 from app.common.response import ApiResponse
 from app.modules.audit.repository import record_operation_log
 from app.modules.auth.dependencies import DatabaseSession
@@ -13,9 +14,16 @@ from app.modules.departments.repository import (
     count_users_by_department,
     get_department_by_code,
     get_department_by_id,
+    has_descendant_department,
+    list_all_departments,
     list_departments,
 )
-from app.modules.departments.schemas import DepartmentCreate, DepartmentPublic, DepartmentUpdate
+from app.modules.departments.schemas import (
+    DepartmentCreate,
+    DepartmentPublic,
+    DepartmentTreeNode,
+    DepartmentUpdate,
+)
 from app.modules.permissions.dependencies import require_permission
 
 router = APIRouter(prefix="/departments", tags=["departments"])
@@ -26,13 +34,52 @@ DeleteDepartmentDependency = Depends(require_permission("action:departments:dele
 
 @router.get(
     "",
-    response_model=ApiResponse[list[DepartmentPublic]],
+    response_model=ApiResponse[Page[DepartmentPublic]],
     dependencies=[Depends(require_permission("action:departments:read"))],
 )
-async def get_departments(session: DatabaseSession) -> ApiResponse[list[DepartmentPublic]]:
-    departments = await list_departments(session)
+async def get_departments(
+    session: DatabaseSession,
+    q: str | None = Query(default=None, max_length=100),
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+) -> ApiResponse[Page[DepartmentPublic]]:
+    departments, total = await list_departments(
+        session,
+        q=q,
+        offset=(page - 1) * page_size,
+        limit=page_size,
+    )
     data = [DepartmentPublic.model_validate(department) for department in departments]
-    return ApiResponse(success=True, data=data)
+    return ApiResponse(
+        success=True,
+        data=Page(items=data, page=page, page_size=page_size, total=total),
+    )
+
+
+@router.get(
+    "/tree",
+    response_model=ApiResponse[list[DepartmentTreeNode]],
+    dependencies=[Depends(require_permission("action:departments:read"))],
+)
+async def get_department_tree(session: DatabaseSession) -> ApiResponse[list[DepartmentTreeNode]]:
+    departments = await list_all_departments(session)
+    nodes_by_id = {}
+    for department in departments:
+        public_department = DepartmentPublic.model_validate(department)
+        nodes_by_id[department.id] = DepartmentTreeNode(
+            **public_department.model_dump(),
+            children=[],
+        )
+    roots: list[DepartmentTreeNode] = []
+    for department in departments:
+        node = nodes_by_id[department.id]
+        parent_id = department.parent_id
+        if parent_id is not None and parent_id in nodes_by_id:
+            nodes_by_id[parent_id].children.append(node)
+        else:
+            roots.append(node)
+
+    return ApiResponse(success=True, data=roots)
 
 
 @router.post(
@@ -111,6 +158,15 @@ async def update_department(
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Parent department does not exist",
+            )
+        if await has_descendant_department(
+            session,
+            department_id=department.id,
+            maybe_descendant_id=parent_department.id,
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Department cannot be moved under its descendant",
             )
 
     for field_name, value in update_data.items():

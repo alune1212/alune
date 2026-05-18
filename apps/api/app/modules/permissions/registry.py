@@ -83,6 +83,12 @@ DEFAULT_PERMISSIONS: tuple[PermissionDefinition, ...] = (
         description="Update user accounts.",
     ),
     PermissionDefinition(
+        code="action:users:update_roles",
+        name="Update user roles",
+        type="action",
+        description="Update roles assigned to users.",
+    ),
+    PermissionDefinition(
         code="action:roles:read",
         name="Read roles",
         type="action",
@@ -146,6 +152,6 @@ DEFAULT_PERMISSIONS: tuple[PermissionDefinition, ...] = (
         code="action:files:create",
         name="Create files",
         type="action",
-        description="Create file attachment metadata.",
+        description="Create file attachment metadata and upload file content.",
     ),
 )

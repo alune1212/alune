@@ -60,11 +60,14 @@ The seed command also creates the default `admin` role, menu/action permissions,
 - `GET /api/v1/users` - User list for administrators.
 - `POST /api/v1/users` - Create a user.
 - `PATCH /api/v1/users/{user_id}` - Update or enable/disable a user.
+- `GET /api/v1/users/{user_id}/roles` - User role codes.
+- `PUT /api/v1/users/{user_id}/roles` - Replace user role codes.
 - `GET /api/v1/roles` - Role list for administrators.
 - `GET /api/v1/roles/permissions` - Permission list.
 - `GET /api/v1/roles/{role_id}/permissions` - Role permission codes.
 - `PUT /api/v1/roles/{role_id}/permissions` - Replace role permission codes.
 - `GET /api/v1/departments` - Department list for administrators.
+- `GET /api/v1/departments/tree` - Department hierarchy tree.
 - `POST /api/v1/departments` - Create a department.
 - `PATCH /api/v1/departments/{department_id}` - Update a department.
 - `DELETE /api/v1/departments/{department_id}` - Delete an unused department.
@@ -76,3 +79,7 @@ The seed command also creates the default `admin` role, menu/action permissions,
 - `POST /api/v1/dictionaries/items` - Create a dictionary item.
 - `GET /api/v1/files` - File attachment metadata.
 - `POST /api/v1/files` - Create file attachment metadata.
+- `POST /api/v1/files/upload` - Upload file content and create attachment metadata.
+- `GET /api/v1/files/{file_id}/download` - Download stored file content.
+
+`GET /users`, `GET /departments`, and `GET /files` return paginated payloads and accept `q`, `page`, and `page_size` query parameters.

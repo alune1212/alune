@@ -2,9 +2,7 @@ from pathlib import Path
 
 
 def test_internal_system_foundation_migration_exists() -> None:
-    migration_files = list(
-        Path("alembic/versions").glob("*_create_internal_system_foundation.py")
-    )
+    migration_files = list(Path("alembic/versions").glob("*_create_internal_system_foundation.py"))
 
     assert len(migration_files) == 1
     migration_source = migration_files[0].read_text()

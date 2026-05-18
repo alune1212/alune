@@ -60,8 +60,8 @@ export function LoginPage() {
             <p className="text-sm font-medium text-slate-500">Internal admin platform</p>
             <h1 className="mt-3 text-4xl font-semibold tracking-normal text-slate-950">{platformName}</h1>
             <p className="mt-4 text-base leading-7 text-slate-600">
-              A focused workspace for company operations. The login MVP protects the dashboard while the deeper user,
-              role, and permission modules remain intentionally out of scope.
+              A focused workspace for company operations with a protected dashboard, RBAC baseline, internal system
+              management pages, and local file attachment workflows.
             </p>
           </div>
         </section>

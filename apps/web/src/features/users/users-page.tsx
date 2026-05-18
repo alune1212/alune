@@ -7,7 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/features/auth/auth-provider";
-import { createUser, fetchUsers, updateUser, type UserManagementItem } from "@alune/api-client";
+import {
+  createUser,
+  fetchRoles,
+  fetchUserRoles,
+  fetchUsers,
+  updateUser,
+  updateUserRoles,
+  type RolePublic,
+  type UserManagementItem
+} from "@alune/api-client";
 
 export function UsersPage() {
   const auth = useAuth();
@@ -16,10 +25,23 @@ export function UsersPage() {
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const usersQuery = useQuery({
-    queryKey: ["internal", "users"],
-    queryFn: () => fetchUsers(auth.token!),
+    queryKey: ["internal", "users", search, page],
+    queryFn: () => fetchUsers(auth.token!, { q: search || undefined, page, pageSize: 10 }),
     enabled: auth.token !== null
+  });
+  const rolesQuery = useQuery({
+    queryKey: ["internal", "roles"],
+    queryFn: () => fetchRoles(auth.token!),
+    enabled: auth.token !== null
+  });
+  const userRolesQuery = useQuery({
+    queryKey: ["internal", "users", selectedUserId, "roles"],
+    queryFn: () => fetchUserRoles(auth.token!, selectedUserId!),
+    enabled: auth.token !== null && selectedUserId !== null
   });
   const createUserMutation = useMutation({
     mutationFn: () =>
@@ -42,8 +64,20 @@ export function UsersPage() {
       updateUser(auth.token!, user.id, { is_active: !user.is_active }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "users"] })
   });
+  const updateRolesMutation = useMutation({
+    mutationFn: (roleCodes: string[]) => updateUserRoles(auth.token!, selectedUserId!, roleCodes),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["internal", "users", selectedUserId, "roles"] });
+      queryClient.invalidateQueries({ queryKey: ["current-user"] });
+    }
+  });
 
-  const users = usersQuery.data?.data ?? [];
+  const usersPage = usersQuery.data?.data;
+  const users = usersPage?.items ?? [];
+  const totalPages = usersPage ? Math.max(1, Math.ceil(usersPage.total / usersPage.page_size)) : 1;
+  const roles = rolesQuery.data?.data ?? [];
+  const selectedUser = users.find((user) => user.id === selectedUserId) ?? null;
+  const selectedRoleCodes = userRolesQuery.data?.data.role_codes ?? [];
   const userColumns = useMemo<ColumnDef<UserManagementItem>[]>(
     () => [
       {
@@ -79,14 +113,26 @@ export function UsersPage() {
         id: "actions",
         header: "Actions",
         cell: ({ row }) => (
-          <Button type="button" variant="outline" onClick={() => updateUserMutation.mutate(row.original)}>
-            {row.original.is_active ? "Disable" : "Enable"}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" onClick={() => updateUserMutation.mutate(row.original)}>
+              {row.original.is_active ? "Disable" : "Enable"}
+            </Button>
+            <Button type="button" variant="outline" onClick={() => setSelectedUserId(row.original.id)}>
+              Roles
+            </Button>
+          </div>
         )
       }
     ],
     [updateUserMutation]
   );
+
+  function toggleRole(role: RolePublic) {
+    const nextRoleCodes = selectedRoleCodes.includes(role.code)
+      ? selectedRoleCodes.filter((code) => code !== role.code)
+      : [...selectedRoleCodes, role.code];
+    updateRolesMutation.mutate(nextRoleCodes);
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
@@ -122,10 +168,57 @@ export function UsersPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>User directory</CardTitle>
-          <CardDescription>{users.length} users</CardDescription>
+          <CardTitle>User roles</CardTitle>
+          <CardDescription>
+            {selectedUser ? `Assign roles for ${selectedUser.username}` : "Select a user from the table."}
+          </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-wrap gap-2">
+          {roles.map((role) => (
+            <Button
+              key={role.id}
+              type="button"
+              variant={selectedRoleCodes.includes(role.code) ? "default" : "outline"}
+              disabled={!selectedUserId || userRolesQuery.isLoading || updateRolesMutation.isPending}
+              onClick={() => toggleRole(role)}
+            >
+              {role.name}
+            </Button>
+          ))}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>User directory</CardTitle>
+          <CardDescription>{usersPage?.total ?? 0} users</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <Input
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
+              placeholder="Search username, email, or full name"
+            />
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" onClick={() => setPage((value) => Math.max(1, value - 1))}>
+                Previous
+              </Button>
+              <span className="min-w-20 text-center text-sm text-slate-600">
+                {page} / {totalPages}
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
           {usersQuery.isError ? (
             <p className="text-sm text-red-600">Unable to load users.</p>
           ) : (

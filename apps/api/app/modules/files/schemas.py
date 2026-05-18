@@ -16,6 +16,15 @@ class FileAttachmentPublic(BaseModel):
     uploaded_by_user_id: UUID | None
 
 
+class StoredUpload(BaseModel):
+    filename: str
+    original_filename: str
+    content_type: str | None
+    size_bytes: int
+    storage_path: str
+    checksum: str
+
+
 class FileAttachmentCreate(BaseModel):
     filename: str = Field(min_length=1, max_length=255)
     original_filename: str = Field(min_length=1, max_length=255)

@@ -7,6 +7,13 @@ export type ApiResponse<TData> = {
   error: string | null;
 };
 
+export type Page<TItem> = {
+  items: TItem[];
+  page: number;
+  page_size: number;
+  total: number;
+};
+
 export type HealthStatus = {
   status: string;
   service: string;
@@ -56,6 +63,11 @@ export type UserUpdate = {
   is_superuser?: boolean;
 };
 
+export type UserRolePublic = {
+  user_id: string;
+  role_codes: string[];
+};
+
 export type RolePublic = {
   id: string;
   code: string;
@@ -85,6 +97,10 @@ export type DepartmentPublic = {
   description: string | null;
   sort_order: number;
   is_active: boolean;
+};
+
+export type DepartmentTreeNode = DepartmentPublic & {
+  children: DepartmentTreeNode[];
 };
 
 export type DepartmentCreate = {
@@ -172,6 +188,12 @@ export type FileAttachmentCreate = {
   checksum?: string | null;
 };
 
+export type ListParams = {
+  q?: string;
+  page?: number;
+  pageSize?: number;
+};
+
 export type LoginCredentials = {
   username: string;
   password: string;
@@ -202,6 +224,22 @@ async function fetchJson<TData>(url: string, options?: RequestInit): Promise<Api
   }
 
   return response.json() as Promise<ApiResponse<TData>>;
+}
+
+function withListParams(url: string, params?: ListParams): string {
+  const searchParams = new URLSearchParams();
+  if (params?.q) {
+    searchParams.set("q", params.q);
+  }
+  if (params?.page) {
+    searchParams.set("page", String(params.page));
+  }
+  if (params?.pageSize) {
+    searchParams.set("page_size", String(params.pageSize));
+  }
+
+  const queryString = searchParams.toString();
+  return queryString ? `${url}?${queryString}` : url;
 }
 
 export async function fetchHealthStatus(): Promise<ApiResponse<HealthStatus>> {
@@ -246,8 +284,11 @@ export async function fetchCurrentUser(token: string): Promise<ApiResponse<UserP
   return response.json() as Promise<ApiResponse<UserPublic>>;
 }
 
-export async function fetchUsers(token: string): Promise<ApiResponse<UserManagementItem[]>> {
-  return fetchJson<UserManagementItem[]>("/api/v1/users", {
+export async function fetchUsers(
+  token: string,
+  params?: ListParams
+): Promise<ApiResponse<Page<UserManagementItem>>> {
+  return fetchJson<Page<UserManagementItem>>(withListParams("/api/v1/users", params), {
     headers: bearerHeaders(token)
   });
 }
@@ -278,6 +319,30 @@ export async function updateUser(
       "Content-Type": "application/json"
     },
     body: JSON.stringify(payload)
+  });
+}
+
+export async function fetchUserRoles(
+  token: string,
+  userId: string
+): Promise<ApiResponse<UserRolePublic>> {
+  return fetchJson<UserRolePublic>(`/api/v1/users/${userId}/roles`, {
+    headers: bearerHeaders(token)
+  });
+}
+
+export async function updateUserRoles(
+  token: string,
+  userId: string,
+  roleCodes: string[]
+): Promise<ApiResponse<UserRolePublic>> {
+  return fetchJson<UserRolePublic>(`/api/v1/users/${userId}/roles`, {
+    method: "PUT",
+    headers: {
+      ...bearerHeaders(token),
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ role_codes: roleCodes })
   });
 }
 
@@ -317,8 +382,17 @@ export async function updateRolePermissions(
   });
 }
 
-export async function fetchDepartments(token: string): Promise<ApiResponse<DepartmentPublic[]>> {
-  return fetchJson<DepartmentPublic[]>("/api/v1/departments", {
+export async function fetchDepartments(
+  token: string,
+  params?: ListParams
+): Promise<ApiResponse<Page<DepartmentPublic>>> {
+  return fetchJson<Page<DepartmentPublic>>(withListParams("/api/v1/departments", params), {
+    headers: bearerHeaders(token)
+  });
+}
+
+export async function fetchDepartmentTree(token: string): Promise<ApiResponse<DepartmentTreeNode[]>> {
+  return fetchJson<DepartmentTreeNode[]>("/api/v1/departments/tree", {
     headers: bearerHeaders(token)
   });
 }
@@ -415,8 +489,11 @@ export async function createDictionaryItem(
   });
 }
 
-export async function fetchFileAttachments(token: string): Promise<ApiResponse<FileAttachmentPublic[]>> {
-  return fetchJson<FileAttachmentPublic[]>("/api/v1/files", {
+export async function fetchFileAttachments(
+  token: string,
+  params?: ListParams
+): Promise<ApiResponse<Page<FileAttachmentPublic>>> {
+  return fetchJson<Page<FileAttachmentPublic>>(withListParams("/api/v1/files", params), {
     headers: bearerHeaders(token)
   });
 }
@@ -433,4 +510,30 @@ export async function createFileAttachment(
     },
     body: JSON.stringify(payload)
   });
+}
+
+export async function uploadFileAttachment(
+  token: string,
+  file: File
+): Promise<ApiResponse<FileAttachmentPublic>> {
+  const formData = new FormData();
+  formData.set("upload", file);
+
+  return fetchJson<FileAttachmentPublic>("/api/v1/files/upload", {
+    method: "POST",
+    headers: bearerHeaders(token),
+    body: formData
+  });
+}
+
+export async function downloadFileAttachment(token: string, fileId: string): Promise<Blob> {
+  const response = await fetch(`${apiBaseUrl}/api/v1/files/${fileId}/download`, {
+    headers: bearerHeaders(token)
+  });
+
+  if (!response.ok) {
+    throw await parseError(response, "Failed to download file");
+  }
+
+  return response.blob();
 }

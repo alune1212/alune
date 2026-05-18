@@ -45,8 +45,8 @@ async def record_operation_log(
     action: str,
     resource: str,
     resource_id: str | None,
-    ip_address: str | None,
-    user_agent: str | None,
+    ip_address: str | None = None,
+    user_agent: str | None = None,
     status: str = "success",
     detail: str | None = None,
 ) -> None:

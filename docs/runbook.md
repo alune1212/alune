@@ -82,6 +82,8 @@ The seed command is idempotent by username. It refuses the placeholder password 
 - a default root department
 - user/role and role/permission links
 
+Run the seed command again after permission registry changes. It is idempotent and syncs newly added permission codes such as `action:users:update_roles`.
+
 ## Start Local Development Servers
 
 Backend:
@@ -135,6 +137,7 @@ curl -s -X POST http://localhost:8000/api/v1/auth/login \
 docker compose exec -T postgres psql -U app -d company_admin -c "select code, type from permissions order by code;"
 docker compose exec -T postgres psql -U app -d company_admin -c "select code, name from departments order by code;"
 docker compose exec -T postgres psql -U app -d company_admin -c "select code from permissions where code in ('menu:audit','menu:dictionaries','menu:files') order by code;"
+docker compose exec -T postgres psql -U app -d company_admin -c "select code from permissions where code = 'action:users:update_roles';"
 ```
 
 Expected DB health success:
@@ -200,3 +203,19 @@ In Docker app profile, API uses the Compose service hostname:
 ```text
 postgresql+asyncpg://app:app@postgres:5432/company_admin
 ```
+
+### Uploaded Files
+
+Local development stores uploaded file content under:
+
+```text
+.local/uploads
+```
+
+The Docker app profile stores uploaded content in the `api_uploads` named volume mounted at:
+
+```text
+/app/uploads
+```
+
+Change `LOCAL_FILE_STORAGE_DIR` only to a path controlled by the API process. Download paths are resolved relative to this storage root.

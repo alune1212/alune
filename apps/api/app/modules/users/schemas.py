@@ -31,3 +31,12 @@ class UserUpdate(BaseModel):
     department_id: UUID | None = None
     is_active: bool | None = None
     is_superuser: bool | None = None
+
+
+class UserRolePublic(BaseModel):
+    user_id: UUID
+    role_codes: list[str]
+
+
+class UserRoleUpdate(BaseModel):
+    role_codes: list[str] = Field(default_factory=list, max_length=100)

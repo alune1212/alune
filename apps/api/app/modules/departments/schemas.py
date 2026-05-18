@@ -15,6 +15,10 @@ class DepartmentPublic(BaseModel):
     is_active: bool
 
 
+class DepartmentTreeNode(DepartmentPublic):
+    children: list[DepartmentTreeNode] = Field(default_factory=list)
+
+
 class DepartmentCreate(BaseModel):
     code: str = Field(min_length=1, max_length=100, pattern=r"^[A-Za-z0-9:_-]+$")
     name: str = Field(min_length=1, max_length=100)
