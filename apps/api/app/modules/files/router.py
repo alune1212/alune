@@ -14,7 +14,7 @@ from app.modules.auth.models import User
 from app.modules.files.models import FileAttachment
 from app.modules.files.repository import get_file_attachment_by_id, list_file_attachments
 from app.modules.files.schemas import FileAttachmentCreate, FileAttachmentPublic
-from app.modules.files.storage import LocalFileStorage
+from app.modules.files.storage import LocalFileStorage, validate_upload_policy
 from app.modules.permissions.dependencies import require_permission
 
 router = APIRouter(prefix="/files", tags=["files"])
@@ -85,7 +85,12 @@ async def upload_file_attachment(
     upload: Annotated[UploadFile, File()],
     current_user: User = CreateFileDependency,
 ) -> ApiResponse[FileAttachmentPublic]:
-    stored = await LocalFileStorage(settings.local_file_storage_dir).save(upload)
+    stored = await validate_upload_policy(
+        upload,
+        storage=LocalFileStorage(settings.local_file_storage_dir),
+        max_size_bytes=settings.max_upload_size_bytes,
+        allowed_content_types=settings.allowed_upload_content_types,
+    )
     file_attachment = FileAttachment(
         **stored.model_dump(),
         uploaded_by_user_id=current_user.id,

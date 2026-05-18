@@ -80,7 +80,10 @@ export function FilesPage() {
       <Card>
         <CardHeader>
           <CardTitle>Upload file</CardTitle>
-          <CardDescription>Store binary content and register attachment metadata.</CardDescription>
+          <CardDescription>
+            Store binary content and register attachment metadata. Default policy allows PDF, JPG, PNG, TXT, DOCX, and
+            XLSX files up to 10 MB.
+          </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-[1fr_auto]">
           <Input

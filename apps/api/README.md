@@ -62,6 +62,7 @@ The seed command also creates the default `admin` role, menu/action permissions,
 - `PATCH /api/v1/users/{user_id}` - Update or enable/disable a user.
 - `GET /api/v1/users/{user_id}/roles` - User role codes.
 - `PUT /api/v1/users/{user_id}/roles` - Replace user role codes.
+- `PATCH /api/v1/users/{user_id}/password` - Reset a user password.
 - `GET /api/v1/roles` - Role list for administrators.
 - `GET /api/v1/roles/permissions` - Permission list.
 - `GET /api/v1/roles/{role_id}/permissions` - Role permission codes.
@@ -77,9 +78,13 @@ The seed command also creates the default `admin` role, menu/action permissions,
 - `POST /api/v1/dictionaries/types` - Create a dictionary type.
 - `GET /api/v1/dictionaries/items` - Dictionary items.
 - `POST /api/v1/dictionaries/items` - Create a dictionary item.
+- `PATCH /api/v1/dictionaries/items/{item_id}` - Update or enable/disable a dictionary item.
+- `DELETE /api/v1/dictionaries/items/{item_id}` - Delete a dictionary item.
 - `GET /api/v1/files` - File attachment metadata.
 - `POST /api/v1/files` - Create file attachment metadata.
 - `POST /api/v1/files/upload` - Upload file content and create attachment metadata.
 - `GET /api/v1/files/{file_id}/download` - Download stored file content.
 
-`GET /users`, `GET /departments`, and `GET /files` return paginated payloads and accept `q`, `page`, and `page_size` query parameters.
+`GET /users`, `GET /departments`, `GET /files`, and audit log endpoints return paginated payloads and accept `q`, `page`, and `page_size` query parameters. Audit log endpoints also accept `status`.
+
+Uploads are checked against `MAX_UPLOAD_SIZE_BYTES` and `ALLOWED_UPLOAD_CONTENT_TYPES`.

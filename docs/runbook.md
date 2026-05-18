@@ -82,7 +82,7 @@ The seed command is idempotent by username. It refuses the placeholder password 
 - a default root department
 - user/role and role/permission links
 
-Run the seed command again after permission registry changes. It is idempotent and syncs newly added permission codes such as `action:users:update_roles`.
+Run the seed command again after permission registry changes. It is idempotent and syncs newly added permission codes such as `action:users:update_roles` and `action:dictionaries:update`.
 
 ## Start Local Development Servers
 
@@ -138,6 +138,7 @@ docker compose exec -T postgres psql -U app -d company_admin -c "select code, ty
 docker compose exec -T postgres psql -U app -d company_admin -c "select code, name from departments order by code;"
 docker compose exec -T postgres psql -U app -d company_admin -c "select code from permissions where code in ('menu:audit','menu:dictionaries','menu:files') order by code;"
 docker compose exec -T postgres psql -U app -d company_admin -c "select code from permissions where code = 'action:users:update_roles';"
+docker compose exec -T postgres psql -U app -d company_admin -c "select code from permissions where code = 'action:dictionaries:update';"
 ```
 
 Expected DB health success:
@@ -219,3 +220,12 @@ The Docker app profile stores uploaded content in the `api_uploads` named volume
 ```
 
 Change `LOCAL_FILE_STORAGE_DIR` only to a path controlled by the API process. Download paths are resolved relative to this storage root.
+
+The default upload policy is:
+
+```text
+MAX_UPLOAD_SIZE_BYTES=10485760
+ALLOWED_UPLOAD_CONTENT_TYPES=application/pdf,image/jpeg,image/png,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+```
+
+Oversized files return `413`. Disallowed content types return `400`.

@@ -37,3 +37,10 @@ class DictionaryItemCreate(BaseModel):
     value: str = Field(min_length=1, max_length=100)
     sort_order: int = Field(default=0, ge=0)
     is_active: bool = True
+
+
+class DictionaryItemUpdate(BaseModel):
+    label: str | None = Field(default=None, min_length=1, max_length=100)
+    value: str | None = Field(default=None, min_length=1, max_length=100)
+    sort_order: int | None = Field(default=None, ge=0)
+    is_active: bool | None = None

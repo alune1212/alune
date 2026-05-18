@@ -40,3 +40,7 @@ class UserRolePublic(BaseModel):
 
 class UserRoleUpdate(BaseModel):
     role_codes: list[str] = Field(default_factory=list, max_length=100)
+
+
+class UserPasswordUpdate(BaseModel):
+    password: str = Field(min_length=8, max_length=128)

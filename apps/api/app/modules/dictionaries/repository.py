@@ -30,3 +30,24 @@ async def get_dictionary_type_by_code(
     code: str,
 ) -> DictionaryType | None:
     return await session.scalar(select(DictionaryType).where(DictionaryType.code == code))
+
+
+async def get_dictionary_item_by_id(
+    session: AsyncSession,
+    item_id: UUID,
+) -> DictionaryItem | None:
+    return await session.scalar(select(DictionaryItem).where(DictionaryItem.id == item_id))
+
+
+async def get_dictionary_item_by_type_and_value(
+    session: AsyncSession,
+    *,
+    type_id: UUID,
+    value: str,
+) -> DictionaryItem | None:
+    return await session.scalar(
+        select(DictionaryItem).where(
+            DictionaryItem.type_id == type_id,
+            DictionaryItem.value == value,
+        )
+    )

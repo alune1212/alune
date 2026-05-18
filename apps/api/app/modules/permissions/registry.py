@@ -143,6 +143,12 @@ DEFAULT_PERMISSIONS: tuple[PermissionDefinition, ...] = (
         description="Create dictionary types and items.",
     ),
     PermissionDefinition(
+        code="action:dictionaries:update",
+        name="Update dictionaries",
+        type="action",
+        description="Update or delete dictionary items.",
+    ),
+    PermissionDefinition(
         code="action:files:read",
         name="Read files",
         type="action",

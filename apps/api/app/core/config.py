@@ -29,21 +29,41 @@ class Settings(BaseSettings):
     first_superuser_email: str = "admin@example.com"
     first_superuser_password: str | None = None
     local_file_storage_dir: str = ".local/uploads"
+    max_upload_size_bytes: int = 10 * 1024 * 1024
+    allowed_upload_content_types: Annotated[list[str], NoDecode] = Field(
+        default_factory=lambda: [
+            "application/pdf",
+            "image/jpeg",
+            "image/png",
+            "text/plain",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        ],
+    )
 
     @field_validator("api_cors_origins", mode="before")
     @classmethod
     def parse_cors_origins(cls, value: Any) -> list[str]:
+        return cls._parse_string_list(value, "API_CORS_ORIGINS")
+
+    @field_validator("allowed_upload_content_types", mode="before")
+    @classmethod
+    def parse_allowed_upload_content_types(cls, value: Any) -> list[str]:
+        return cls._parse_string_list(value, "ALLOWED_UPLOAD_CONTENT_TYPES")
+
+    @classmethod
+    def _parse_string_list(cls, value: Any, name: str) -> list[str]:
         if isinstance(value, list):
             return value
         if not isinstance(value, str):
-            msg = "API_CORS_ORIGINS must be a comma-separated string or list"
+            msg = f"{name} must be a comma-separated string or list"
             raise ValueError(msg)
         raw_value = value.strip()
         if not raw_value.startswith("["):
             return [origin.strip() for origin in raw_value.split(",") if origin.strip()]
         parsed_value = json.loads(raw_value)
         if not isinstance(parsed_value, list):
-            msg = "API_CORS_ORIGINS JSON value must be a list"
+            msg = f"{name} JSON value must be a list"
             raise ValueError(msg)
         return [str(origin).strip() for origin in parsed_value if str(origin).strip()]
 

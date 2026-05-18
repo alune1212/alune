@@ -63,6 +63,10 @@ export type UserUpdate = {
   is_superuser?: boolean;
 };
 
+export type UserPasswordUpdate = {
+  password: string;
+};
+
 export type UserRolePublic = {
   user_id: string;
   role_codes: string[];
@@ -168,6 +172,13 @@ export type DictionaryItemCreate = {
   is_active?: boolean;
 };
 
+export type DictionaryItemUpdate = {
+  label?: string | null;
+  value?: string | null;
+  sort_order?: number;
+  is_active?: boolean;
+};
+
 export type FileAttachmentPublic = {
   id: string;
   filename: string;
@@ -190,6 +201,7 @@ export type FileAttachmentCreate = {
 
 export type ListParams = {
   q?: string;
+  status?: string;
   page?: number;
   pageSize?: number;
 };
@@ -230,6 +242,9 @@ function withListParams(url: string, params?: ListParams): string {
   const searchParams = new URLSearchParams();
   if (params?.q) {
     searchParams.set("q", params.q);
+  }
+  if (params?.status) {
+    searchParams.set("status", params.status);
   }
   if (params?.page) {
     searchParams.set("page", String(params.page));
@@ -313,6 +328,21 @@ export async function updateUser(
   payload: UserUpdate
 ): Promise<ApiResponse<UserManagementItem>> {
   return fetchJson<UserManagementItem>(`/api/v1/users/${userId}`, {
+    method: "PATCH",
+    headers: {
+      ...bearerHeaders(token),
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function updateUserPassword(
+  token: string,
+  userId: string,
+  payload: UserPasswordUpdate
+): Promise<ApiResponse<UserManagementItem>> {
+  return fetchJson<UserManagementItem>(`/api/v1/users/${userId}/password`, {
     method: "PATCH",
     headers: {
       ...bearerHeaders(token),
@@ -437,14 +467,20 @@ export async function deleteDepartment(token: string, departmentId: string): Pro
   }
 }
 
-export async function fetchOperationLogs(token: string): Promise<ApiResponse<OperationLogPublic[]>> {
-  return fetchJson<OperationLogPublic[]>("/api/v1/audit/operation-logs", {
+export async function fetchOperationLogs(
+  token: string,
+  params?: ListParams
+): Promise<ApiResponse<Page<OperationLogPublic>>> {
+  return fetchJson<Page<OperationLogPublic>>(withListParams("/api/v1/audit/operation-logs", params), {
     headers: bearerHeaders(token)
   });
 }
 
-export async function fetchLoginLogs(token: string): Promise<ApiResponse<LoginLogPublic[]>> {
-  return fetchJson<LoginLogPublic[]>("/api/v1/audit/login-logs", {
+export async function fetchLoginLogs(
+  token: string,
+  params?: ListParams
+): Promise<ApiResponse<Page<LoginLogPublic>>> {
+  return fetchJson<Page<LoginLogPublic>>(withListParams("/api/v1/audit/login-logs", params), {
     headers: bearerHeaders(token)
   });
 }
@@ -487,6 +523,32 @@ export async function createDictionaryItem(
     },
     body: JSON.stringify(payload)
   });
+}
+
+export async function updateDictionaryItem(
+  token: string,
+  itemId: string,
+  payload: DictionaryItemUpdate
+): Promise<ApiResponse<DictionaryItemPublic>> {
+  return fetchJson<DictionaryItemPublic>(`/api/v1/dictionaries/items/${itemId}`, {
+    method: "PATCH",
+    headers: {
+      ...bearerHeaders(token),
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function deleteDictionaryItem(token: string, itemId: string): Promise<void> {
+  const response = await fetch(`${apiBaseUrl}/api/v1/dictionaries/items/${itemId}`, {
+    method: "DELETE",
+    headers: bearerHeaders(token)
+  });
+
+  if (!response.ok) {
+    throw await parseError(response, "Failed to delete dictionary item");
+  }
 }
 
 export async function fetchFileAttachments(

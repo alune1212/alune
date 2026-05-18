@@ -1,19 +1,76 @@
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.audit.models import LoginLog, OperationLog
 
 
-async def list_operation_logs(session: AsyncSession) -> list[OperationLog]:
-    result = await session.scalars(select(OperationLog).order_by(OperationLog.created_at.desc()))
-    return list(result.all())
+async def list_operation_logs(
+    session: AsyncSession,
+    *,
+    q: str | None = None,
+    status: str | None = None,
+    offset: int = 0,
+    limit: int = 20,
+) -> tuple[list[OperationLog], int]:
+    statement = select(OperationLog)
+    count_statement = select(func.count()).select_from(OperationLog)
+    filters = []
+    if q:
+        pattern = f"%{q}%"
+        filters.append(
+            or_(
+                OperationLog.action.ilike(pattern),
+                OperationLog.resource.ilike(pattern),
+                OperationLog.resource_id.ilike(pattern),
+                OperationLog.detail.ilike(pattern),
+            )
+        )
+    if status:
+        filters.append(OperationLog.status == status)
+    for filter_clause in filters:
+        statement = statement.where(filter_clause)
+        count_statement = count_statement.where(filter_clause)
+
+    total = await session.scalar(count_statement)
+    result = await session.scalars(
+        statement.order_by(OperationLog.created_at.desc()).offset(offset).limit(limit)
+    )
+    return list(result.all()), total or 0
 
 
-async def list_login_logs(session: AsyncSession) -> list[LoginLog]:
-    result = await session.scalars(select(LoginLog).order_by(LoginLog.created_at.desc()))
-    return list(result.all())
+async def list_login_logs(
+    session: AsyncSession,
+    *,
+    q: str | None = None,
+    status: str | None = None,
+    offset: int = 0,
+    limit: int = 20,
+) -> tuple[list[LoginLog], int]:
+    statement = select(LoginLog)
+    count_statement = select(func.count()).select_from(LoginLog)
+    filters = []
+    if q:
+        pattern = f"%{q}%"
+        filters.append(
+            or_(
+                LoginLog.username.ilike(pattern),
+                LoginLog.ip_address.ilike(pattern),
+                LoginLog.message.ilike(pattern),
+            )
+        )
+    if status:
+        filters.append(LoginLog.status == status)
+    for filter_clause in filters:
+        statement = statement.where(filter_clause)
+        count_statement = count_statement.where(filter_clause)
+
+    total = await session.scalar(count_statement)
+    result = await session.scalars(
+        statement.order_by(LoginLog.created_at.desc()).offset(offset).limit(limit)
+    )
+    return list(result.all()), total or 0
 
 
 async def record_login_log(

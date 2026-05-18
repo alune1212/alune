@@ -9,11 +9,14 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/features/auth/auth-provider";
 import {
   createUser,
+  fetchDepartments,
   fetchRoles,
   fetchUserRoles,
   fetchUsers,
   updateUser,
+  updateUserPassword,
   updateUserRoles,
+  type DepartmentPublic,
   type RolePublic,
   type UserManagementItem
 } from "@alune/api-client";
@@ -28,6 +31,10 @@ export function UsersPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [editEmail, setEditEmail] = useState("");
+  const [editFullName, setEditFullName] = useState("");
+  const [editDepartmentId, setEditDepartmentId] = useState("");
+  const [resetPassword, setResetPassword] = useState("");
   const usersQuery = useQuery({
     queryKey: ["internal", "users", search, page],
     queryFn: () => fetchUsers(auth.token!, { q: search || undefined, page, pageSize: 10 }),
@@ -36,6 +43,11 @@ export function UsersPage() {
   const rolesQuery = useQuery({
     queryKey: ["internal", "roles"],
     queryFn: () => fetchRoles(auth.token!),
+    enabled: auth.token !== null
+  });
+  const departmentsQuery = useQuery({
+    queryKey: ["internal", "departments", "for-users"],
+    queryFn: () => fetchDepartments(auth.token!, { pageSize: 100 }),
     enabled: auth.token !== null
   });
   const userRolesQuery = useQuery({
@@ -64,6 +76,22 @@ export function UsersPage() {
       updateUser(auth.token!, user.id, { is_active: !user.is_active }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "users"] })
   });
+  const saveUserMutation = useMutation({
+    mutationFn: () =>
+      updateUser(auth.token!, selectedUserId!, {
+        email: editEmail,
+        full_name: editFullName || null,
+        department_id: editDepartmentId || null
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "users"] })
+  });
+  const resetPasswordMutation = useMutation({
+    mutationFn: () => updateUserPassword(auth.token!, selectedUserId!, { password: resetPassword }),
+    onSuccess: () => {
+      setResetPassword("");
+      queryClient.invalidateQueries({ queryKey: ["internal", "users"] });
+    }
+  });
   const updateRolesMutation = useMutation({
     mutationFn: (roleCodes: string[]) => updateUserRoles(auth.token!, selectedUserId!, roleCodes),
     onSuccess: () => {
@@ -76,6 +104,7 @@ export function UsersPage() {
   const users = usersPage?.items ?? [];
   const totalPages = usersPage ? Math.max(1, Math.ceil(usersPage.total / usersPage.page_size)) : 1;
   const roles = rolesQuery.data?.data ?? [];
+  const departments = departmentsQuery.data?.data.items ?? [];
   const selectedUser = users.find((user) => user.id === selectedUserId) ?? null;
   const selectedRoleCodes = userRolesQuery.data?.data.role_codes ?? [];
   const userColumns = useMemo<ColumnDef<UserManagementItem>[]>(
@@ -120,6 +149,9 @@ export function UsersPage() {
             <Button type="button" variant="outline" onClick={() => setSelectedUserId(row.original.id)}>
               Roles
             </Button>
+            <Button type="button" variant="outline" onClick={() => startEdit(row.original)}>
+              Edit
+            </Button>
           </div>
         )
       }
@@ -132,6 +164,17 @@ export function UsersPage() {
       ? selectedRoleCodes.filter((code) => code !== role.code)
       : [...selectedRoleCodes, role.code];
     updateRolesMutation.mutate(nextRoleCodes);
+  }
+
+  function startEdit(user: UserManagementItem) {
+    setSelectedUserId(user.id);
+    setEditEmail(user.email);
+    setEditFullName(user.full_name ?? "");
+    setEditDepartmentId(user.department_id ?? "");
+  }
+
+  function selectDepartment(department: DepartmentPublic) {
+    setEditDepartmentId(department.id);
   }
 
   return (
@@ -163,6 +206,69 @@ export function UsersPage() {
           >
             Create
           </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Edit user</CardTitle>
+          <CardDescription>
+            {selectedUser ? `Update profile fields for ${selectedUser.username}` : "Select Edit from the table."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
+            <Input value={editEmail} onChange={(event) => setEditEmail(event.target.value)} placeholder="Email" />
+            <Input
+              value={editFullName}
+              onChange={(event) => setEditFullName(event.target.value)}
+              placeholder="Full name"
+            />
+            <Input
+              value={editDepartmentId}
+              onChange={(event) => setEditDepartmentId(event.target.value)}
+              placeholder="Department ID"
+            />
+            <Button
+              type="button"
+              onClick={() => saveUserMutation.mutate()}
+              disabled={!selectedUserId || !editEmail || saveUserMutation.isPending}
+            >
+              Save
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {departments.map((department) => (
+              <Button
+                key={department.id}
+                type="button"
+                variant={editDepartmentId === department.id ? "default" : "outline"}
+                disabled={!selectedUserId}
+                onClick={() => selectDepartment(department)}
+              >
+                {department.name}
+              </Button>
+            ))}
+            <Button type="button" variant="outline" disabled={!selectedUserId} onClick={() => setEditDepartmentId("")}>
+              Clear department
+            </Button>
+          </div>
+          <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+            <Input
+              value={resetPassword}
+              onChange={(event) => setResetPassword(event.target.value)}
+              placeholder="New password"
+              type="password"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => resetPasswordMutation.mutate()}
+              disabled={!selectedUserId || resetPassword.length < 8 || resetPasswordMutation.isPending}
+            >
+              Reset password
+            </Button>
+          </div>
         </CardContent>
       </Card>
 

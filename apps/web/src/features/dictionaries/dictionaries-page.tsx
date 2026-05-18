@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 
 import { DataTable } from "@/components/data/data-table";
@@ -10,8 +10,10 @@ import { useAuth } from "@/features/auth/auth-provider";
 import {
   createDictionaryItem,
   createDictionaryType,
+  deleteDictionaryItem,
   fetchDictionaryItems,
   fetchDictionaryTypes,
+  updateDictionaryItem,
   type DictionaryItemPublic,
   type DictionaryTypePublic
 } from "@alune/api-client";
@@ -23,13 +25,6 @@ const typeColumns: ColumnDef<DictionaryTypePublic>[] = [
   { accessorKey: "is_system", header: "System", cell: ({ row }) => (row.original.is_system ? "Yes" : "No") }
 ];
 
-const itemColumns: ColumnDef<DictionaryItemPublic>[] = [
-  { accessorKey: "label", header: "Label" },
-  { accessorKey: "value", header: "Value" },
-  { accessorKey: "type_id", header: "Type ID" },
-  { accessorKey: "is_active", header: "Status", cell: ({ row }) => (row.original.is_active ? "Active" : "Inactive") }
-];
-
 export function DictionariesPage() {
   const auth = useAuth();
   const queryClient = useQueryClient();
@@ -38,6 +33,10 @@ export function DictionariesPage() {
   const [itemTypeId, setItemTypeId] = useState("");
   const [itemLabel, setItemLabel] = useState("");
   const [itemValue, setItemValue] = useState("");
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [editLabel, setEditLabel] = useState("");
+  const [editValue, setEditValue] = useState("");
+  const [editSortOrder, setEditSortOrder] = useState("0");
 
   const typesQuery = useQuery({
     queryKey: ["internal", "dictionaries", "types"],
@@ -67,6 +66,67 @@ export function DictionariesPage() {
       queryClient.invalidateQueries({ queryKey: ["internal", "dictionaries"] });
     }
   });
+  const updateItemMutation = useMutation({
+    mutationFn: () =>
+      updateDictionaryItem(auth.token!, selectedItemId!, {
+        label: editLabel,
+        value: editValue,
+        sort_order: Number(editSortOrder)
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "dictionaries"] })
+  });
+  const toggleItemMutation = useMutation({
+    mutationFn: (item: DictionaryItemPublic) =>
+      updateDictionaryItem(auth.token!, item.id, { is_active: !item.is_active }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "dictionaries"] })
+  });
+  const deleteItemMutation = useMutation({
+    mutationFn: (item: DictionaryItemPublic) => deleteDictionaryItem(auth.token!, item.id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "dictionaries"] })
+  });
+
+  const selectedItem = itemsQuery.data?.data.find((item) => item.id === selectedItemId) ?? null;
+  const itemColumns: ColumnDef<DictionaryItemPublic>[] = useMemo(
+    () => [
+      { accessorKey: "label", header: "Label" },
+      { accessorKey: "value", header: "Value" },
+      { accessorKey: "type_id", header: "Type ID" },
+      { accessorKey: "sort_order", header: "Sort" },
+      {
+        accessorKey: "is_active",
+        header: "Status",
+        cell: ({ row }) => (row.original.is_active ? "Active" : "Inactive")
+      },
+      {
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }) => (
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" onClick={() => startEditItem(row.original)}>
+              Edit
+            </Button>
+            <Button type="button" variant="outline" onClick={() => toggleItemMutation.mutate(row.original)}>
+              {row.original.is_active ? "Disable" : "Enable"}
+            </Button>
+            <Button type="button" variant="outline" onClick={() => deleteItemMutation.mutate(row.original)}>
+              Delete
+            </Button>
+          </div>
+        )
+      }
+    ],
+    [startEditItem, toggleItemMutation, deleteItemMutation]
+  );
+
+  const startEditItem = useCallback(
+    (item: DictionaryItemPublic) => {
+      setSelectedItemId(item.id);
+      setEditLabel(item.label);
+      setEditValue(item.value);
+      setEditSortOrder(String(item.sort_order));
+    },
+    []
+  );
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
@@ -123,7 +183,28 @@ export function DictionariesPage() {
           <CardTitle>Items</CardTitle>
           <CardDescription>{itemsQuery.data?.data.length ?? 0} items</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
+            <Input
+              value={editLabel}
+              onChange={(event) => setEditLabel(event.target.value)}
+              placeholder={selectedItem ? `Editing ${selectedItem.label}` : "Label"}
+            />
+            <Input value={editValue} onChange={(event) => setEditValue(event.target.value)} placeholder="Value" />
+            <Input
+              value={editSortOrder}
+              onChange={(event) => setEditSortOrder(event.target.value)}
+              placeholder="Sort order"
+              type="number"
+            />
+            <Button
+              type="button"
+              onClick={() => updateItemMutation.mutate()}
+              disabled={!selectedItemId || !editLabel || !editValue || updateItemMutation.isPending}
+            >
+              Save item
+            </Button>
+          </div>
           <DataTable columns={itemColumns} data={itemsQuery.data?.data ?? []} emptyLabel="No items found." />
         </CardContent>
       </Card>

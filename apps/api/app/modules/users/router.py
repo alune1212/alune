@@ -21,6 +21,7 @@ from app.modules.users.repository import (
 from app.modules.users.schemas import (
     UserCreate,
     UserManagementItem,
+    UserPasswordUpdate,
     UserRolePublic,
     UserRoleUpdate,
     UserUpdate,
@@ -153,6 +154,33 @@ async def update_user_roles(
     await session.commit()
     role_codes = await list_user_role_codes(session, user.id)
     return ApiResponse(success=True, data=UserRolePublic(user_id=user.id, role_codes=role_codes))
+
+
+@router.patch(
+    "/{user_id}/password",
+    response_model=ApiResponse[UserManagementItem],
+)
+async def update_user_password(
+    user_id: UUID,
+    payload: UserPasswordUpdate,
+    session: DatabaseSession,
+    current_user: User = UpdateUserDependency,
+) -> ApiResponse[UserManagementItem]:
+    user = await get_user_by_id(session, user_id)
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    user.hashed_password = get_password_hash(payload.password)
+    await record_operation_log(
+        session,
+        actor_user_id=current_user.id,
+        action="update_password",
+        resource="user",
+        resource_id=str(user.id),
+    )
+    await session.commit()
+    await session.refresh(user)
+    return ApiResponse(success=True, data=UserManagementItem.model_validate(user))
 
 
 @router.patch(

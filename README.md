@@ -1,6 +1,6 @@
 # alune-platform
 
-公司内部管理系统 MVP。当前阶段包含最小可运行 monorepo、FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地登录、权限基础，以及阶段 6C 的内部系统底座。
+公司内部管理系统 MVP。当前阶段包含最小可运行 monorepo、FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地登录、权限基础，以及阶段 6D 的内部系统底座。
 
 ## 技术栈
 
@@ -178,7 +178,7 @@ pnpm test
 
 ## 当前阶段边界
 
-已完成阶段 0、阶段 1、阶段 2、阶段 3、阶段 4、阶段 5、阶段 6A、阶段 6B 和阶段 6C 的内部系统底座 MVP。当前包含登录 MVP、权限基础、用户创建/启停、用户角色分配、角色权限配置、部门创建/启停/删除规则、部门树、登录/操作日志、字典类型/字典项、文件附件本地上传下载，以及用户/部门/文件列表搜索分页。不包含审批、报表和公司业务模块。
+已完成阶段 0、阶段 1、阶段 2、阶段 3、阶段 4、阶段 5、阶段 6A、阶段 6B、阶段 6C 和阶段 6D 的内部系统底座 MVP。当前包含登录 MVP、权限基础、用户创建/启停/资料编辑/部门分配/密码重置、用户角色分配、角色权限配置、部门创建/启停/删除规则、部门树、登录/操作日志筛选分页、字典类型/字典项维护、文件附件本地上传下载和上传策略。不包含审批、报表和公司业务模块。
 
 ## 当前数据库
 
@@ -205,6 +205,7 @@ pnpm test
 | GET | `/api/v1/users` | 用户分页列表，支持 `q`/`page`/`page_size`，需 `action:users:read` |
 | POST | `/api/v1/users` | 创建用户，需 `action:users:create` |
 | PATCH | `/api/v1/users/{user_id}` | 更新/启停用户，需 `action:users:update` |
+| PATCH | `/api/v1/users/{user_id}/password` | 重置用户密码，需 `action:users:update` |
 | GET | `/api/v1/users/{user_id}/roles` | 用户角色码，需 `action:users:read` |
 | PUT | `/api/v1/users/{user_id}/roles` | 更新用户角色，需 `action:users:update_roles` |
 | GET | `/api/v1/roles` | 角色列表，需 `action:roles:read` |
@@ -216,12 +217,14 @@ pnpm test
 | POST | `/api/v1/departments` | 创建部门，需 `action:departments:create` |
 | PATCH | `/api/v1/departments/{department_id}` | 更新/启停部门，需 `action:departments:update` |
 | DELETE | `/api/v1/departments/{department_id}` | 删除无子部门且无用户的部门，需 `action:departments:delete` |
-| GET | `/api/v1/audit/operation-logs` | 操作日志，需 `action:audit:read` |
-| GET | `/api/v1/audit/login-logs` | 登录日志，需 `action:audit:read` |
+| GET | `/api/v1/audit/operation-logs` | 操作日志分页筛选，支持 `q`/`status`/`page`/`page_size`，需 `action:audit:read` |
+| GET | `/api/v1/audit/login-logs` | 登录日志分页筛选，支持 `q`/`status`/`page`/`page_size`，需 `action:audit:read` |
 | GET | `/api/v1/dictionaries/types` | 字典类型列表，需 `action:dictionaries:read` |
 | POST | `/api/v1/dictionaries/types` | 创建字典类型，需 `action:dictionaries:create` |
 | GET | `/api/v1/dictionaries/items` | 字典项列表，需 `action:dictionaries:read` |
 | POST | `/api/v1/dictionaries/items` | 创建字典项，需 `action:dictionaries:create` |
+| PATCH | `/api/v1/dictionaries/items/{item_id}` | 更新/启停字典项，需 `action:dictionaries:update` |
+| DELETE | `/api/v1/dictionaries/items/{item_id}` | 删除字典项，需 `action:dictionaries:update` |
 | GET | `/api/v1/files` | 文件分页列表，支持 `q`/`page`/`page_size`，需 `action:files:read` |
 | POST | `/api/v1/files` | 创建文件元数据，需 `action:files:create` |
 | POST | `/api/v1/files/upload` | 上传文件内容并创建元数据，需 `action:files:create` |
