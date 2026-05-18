@@ -61,4 +61,4 @@ async def list_permission_codes_for_user(session: AsyncSession, user: User) -> l
         .order_by(Permission.code)
     )
     result = await session.scalars(statement)
-    return sorted(result.all())
+    return result.all()

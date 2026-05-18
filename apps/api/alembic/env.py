@@ -10,7 +10,11 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 from app.core.config import get_settings
 from app.db.base import Base
+from app.modules.audit.models import LoginLog, OperationLog
 from app.modules.auth.models import User
+from app.modules.departments.models import Department
+from app.modules.dictionaries.models import DictionaryItem, DictionaryType
+from app.modules.files.models import FileAttachment
 from app.modules.permissions.models import Permission, Role
 from app.modules.system.models import SystemInfo
 

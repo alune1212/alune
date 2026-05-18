@@ -79,6 +79,7 @@ The seed command is idempotent by username. It refuses the placeholder password 
 - the default `admin` role
 - default menu permissions
 - default action permissions
+- a default root department
 - user/role and role/permission links
 
 ## Start Local Development Servers
@@ -132,6 +133,7 @@ curl -s -X POST http://localhost:8000/api/v1/auth/login \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "username=admin&password=change-this-password"
 docker compose exec -T postgres psql -U app -d company_admin -c "select code, type from permissions order by code;"
+docker compose exec -T postgres psql -U app -d company_admin -c "select code, name from departments order by code;"
 ```
 
 Expected DB health success:

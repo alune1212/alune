@@ -12,10 +12,11 @@ describe("navigation permissions", () => {
   it("shows all default MVP menu items for an administrator", () => {
     const visibleItems = getVisibleNavigationItems([
       "menu:dashboard",
-      "menu:employees",
-      "menu:permissions",
+      "menu:users",
+      "menu:roles",
+      "menu:departments",
     ]);
 
-    expect(visibleItems.map((item) => item.label)).toEqual(["Dashboard", "Employees", "Permissions"]);
+    expect(visibleItems.map((item) => item.label)).toEqual(["Dashboard", "Users", "Roles", "Departments"]);
   });
 });

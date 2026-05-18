@@ -8,6 +8,8 @@ from app.db.session import AsyncSessionLocal, dispose_engine
 from app.modules.auth.models import User
 from app.modules.auth.repository import get_user_by_username
 from app.modules.auth.security import get_password_hash
+from app.modules.departments.models import Department
+from app.modules.departments.repository import get_department_by_code
 from app.modules.permissions.models import Permission, Role
 from app.modules.permissions.registry import ADMIN_ROLE_CODE, ADMIN_ROLE_NAME, DEFAULT_PERMISSIONS
 from app.modules.permissions.repository import (
@@ -18,6 +20,8 @@ from app.modules.permissions.repository import (
 )
 
 logger = logging.getLogger(__name__)
+DEFAULT_DEPARTMENT_CODE = "headquarters"
+DEFAULT_DEPARTMENT_NAME = "Headquarters"
 
 
 async def seed_default_rbac(session: AsyncSession) -> Role:
@@ -49,6 +53,23 @@ async def seed_default_rbac(session: AsyncSession) -> Role:
     return admin_role
 
 
+async def seed_default_department(session: AsyncSession) -> Department:
+    department = await get_department_by_code(session, DEFAULT_DEPARTMENT_CODE)
+    if department is not None:
+        return department
+
+    department = Department(
+        code=DEFAULT_DEPARTMENT_CODE,
+        name=DEFAULT_DEPARTMENT_NAME,
+        description="Default root department for the internal system foundation.",
+        sort_order=0,
+        is_active=True,
+    )
+    session.add(department)
+    await session.flush()
+    return department
+
+
 async def seed_first_superuser() -> None:
     settings = get_settings()
     password = settings.first_superuser_password
@@ -59,8 +80,11 @@ async def seed_first_superuser() -> None:
 
     async with AsyncSessionLocal() as session:
         admin_role = await seed_default_rbac(session)
+        root_department = await seed_default_department(session)
         existing_user = await get_user_by_username(session, settings.first_superuser_username)
         if existing_user is not None:
+            if existing_user.department_id is None:
+                existing_user.department_id = root_department.id
             await link_user_role(session, existing_user, admin_role)
             await session.commit()
             logger.info("First superuser already exists: %s", settings.first_superuser_username)
@@ -70,6 +94,7 @@ async def seed_first_superuser() -> None:
             username=settings.first_superuser_username,
             email=settings.first_superuser_email,
             full_name="System Administrator",
+            department_id=root_department.id,
             hashed_password=get_password_hash(password),
             is_active=True,
             is_superuser=True,

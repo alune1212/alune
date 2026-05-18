@@ -1,6 +1,6 @@
 # alune-platform
 
-公司内部管理系统 MVP。当前阶段只包含最小可运行 monorepo、FastAPI 后端、Vite React 前端、PostgreSQL 和 Redis 本地依赖，为后续员工管理、部门管理、权限、审批、报表、文件附件等模块预留清晰结构。
+公司内部管理系统 MVP。当前阶段包含最小可运行 monorepo、FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地登录、权限基础，以及阶段 6A 的用户/角色/部门只读页面和内部系统基础表。
 
 ## 技术栈
 
@@ -178,7 +178,7 @@ pnpm test
 
 ## 当前阶段边界
 
-已完成阶段 0、阶段 1、阶段 2、阶段 3、阶段 4、阶段 5 的最小 MVP。当前包含登录 MVP 和权限基础，但不包含用户管理页面、角色管理页面、部门管理和业务模块。下一阶段建议进入内部系统底座：用户管理、角色管理、部门管理、操作日志、登录日志、字典管理和文件附件基础。
+已完成阶段 0、阶段 1、阶段 2、阶段 3、阶段 4、阶段 5，以及阶段 6A 的内部系统底座 MVP。当前包含登录 MVP、权限基础、用户列表、角色列表、部门列表/创建接口，以及操作日志、登录日志、字典、文件附件的数据库基础。不包含完整用户 CRUD、角色授权配置器、文件上传流程、审批、报表和公司业务模块。
 
 ## 当前数据库
 
@@ -188,6 +188,11 @@ pnpm test
 - `permissions` - 菜单/操作权限表，通过 Alembic migration 创建。
 - `user_roles` - 用户角色关联表。
 - `role_permissions` - 角色权限关联表。
+- `departments` - 部门基础表，支持层级和用户归属。
+- `operation_logs` - 操作日志基础表。
+- `login_logs` - 登录日志基础表。
+- `dictionary_types` / `dictionary_items` - 字典基础表。
+- `file_attachments` - 文件附件元数据基础表。
 
 ## 当前 API
 
@@ -197,3 +202,7 @@ pnpm test
 | GET | `/api/v1/health/db` | PostgreSQL 连接检查；数据库不可用时返回 503 |
 | POST | `/api/v1/auth/login` | OAuth2 password 登录，返回 JWT access token |
 | GET | `/api/v1/auth/me` | 根据 Bearer token 返回当前用户和权限码 |
+| GET | `/api/v1/users` | 用户列表，需 `action:users:read` |
+| GET | `/api/v1/roles` | 角色列表，需 `action:roles:read` |
+| GET | `/api/v1/departments` | 部门列表，需 `action:departments:read` |
+| POST | `/api/v1/departments` | 创建部门，需 `action:departments:create` |

@@ -7,21 +7,21 @@ import { platformName } from "@alune/shared";
 
 const summaryCards = [
   {
-    title: "Employees",
-    value: "Reserved",
-    description: "Employee management module placeholder",
+    title: "Users",
+    value: "Ready",
+    description: "User directory is connected to the backend",
     icon: Activity
   },
   {
-    title: "Permissions",
-    value: "Reserved",
-    description: "Roles and permissions will be added later",
+    title: "Roles",
+    value: "Ready",
+    description: "Role records are available for administrators",
     icon: ShieldCheck
   },
   {
-    title: "Reports",
-    value: "Reserved",
-    description: "Charts and reporting will use Recharts",
+    title: "Departments",
+    value: "Ready",
+    description: "Department records are available for assignment",
     icon: FileText
   }
 ];

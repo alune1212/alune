@@ -16,6 +16,7 @@ class UserPublic(BaseModel):
     username: str
     email: str
     full_name: str | None
+    department_id: UUID | None
     is_active: bool
     is_superuser: bool
     permissions: list[str] = Field(default_factory=list)

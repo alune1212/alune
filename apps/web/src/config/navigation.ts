@@ -1,4 +1,4 @@
-import { LayoutDashboard, ShieldCheck, Users } from "lucide-react";
+import { LayoutDashboard, Network, ShieldCheck, Users } from "lucide-react";
 import type { ComponentType } from "react";
 
 export type NavigationItem = {
@@ -10,8 +10,9 @@ export type NavigationItem = {
 
 export const navigationItems: NavigationItem[] = [
   { label: "Dashboard", to: "/", icon: LayoutDashboard, permission: "menu:dashboard" },
-  { label: "Employees", icon: Users, permission: "menu:employees" },
-  { label: "Permissions", icon: ShieldCheck, permission: "menu:permissions" }
+  { label: "Users", to: "/users", icon: Users, permission: "menu:users" },
+  { label: "Roles", to: "/roles", icon: ShieldCheck, permission: "menu:roles" },
+  { label: "Departments", to: "/departments", icon: Network, permission: "menu:departments" }
 ];
 
 export function getVisibleNavigationItems(permissions: readonly string[]): NavigationItem[] {

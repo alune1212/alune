@@ -13,6 +13,7 @@
 - Added Alembic migration environment and the first `system_info` table migration.
 - Added login MVP with `users` migration, password hashing, JWT login, current-user API, frontend login page, and protected dashboard route.
 - Added permission baseline with `roles`, `permissions`, `user_roles`, `role_permissions`, default permission seed data, backend `require_permission`, and frontend menu filtering from `/auth/me`.
+- Added stage 6A internal system foundation: user list API/page, role list API/page, department list/create API and page, plus database models for operation logs, login logs, dictionaries, and file attachments.
 - Verified Docker dependency services with PostgreSQL and Redis healthy.
 - Verified `/api/v1/health/db` returns 200 when the API can reach Docker PostgreSQL.
 
@@ -31,6 +32,7 @@ UV_CACHE_DIR=.uv-cache pnpm lint
 UV_CACHE_DIR=.uv-cache pnpm typecheck
 UV_CACHE_DIR=.uv-cache pnpm test
 pnpm build
+UV_CACHE_DIR=.uv-cache uv run alembic check
 ```
 
 ## Current Services
@@ -53,14 +55,13 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 
 ## Recommended Next Phase
 
-Stage 6 should add the internal system foundation:
+Stage 6B should deepen the internal system foundation:
 
-- User management.
-- Role management.
-- Department management.
-- Operation logs.
-- Login logs.
-- Dictionary management.
-- File attachment foundation.
+- User create/edit/disable flows.
+- Role permission assignment UI.
+- Department edit/delete rules.
+- Login/operation log write paths and read pages.
+- Dictionary management APIs and pages.
+- File upload/download backed by local storage first, then MinIO later.
 
 Do not start approval flows, payroll, reports, or company-specific business modules before the internal system foundation is in place.

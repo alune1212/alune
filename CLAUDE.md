@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## 项目概述
 
-alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP 和权限基础。
+alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础和阶段 6A 内部系统底座。
 
 ## Quick Start
 
@@ -83,7 +83,7 @@ alune-platform/
 │   ├── api/          # FastAPI 后端 (Python 3.14, uv)
 │   └── web/          # Vite React 前端
 ├── packages/
-│   ├── api-client/   # API 客户端（Orval 生成，当前为占位）
+│   ├── api-client/   # API 客户端（当前为手写 MVP client，后续替换为 Orval 生成结果）
 │   ├── shared/       # 共享常量
 │   ├── eslint-config/# ESLint 配置
 │   └── tsconfig/     # TypeScript 配置
@@ -101,10 +101,12 @@ alune-platform/
 - **入口**: `app/main.py` - 使用 lifespan 管理引擎生命周期
 - **配置**: `app/core/config.py` - pydantic-settings，支持 `.env` 文件
 - **数据库**: `app/db/session.py` - asyncpg 驱动，`get_db_session` 依赖注入
-- **迁移**: `alembic/` + `alembic.ini` - 迁移创建 `system_info`、`users`、`roles`、`permissions` 和关联表；env.py 中不需要 `_registered_models` 变量，import 模型即可让 Alembic 通过 `Base.metadata` 自动发现
+- **迁移**: `alembic/` + `alembic.ini` - 迁移创建 `system_info`、`users`、`roles`、`permissions`、关联表、`departments`、日志表、字典表和文件附件元数据；env.py 中不需要 `_registered_models` 变量，import 模型即可让 Alembic 通过 `Base.metadata` 自动发现
 - **基类**: `app/db/base.py` - `Base` + `TimestampMixin`（`created_at`/`updated_at`）
 - **认证**: `app/modules/auth/` - 用户表、密码哈希、JWT 登录、当前用户依赖
 - **权限**: `app/modules/permissions/` - 角色、权限、关联表、默认权限、权限校验依赖
+- **内部系统**: `app/modules/users/`、`app/modules/roles/`、`app/modules/departments/` - 阶段 6A 用户/角色/部门 API
+- **基础模型**: `app/modules/audit/`、`app/modules/dictionaries/`、`app/modules/files/` - 日志、字典、附件的数据库基础
 - **模块化**: `app/modules/<feature>/router.py` - 每个功能模块独立路由
 - **统一响应**: `app/common/response.py` - `ApiResponse[DataT]` 泛型模型
 - **异常处理**: `app/core/exceptions.py` - 全局异常处理器
@@ -119,9 +121,10 @@ alune-platform/
 - **功能模块**: `src/features/<feature>/` - 按功能划分页面
 - **导航配置**: `src/config/navigation.ts` - 共享导航项
 - **认证前端**: `src/features/auth/` - 登录页、AuthProvider、token storage、受保护路由
+- **内部系统前端**: `src/features/users/`、`src/features/roles/`、`src/features/departments/` - 用户、角色、部门列表页
 - **表单验证**: 项目使用 Zod v4，必须用 `@hookform/resolvers/standard-schema` 的 `standardSchemaResolver`，不能用 `zodResolver`（仅支持 Zod v3）
 - **菜单权限**: `src/config/navigation.ts` - 根据 `/api/v1/auth/me` 返回的权限码过滤菜单
-- **API client**: `packages/api-client/src/index.ts` - 当前是临时手写 client（health、auth、current user permissions），后续替换为 Orval 生成结果
+- **API client**: `packages/api-client/src/index.ts` - 当前是临时手写 client（health、auth、users、roles、departments），后续替换为 Orval 生成结果
 - **Shared constants**: `packages/shared/src/index.ts` - 当前导出 `platformName`
 - **路径别名**: `@/*` -> `./src/*`
 
@@ -160,7 +163,7 @@ alune-platform/
 - **认证状态**: token 存储在浏览器 `localStorage`；当前用户由 TanStack Query 请求 `/api/v1/auth/me`
 - **权限状态**: `/api/v1/auth/me` 返回 `permissions: string[]`；后端可用 `require_permission("permission:code")` 做操作权限校验
 - **CurrentUser**: 定义在 `auth/dependencies.py`（`get_current_user` 之后），被 `auth/router.py` 和 `permissions/dependencies.py` 共用
-- **superuser 短路**: `require_permission` 对 `is_superuser=True` 的用户跳过 DB 查询，直接放行
+- **superuser 权限**: `list_permission_codes_for_user` 对 `is_superuser=True` 返回数据库中已登记的全部权限码
 
 ## 测试
 
@@ -178,4 +181,4 @@ alune-platform/
 
 ## 当前阶段边界
 
-已完成阶段 0、1、2、3、4、5 的最小 MVP。不包含：用户管理页面、角色管理页面、部门管理、复杂业务模块。下一阶段建议：内部系统底座。
+已完成阶段 0、1、2、3、4、5 和阶段 6A 的最小 MVP。不包含：完整用户 CRUD、角色授权配置器、文件上传流程、审批、报表和公司业务模块。下一阶段建议：阶段 6B 深化内部系统底座。

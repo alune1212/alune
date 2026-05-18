@@ -9,7 +9,10 @@ from app.core.exceptions import register_exception_handlers
 from app.core.logging import configure_logging
 from app.db.session import dispose_engine
 from app.modules.auth.router import router as auth_router
+from app.modules.departments.router import router as departments_router
 from app.modules.health.router import router as health_router
+from app.modules.roles.router import router as roles_router
+from app.modules.users.router import router as users_router
 
 
 @asynccontextmanager
@@ -39,7 +42,10 @@ def create_app() -> FastAPI:
 
     register_exception_handlers(application)
     application.include_router(auth_router, prefix="/api/v1")
+    application.include_router(departments_router, prefix="/api/v1")
     application.include_router(health_router, prefix="/api/v1")
+    application.include_router(roles_router, prefix="/api/v1")
+    application.include_router(users_router, prefix="/api/v1")
 
     return application
 
