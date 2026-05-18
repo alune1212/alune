@@ -14,7 +14,7 @@ Project guidance for Codex and other AI agents working in this repository.
 - Alembic migration baseline with the `system_info` table.
 - Login MVP with `users`, password hashing, JWT login, `/auth/me`, frontend login, and a protected dashboard.
 - Permission baseline with roles, permissions, user-role links, role-permission links, backend permission dependency, and frontend menu filtering.
-- Stage 6A internal system foundation with user list, role list, department list/create, and database foundations for audit logs, login logs, dictionaries, and file attachments.
+- Stage 6B internal system foundation with user create/enable/disable, role permission assignment, department update/delete rules, audit log views, dictionary management, and file metadata management.
 
 Do not add approval flows, reports, payroll, or company-specific business modules unless the user explicitly asks for that phase.
 
@@ -65,9 +65,24 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
   - `POST /api/v1/auth/login`
   - `GET /api/v1/auth/me`
   - `GET /api/v1/users`
+  - `POST /api/v1/users`
+  - `PATCH /api/v1/users/{user_id}`
   - `GET /api/v1/roles`
+  - `GET /api/v1/roles/permissions`
+  - `GET /api/v1/roles/{role_id}/permissions`
+  - `PUT /api/v1/roles/{role_id}/permissions`
   - `GET /api/v1/departments`
   - `POST /api/v1/departments`
+  - `PATCH /api/v1/departments/{department_id}`
+  - `DELETE /api/v1/departments/{department_id}`
+  - `GET /api/v1/audit/operation-logs`
+  - `GET /api/v1/audit/login-logs`
+  - `GET /api/v1/dictionaries/types`
+  - `POST /api/v1/dictionaries/types`
+  - `GET /api/v1/dictionaries/items`
+  - `POST /api/v1/dictionaries/items`
+  - `GET /api/v1/files`
+  - `POST /api/v1/files`
 - Backend settings live in `apps/api/app/core/config.py`.
 - Async SQLAlchemy engine/session lives in `apps/api/app/db/session.py`.
 - Alembic config lives in `apps/api/alembic.ini` and `apps/api/alembic/`.
@@ -80,7 +95,7 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 - App shell: `apps/web/src/components/layout/`.
 - Dashboard page: `apps/web/src/features/dashboard/dashboard-page.tsx`.
 - Login page and auth provider: `apps/web/src/features/auth/`.
-- Internal system pages: `apps/web/src/features/users/`, `apps/web/src/features/roles/`, `apps/web/src/features/departments/`.
+- Internal system pages: `apps/web/src/features/users/`, `apps/web/src/features/roles/`, `apps/web/src/features/departments/`, `apps/web/src/features/audit/`, `apps/web/src/features/dictionaries/`, `apps/web/src/features/files/`.
 - Navigation config: `apps/web/src/config/navigation.ts`.
 - Menu filtering: `apps/web/src/config/navigation.ts`.
 - Temporary hand-written API client: `packages/api-client/src/index.ts`; keep the TODO to replace it with Orval-generated code later.
@@ -88,7 +103,7 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 
 ## Guardrails
 
-- Keep stage 0-6A minimal. Avoid over-abstracting before real business modules exist.
+- Keep stage 0-6B minimal. Avoid over-abstracting before real business modules exist.
 - Use TanStack Query for server state and Zustand only for UI state.
 - Keep shadcn/ui-compatible primitives under `apps/web/src/components/ui/`.
 - Keep backend modules under `apps/api/app/modules/<feature>/`.

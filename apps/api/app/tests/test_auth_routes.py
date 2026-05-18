@@ -13,9 +13,17 @@ from app.modules.auth.security import create_access_token, get_password_hash
 class FakeUserSession:
     def __init__(self, user: User | None) -> None:
         self.user = user
+        self.added_objects: list[object] = []
+        self.commits = 0
 
     async def scalar(self, _: object) -> User | None:
         return self.user
+
+    def add(self, value: object) -> None:
+        self.added_objects.append(value)
+
+    async def commit(self) -> None:
+        self.commits += 1
 
     async def scalars(self, _: object):
         class FakeScalarResult:

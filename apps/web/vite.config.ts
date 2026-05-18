@@ -22,7 +22,14 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          tanstack: ["@tanstack/react-query", "@tanstack/react-router"]
+          tanstack: ["@tanstack/react-query", "@tanstack/react-router", "@tanstack/react-table"],
+          ui: [
+            "@radix-ui/react-dialog",
+            "@radix-ui/react-dropdown-menu",
+            "@radix-ui/react-slot",
+            "lucide-react",
+            "sonner"
+          ]
         }
       }
     }

@@ -15,8 +15,19 @@ describe("navigation permissions", () => {
       "menu:users",
       "menu:roles",
       "menu:departments",
+      "menu:audit",
+      "menu:dictionaries",
+      "menu:files",
     ]);
 
-    expect(visibleItems.map((item) => item.label)).toEqual(["Dashboard", "Users", "Roles", "Departments"]);
+    expect(visibleItems.map((item) => item.label)).toEqual([
+      "Dashboard",
+      "Users",
+      "Roles",
+      "Departments",
+      "Audit",
+      "Dictionaries",
+      "Files",
+    ]);
   });
 });

@@ -1,9 +1,10 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.common.response import ApiResponse
+from app.modules.audit.repository import record_login_log
 from app.modules.auth.dependencies import CurrentUser, DatabaseSession
 from app.modules.auth.repository import authenticate_user
 from app.modules.auth.schemas import Token, UserPublic
@@ -18,15 +19,35 @@ LoginForm = Annotated[OAuth2PasswordRequestForm, Depends()]
 async def login(
     form_data: LoginForm,
     session: DatabaseSession,
+    request: Request,
 ) -> ApiResponse[Token]:
     user = await authenticate_user(session, form_data.username, form_data.password)
     if user is None:
+        await record_login_log(
+            session,
+            username=form_data.username,
+            user_id=None,
+            ip_address=request.client.host if request.client else None,
+            user_agent=request.headers.get("user-agent"),
+            status="failed",
+            message="Incorrect username or password",
+        )
+        await session.commit()
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    await record_login_log(
+        session,
+        username=user.username,
+        user_id=user.id,
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
+        status="success",
+    )
+    await session.commit()
     return ApiResponse(
         success=True,
         data=Token(access_token=create_access_token(subject=user.username)),

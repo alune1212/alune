@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## 项目概述
 
-alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础和阶段 6A 内部系统底座。
+alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础和阶段 6B 内部系统底座。
 
 ## Quick Start
 
@@ -105,8 +105,8 @@ alune-platform/
 - **基类**: `app/db/base.py` - `Base` + `TimestampMixin`（`created_at`/`updated_at`）
 - **认证**: `app/modules/auth/` - 用户表、密码哈希、JWT 登录、当前用户依赖
 - **权限**: `app/modules/permissions/` - 角色、权限、关联表、默认权限、权限校验依赖
-- **内部系统**: `app/modules/users/`、`app/modules/roles/`、`app/modules/departments/` - 阶段 6A 用户/角色/部门 API
-- **基础模型**: `app/modules/audit/`、`app/modules/dictionaries/`、`app/modules/files/` - 日志、字典、附件的数据库基础
+- **内部系统**: `app/modules/users/`、`app/modules/roles/`、`app/modules/departments/` - 用户创建/启停、角色权限配置、部门更新/删除规则
+- **基础模块**: `app/modules/audit/`、`app/modules/dictionaries/`、`app/modules/files/` - 登录/操作日志、字典类型/字典项、文件元数据
 - **模块化**: `app/modules/<feature>/router.py` - 每个功能模块独立路由
 - **统一响应**: `app/common/response.py` - `ApiResponse[DataT]` 泛型模型
 - **异常处理**: `app/core/exceptions.py` - 全局异常处理器
@@ -121,10 +121,10 @@ alune-platform/
 - **功能模块**: `src/features/<feature>/` - 按功能划分页面
 - **导航配置**: `src/config/navigation.ts` - 共享导航项
 - **认证前端**: `src/features/auth/` - 登录页、AuthProvider、token storage、受保护路由
-- **内部系统前端**: `src/features/users/`、`src/features/roles/`、`src/features/departments/` - 用户、角色、部门列表页
+- **内部系统前端**: `src/features/users/`、`src/features/roles/`、`src/features/departments/`、`src/features/audit/`、`src/features/dictionaries/`、`src/features/files/`
 - **表单验证**: 项目使用 Zod v4，必须用 `@hookform/resolvers/standard-schema` 的 `standardSchemaResolver`，不能用 `zodResolver`（仅支持 Zod v3）
 - **菜单权限**: `src/config/navigation.ts` - 根据 `/api/v1/auth/me` 返回的权限码过滤菜单
-- **API client**: `packages/api-client/src/index.ts` - 当前是临时手写 client（health、auth、users、roles、departments），后续替换为 Orval 生成结果
+- **API client**: `packages/api-client/src/index.ts` - 当前是临时手写 client（health、auth、users、roles、departments、audit、dictionaries、files），后续替换为 Orval 生成结果
 - **Shared constants**: `packages/shared/src/index.ts` - 当前导出 `platformName`
 - **路径别名**: `@/*` -> `./src/*`
 
@@ -181,4 +181,4 @@ alune-platform/
 
 ## 当前阶段边界
 
-已完成阶段 0、1、2、3、4、5 和阶段 6A 的最小 MVP。不包含：完整用户 CRUD、角色授权配置器、文件上传流程、审批、报表和公司业务模块。下一阶段建议：阶段 6B 深化内部系统底座。
+已完成阶段 0、1、2、3、4、5、6A 和阶段 6B 的最小 MVP。不包含：文件二进制上传下载、复杂组织架构、审批、报表和公司业务模块。下一阶段建议：阶段 6C 强化内部系统底座。

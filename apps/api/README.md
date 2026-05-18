@@ -58,6 +58,21 @@ The seed command also creates the default `admin` role, menu/action permissions,
 - `POST /api/v1/auth/login` - OAuth2 password login, returns a JWT access token.
 - `GET /api/v1/auth/me` - Current user profile and permission codes for a Bearer token.
 - `GET /api/v1/users` - User list for administrators.
+- `POST /api/v1/users` - Create a user.
+- `PATCH /api/v1/users/{user_id}` - Update or enable/disable a user.
 - `GET /api/v1/roles` - Role list for administrators.
+- `GET /api/v1/roles/permissions` - Permission list.
+- `GET /api/v1/roles/{role_id}/permissions` - Role permission codes.
+- `PUT /api/v1/roles/{role_id}/permissions` - Replace role permission codes.
 - `GET /api/v1/departments` - Department list for administrators.
 - `POST /api/v1/departments` - Create a department.
+- `PATCH /api/v1/departments/{department_id}` - Update a department.
+- `DELETE /api/v1/departments/{department_id}` - Delete an unused department.
+- `GET /api/v1/audit/operation-logs` - Operation logs.
+- `GET /api/v1/audit/login-logs` - Login logs.
+- `GET /api/v1/dictionaries/types` - Dictionary types.
+- `POST /api/v1/dictionaries/types` - Create a dictionary type.
+- `GET /api/v1/dictionaries/items` - Dictionary items.
+- `POST /api/v1/dictionaries/items` - Create a dictionary item.
+- `GET /api/v1/files` - File attachment metadata.
+- `POST /api/v1/files` - Create file attachment metadata.

@@ -1,17 +1,27 @@
+import asyncio
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.common.response import ApiResponse
+from app.modules.audit.repository import record_operation_log
 from app.modules.auth.dependencies import DatabaseSession
+from app.modules.auth.models import User
 from app.modules.departments.models import Department
 from app.modules.departments.repository import (
+    count_child_departments,
+    count_users_by_department,
     get_department_by_code,
     get_department_by_id,
     list_departments,
 )
-from app.modules.departments.schemas import DepartmentCreate, DepartmentPublic
+from app.modules.departments.schemas import DepartmentCreate, DepartmentPublic, DepartmentUpdate
 from app.modules.permissions.dependencies import require_permission
 
 router = APIRouter(prefix="/departments", tags=["departments"])
+CreateDepartmentDependency = Depends(require_permission("action:departments:create"))
+UpdateDepartmentDependency = Depends(require_permission("action:departments:update"))
+DeleteDepartmentDependency = Depends(require_permission("action:departments:delete"))
 
 
 @router.get(
@@ -29,11 +39,11 @@ async def get_departments(session: DatabaseSession) -> ApiResponse[list[Departme
     "",
     response_model=ApiResponse[DepartmentPublic],
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(require_permission("action:departments:create"))],
 )
 async def create_department(
     payload: DepartmentCreate,
     session: DatabaseSession,
+    current_user: User = CreateDepartmentDependency,
 ) -> ApiResponse[DepartmentPublic]:
     existing_department = await get_department_by_code(session, payload.code)
     if existing_department is not None:
@@ -52,7 +62,106 @@ async def create_department(
 
     department = Department(**payload.model_dump())
     session.add(department)
+    await session.flush()
+    await record_operation_log(
+        session,
+        actor_user_id=current_user.id,
+        action="create",
+        resource="department",
+        resource_id=str(department.id),
+    )
     await session.commit()
     await session.refresh(department)
 
     return ApiResponse(success=True, data=DepartmentPublic.model_validate(department))
+
+
+@router.patch(
+    "/{department_id}",
+    response_model=ApiResponse[DepartmentPublic],
+)
+async def update_department(
+    department_id: UUID,
+    payload: DepartmentUpdate,
+    session: DatabaseSession,
+    current_user: User = UpdateDepartmentDependency,
+) -> ApiResponse[DepartmentPublic]:
+    department = await get_department_by_id(session, department_id)
+    if department is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Department not found")
+
+    update_data = payload.model_dump(exclude_unset=True)
+    if "code" in update_data and update_data["code"] is not None:
+        existing_department = await get_department_by_code(session, update_data["code"])
+        if existing_department is not None and existing_department.id != department.id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Department code already exists",
+            )
+
+    if "parent_id" in update_data and update_data["parent_id"] == department.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Department cannot be its own parent",
+        )
+
+    if "parent_id" in update_data and update_data["parent_id"] is not None:
+        parent_department = await get_department_by_id(session, update_data["parent_id"])
+        if parent_department is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Parent department does not exist",
+            )
+
+    for field_name, value in update_data.items():
+        setattr(department, field_name, value)
+
+    await record_operation_log(
+        session,
+        actor_user_id=current_user.id,
+        action="update",
+        resource="department",
+        resource_id=str(department.id),
+    )
+    await session.commit()
+    await session.refresh(department)
+    return ApiResponse(success=True, data=DepartmentPublic.model_validate(department))
+
+
+@router.delete(
+    "/{department_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_department(
+    department_id: UUID,
+    session: DatabaseSession,
+    current_user: User = DeleteDepartmentDependency,
+) -> None:
+    department = await get_department_by_id(session, department_id)
+    if department is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Department not found")
+
+    child_count, assigned_user_count = await asyncio.gather(
+        count_child_departments(session, department.id),
+        count_users_by_department(session, department.id),
+    )
+    if child_count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Department has child departments",
+        )
+    if assigned_user_count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Department has assigned users",
+        )
+
+    await session.delete(department)
+    await record_operation_log(
+        session,
+        actor_user_id=current_user.id,
+        action="delete",
+        resource="department",
+        resource_id=str(department.id),
+    )
+    await session.commit()

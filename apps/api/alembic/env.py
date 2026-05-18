@@ -27,6 +27,18 @@ settings = get_settings()
 config.set_main_option("sqlalchemy.url", settings.database_url)
 
 target_metadata = Base.metadata
+_registered_models = (
+    LoginLog,
+    OperationLog,
+    User,
+    Department,
+    DictionaryItem,
+    DictionaryType,
+    FileAttachment,
+    Permission,
+    Role,
+    SystemInfo,
+)
 
 
 def run_migrations_offline() -> None:

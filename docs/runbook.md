@@ -134,6 +134,7 @@ curl -s -X POST http://localhost:8000/api/v1/auth/login \
   -d "username=admin&password=change-this-password"
 docker compose exec -T postgres psql -U app -d company_admin -c "select code, type from permissions order by code;"
 docker compose exec -T postgres psql -U app -d company_admin -c "select code, name from departments order by code;"
+docker compose exec -T postgres psql -U app -d company_admin -c "select code from permissions where code in ('menu:audit','menu:dictionaries','menu:files') order by code;"
 ```
 
 Expected DB health success:
