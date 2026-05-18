@@ -101,7 +101,7 @@ alune-platform/
 - **入口**: `app/main.py` - 使用 lifespan 管理引擎生命周期
 - **配置**: `app/core/config.py` - pydantic-settings，支持 `.env` 文件
 - **数据库**: `app/db/session.py` - asyncpg 驱动，`get_db_session` 依赖注入
-- **迁移**: `alembic/` + `alembic.ini` - 迁移创建 `system_info`、`users`、`roles`、`permissions` 和关联表
+- **迁移**: `alembic/` + `alembic.ini` - 迁移创建 `system_info`、`users`、`roles`、`permissions` 和关联表；env.py 中不需要 `_registered_models` 变量，import 模型即可让 Alembic 通过 `Base.metadata` 自动发现
 - **基类**: `app/db/base.py` - `Base` + `TimestampMixin`（`created_at`/`updated_at`）
 - **认证**: `app/modules/auth/` - 用户表、密码哈希、JWT 登录、当前用户依赖
 - **权限**: `app/modules/permissions/` - 角色、权限、关联表、默认权限、权限校验依赖
@@ -119,6 +119,7 @@ alune-platform/
 - **功能模块**: `src/features/<feature>/` - 按功能划分页面
 - **导航配置**: `src/config/navigation.ts` - 共享导航项
 - **认证前端**: `src/features/auth/` - 登录页、AuthProvider、token storage、受保护路由
+- **表单验证**: 项目使用 Zod v4，必须用 `@hookform/resolvers/standard-schema` 的 `standardSchemaResolver`，不能用 `zodResolver`（仅支持 Zod v3）
 - **菜单权限**: `src/config/navigation.ts` - 根据 `/api/v1/auth/me` 返回的权限码过滤菜单
 - **API client**: `packages/api-client/src/index.ts` - 当前是临时手写 client（health、auth、current user permissions），后续替换为 Orval 生成结果
 - **Shared constants**: `packages/shared/src/index.ts` - 当前导出 `platformName`
@@ -158,6 +159,8 @@ alune-platform/
 - **API 响应格式**: 所有端点返回 `ApiResponse[DataT]` 泛型模型
 - **认证状态**: token 存储在浏览器 `localStorage`；当前用户由 TanStack Query 请求 `/api/v1/auth/me`
 - **权限状态**: `/api/v1/auth/me` 返回 `permissions: string[]`；后端可用 `require_permission("permission:code")` 做操作权限校验
+- **CurrentUser**: 定义在 `auth/dependencies.py`（`get_current_user` 之后），被 `auth/router.py` 和 `permissions/dependencies.py` 共用
+- **superuser 短路**: `require_permission` 对 `is_superuser=True` 的用户跳过 DB 查询，直接放行
 
 ## 测试
 
