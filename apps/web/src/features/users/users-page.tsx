@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
+import { toast } from "sonner";
 
 import { DataTable } from "@/components/data/data-table";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,11 @@ import {
   type UserManagementItem
 } from "@alune/api-client";
 
+type BulkStatusAction = {
+  isActive: boolean;
+  userIds: string[];
+};
+
 export function UsersPage() {
   const auth = useAuth();
   const queryClient = useQueryClient();
@@ -39,6 +45,8 @@ export function UsersPage() {
   const [editDepartmentId, setEditDepartmentId] = useState("");
   const [resetPassword, setResetPassword] = useState("");
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+  const [pendingBulkStatusAction, setPendingBulkStatusAction] = useState<BulkStatusAction | null>(null);
+  const [bulkStatusResult, setBulkStatusResult] = useState<string | null>(null);
   const usersQuery = useQuery({
     queryKey: ["internal", "users", search, roleFilter, departmentFilter, page],
     queryFn: () =>
@@ -88,13 +96,16 @@ export function UsersPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "users"] })
   });
   const bulkStatusMutation = useMutation({
-    mutationFn: (isActive: boolean) =>
+    mutationFn: (action: BulkStatusAction) =>
       updateUsersStatus(auth.token!, {
-        user_ids: selectedUserIds,
-        is_active: isActive
+        user_ids: action.userIds,
+        is_active: action.isActive
       }),
-    onSuccess: () => {
+    onSuccess: (response) => {
       setSelectedUserIds([]);
+      setPendingBulkStatusAction(null);
+      setBulkStatusResult(`Updated ${response.data.updated_count} users.`);
+      toast.success(`Updated ${response.data.updated_count} users.`);
       queryClient.invalidateQueries({ queryKey: ["internal", "users"] });
     }
   });
@@ -223,6 +234,14 @@ export function UsersPage() {
         return current.filter((userId) => !pageUserIds.includes(userId));
       }
       return [...new Set([...current, ...pageUserIds])];
+    });
+  }
+
+  function requestBulkStatusChange(isActive: boolean) {
+    setBulkStatusResult(null);
+    setPendingBulkStatusAction({
+      isActive,
+      userIds: selectedUserIds
     });
   }
 
@@ -405,7 +424,7 @@ export function UsersPage() {
               type="button"
               variant="outline"
               disabled={selectedUserIds.length === 0 || bulkStatusMutation.isPending}
-              onClick={() => bulkStatusMutation.mutate(true)}
+              onClick={() => requestBulkStatusChange(true)}
             >
               Enable selected
             </Button>
@@ -413,11 +432,54 @@ export function UsersPage() {
               type="button"
               variant="outline"
               disabled={selectedUserIds.length === 0 || bulkStatusMutation.isPending}
-              onClick={() => bulkStatusMutation.mutate(false)}
+              onClick={() => requestBulkStatusChange(false)}
             >
               Disable selected
             </Button>
           </div>
+          {bulkStatusResult ? (
+            <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+              {bulkStatusResult}
+            </p>
+          ) : null}
+          {pendingBulkStatusAction ? (
+            <div
+              aria-labelledby="bulk-status-confirm-title"
+              aria-modal="true"
+              className="rounded-md border border-slate-200 bg-slate-50 p-4 shadow-sm"
+              role="dialog"
+            >
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 id="bulk-status-confirm-title" className="text-sm font-semibold text-slate-950">
+                    Confirm bulk status change
+                  </h3>
+                  <p className="mt-1 text-sm text-slate-600">
+                    {pendingBulkStatusAction.isActive ? "Enable" : "Disable"}{" "}
+                    {pendingBulkStatusAction.userIds.length} selected users?
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={bulkStatusMutation.isPending}
+                    onClick={() => setPendingBulkStatusAction(null)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={pendingBulkStatusAction.isActive ? "default" : "destructive"}
+                    disabled={bulkStatusMutation.isPending}
+                    onClick={() => bulkStatusMutation.mutate(pendingBulkStatusAction)}
+                  >
+                    {pendingBulkStatusAction.isActive ? "Confirm enable" : "Confirm disable"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : null}
           {usersQuery.isError ? (
             <p className="text-sm text-red-600">Unable to load users.</p>
           ) : (

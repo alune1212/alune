@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## 项目概述
 
-alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础和阶段 6F 内部系统底座。
+alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础和阶段 6G-A 内部系统底座交互加固。
 
 ## Quick Start
 
@@ -123,7 +123,7 @@ alune-platform/
 - **功能模块**: `src/features/<feature>/` - 按功能划分页面
 - **导航配置**: `src/config/navigation.ts` - 共享导航项
 - **认证前端**: `src/features/auth/` - 登录页、AuthProvider、token storage、受保护路由
-- **内部系统前端**: `src/features/users/`、`src/features/roles/`、`src/features/departments/`、`src/features/audit/`、`src/features/dictionaries/`、`src/features/files/`；用户页面包含角色/部门过滤和批量启停，角色页面包含角色增删改、权限搜索和按类型分组配置，审计页面包含日期过滤和 CSV 导出，字典页面包含类型/字典项维护
+- **内部系统前端**: `src/features/users/`、`src/features/roles/`、`src/features/departments/`、`src/features/audit/`、`src/features/dictionaries/`、`src/features/files/`；用户页面包含角色/部门过滤、批量启停确认和结果反馈，角色页面包含角色增删改、权限搜索、按类型分组配置和搜索空状态，审计页面包含日期过滤和 CSV 导出，字典页面包含类型/字典项维护
 - **表单验证**: 项目使用 Zod v4，必须用 `@hookform/resolvers/standard-schema` 的 `standardSchemaResolver`，不能用 `zodResolver`（仅支持 Zod v3）
 - **菜单权限**: `src/config/navigation.ts` - 根据 `/api/v1/auth/me` 返回的权限码过滤菜单
 - **API client**: `packages/api-client/src/index.ts` - 当前是临时手写 client（health、auth、users、roles、departments、audit、dictionaries、files），后续替换为 Orval 生成结果
@@ -189,4 +189,4 @@ alune-platform/
 
 ## 当前阶段边界
 
-已完成阶段 0、1、2、3、4、5、6A、6B、6C、6D、6E 和阶段 6F 的最小 MVP。不包含：MinIO/object storage 实际接入、病毒扫描实际引擎、复杂组织架构、审批、报表和公司业务模块。下一阶段建议：阶段 6G 继续强化内部系统底座。
+已完成阶段 0、1、2、3、4、5、6A、6B、6C、6D、6E、阶段 6F 和阶段 6G-A 的最小 MVP。不包含：MinIO/object storage 实际接入、病毒扫描实际引擎、复杂组织架构、审批、报表和公司业务模块。下一阶段建议：阶段 6G-B 继续强化内部系统底座。

@@ -265,6 +265,11 @@ export function RolesPage() {
                 onChange={(event) => setPermissionSearch(event.target.value)}
                 placeholder="Search permissions"
               />
+              {Object.keys(groupedPermissions).length === 0 ? (
+                <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-4 text-sm text-slate-500">
+                  No permissions match this search.
+                </p>
+              ) : null}
               {Object.entries(groupedPermissions).map(([type, groupPermissions]) => (
                 <section key={type} className="space-y-2">
                   <div className="flex items-center justify-between border-b border-slate-200 pb-2">

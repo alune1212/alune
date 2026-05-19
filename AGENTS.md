@@ -14,7 +14,7 @@ Project guidance for Codex and other AI agents working in this repository.
 - Alembic migration baseline with the `system_info` table.
 - Login MVP with `users`, password hashing, JWT login, `/auth/me`, frontend login, and a protected dashboard.
 - Permission baseline with roles, permissions, user-role links, role-permission links, backend permission dependency, and frontend menu filtering.
-- Stage 6F internal system foundation with user create/enable/disable/batch-status/edit/password reset, user role assignment, user role/department filters, role create/update/delete guards, searchable grouped role permission assignment, department tree/update/delete rules, audit log filtering/pagination/date range/CSV export, dictionary type/item maintenance guards, local file upload/download, upload policy checks, file storage backend factory, and upload scanner hook.
+- Stage 6G-A internal system foundation with user create/enable/disable/batch-status confirmation and result feedback/edit/password reset, user role assignment, user role/department filters, role create/update/delete guards, searchable grouped role permission assignment with empty-state feedback, department tree/update/delete rules, audit log filtering/pagination/date range/CSV export, dictionary type/item maintenance guards, local file upload/download, upload policy checks, file storage backend factory, upload scanner hook, and frontend tests for batch status plus permission search/grouping.
 
 Do not add approval flows, reports, payroll, or company-specific business modules unless the user explicitly asks for that phase.
 
@@ -126,7 +126,7 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 
 ## Guardrails
 
-- Keep stage 0-6F minimal. Avoid over-abstracting before real business modules exist.
+- Keep stage 0-6G minimal. Avoid over-abstracting before real business modules exist.
 - Use TanStack Query for server state and Zustand only for UI state.
 - Keep shadcn/ui-compatible primitives under `apps/web/src/components/ui/`.
 - Keep backend modules under `apps/api/app/modules/<feature>/`.

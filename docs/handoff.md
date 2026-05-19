@@ -19,6 +19,7 @@
 - Added stage 6D internal system hardening: upload type/size policy, user edit/department assignment/password reset, dictionary item update/enable-disable/delete, and audit log pagination/search/status filters.
 - Added stage 6E internal system hardening: user filtering by role/department, role create/update/delete with system and assignment guards, dictionary type update/delete guards, and audit log date-range filters plus CSV export.
 - Added stage 6F internal system hardening: batch user enable/disable with audit logging, file storage backend factory with reserved MinIO path, upload scanner hook with safe default no-op behavior, and searchable grouped role permissions in the frontend.
+- Added stage 6G-A frontend hardening: batch user enable/disable confirmation with result feedback, plus Vitest/Testing Library coverage for batch user status and role permission search/grouping.
 - Verified Docker dependency services with PostgreSQL and Redis healthy.
 - Verified `/api/v1/health/db` returns 200 when the API can reach Docker PostgreSQL.
 
@@ -67,9 +68,8 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 
 Stage 6G should continue hardening the internal system foundation:
 
-- Add explicit confirmation modals and result summaries for batch operations.
 - Implement the MinIO object storage adapter behind the existing storage factory.
 - Wire a real antivirus scanning engine to the upload scanner interface.
-- Add frontend tests around batch user status and permission search behavior.
+- Expand frontend interaction tests for dictionary, department, audit, and file-management pages.
 
 Do not start approval flows, payroll, reports, or company-specific business modules before the internal system foundation is in place.
