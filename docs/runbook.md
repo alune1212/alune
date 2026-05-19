@@ -258,11 +258,28 @@ ALLOWED_UPLOAD_CONTENT_TYPES=application/pdf,image/jpeg,image/png,text/plain,app
 
 Oversized files return `413`. Disallowed content types return `400`.
 
-Stage 6F adds a storage backend factory and an upload scanner hook:
+Stage 6G-B supports both local storage and MinIO through the storage backend factory:
 
 ```text
 FILE_STORAGE_BACKEND=local
 UPLOAD_SCANNER_ENABLED=false
 ```
 
-Only the `local` backend is implemented. `minio` is reserved for a later phase and currently returns a clear server-side configuration error if enabled. `UPLOAD_SCANNER_ENABLED=true` is also reserved until a real scanning engine is wired in.
+For local Docker testing with MinIO:
+
+```bash
+docker compose --profile minio up -d minio minio-init
+FILE_STORAGE_BACKEND=minio docker compose --profile app --profile minio up --build
+```
+
+MinIO settings:
+
+```text
+MINIO_ENDPOINT=localhost:9000
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin
+MINIO_BUCKET=alune-files
+MINIO_SECURE=false
+```
+
+The `minio-init` service creates the configured bucket for local Docker runs. `UPLOAD_SCANNER_ENABLED=true` is still reserved until a real scanning engine is wired in.

@@ -1,9 +1,7 @@
-import asyncio
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
-from starlette.responses import FileResponse
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile, status
 
 from app.common.pagination import Page
 from app.common.response import ApiResponse
@@ -15,7 +13,6 @@ from app.modules.files.models import FileAttachment
 from app.modules.files.repository import get_file_attachment_by_id, list_file_attachments
 from app.modules.files.schemas import FileAttachmentCreate, FileAttachmentPublic
 from app.modules.files.storage import (
-    LocalFileStorage,
     get_file_storage,
     get_upload_scanner,
     validate_upload_policy,
@@ -94,6 +91,11 @@ async def upload_file_attachment(
         storage = get_file_storage(
             backend=settings.file_storage_backend,
             local_root=settings.local_file_storage_dir,
+            minio_endpoint=settings.minio_endpoint,
+            minio_access_key=settings.minio_access_key,
+            minio_secret_key=settings.minio_secret_key,
+            minio_bucket=settings.minio_bucket,
+            minio_secure=settings.minio_secure,
         )
         scanner = get_upload_scanner(enabled=settings.upload_scanner_enabled)
     except ValueError as exc:
@@ -135,26 +137,29 @@ async def download_file_attachment(
     file_id: UUID,
     session: DatabaseSession,
     settings: Annotated[Settings, Depends(get_settings)],
-) -> FileResponse:
+) -> Response:
     file_attachment = await get_file_attachment_by_id(session, file_id)
     if file_attachment is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
 
     try:
-        file_path = LocalFileStorage(settings.local_file_storage_dir).resolve(
-            file_attachment.storage_path
+        storage = get_file_storage(
+            backend=settings.file_storage_backend,
+            local_root=settings.local_file_storage_dir,
+            minio_endpoint=settings.minio_endpoint,
+            minio_access_key=settings.minio_access_key,
+            minio_secret_key=settings.minio_secret_key,
+            minio_bucket=settings.minio_bucket,
+            minio_secure=settings.minio_secure,
         )
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Invalid file storage path",
+            detail=str(exc),
         ) from exc
 
-    if not await asyncio.to_thread(file_path.is_file):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File content not found")
-
-    return FileResponse(
-        path=file_path,
+    return await storage.download_response(
+        storage_path=file_attachment.storage_path,
         filename=file_attachment.original_filename,
-        media_type=file_attachment.content_type,
+        content_type=file_attachment.content_type,
     )

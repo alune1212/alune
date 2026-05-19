@@ -20,6 +20,7 @@
 - Added stage 6E internal system hardening: user filtering by role/department, role create/update/delete with system and assignment guards, dictionary type update/delete guards, and audit log date-range filters plus CSV export.
 - Added stage 6F internal system hardening: batch user enable/disable with audit logging, file storage backend factory with reserved MinIO path, upload scanner hook with safe default no-op behavior, and searchable grouped role permissions in the frontend.
 - Added stage 6G-A frontend hardening: batch user enable/disable confirmation with result feedback, plus Vitest/Testing Library coverage for batch user status and role permission search/grouping.
+- Added stage 6G-B storage hardening: MinIO storage adapter, storage-backed download responses, MinIO settings, optional Docker MinIO profile, and bucket initialization service.
 - Verified Docker dependency services with PostgreSQL and Redis healthy.
 - Verified `/api/v1/health/db` returns 200 when the API can reach Docker PostgreSQL.
 
@@ -52,10 +53,13 @@ pnpm --filter @alune/web exec playwright install --list
 - DB health: http://localhost:8000/api/v1/health/db
 - PostgreSQL: localhost:5432
 - Redis: localhost:6379
+- MinIO API, when profile is enabled: http://localhost:9000
+- MinIO console, when profile is enabled: http://localhost:9001
 
 ## Known Local Notes
 
 - Full Docker app profile can be started with `docker compose --profile app up --build`.
+- Local MinIO can be started with `docker compose --profile minio up -d minio minio-init`; use `FILE_STORAGE_BACKEND=minio` for API uploads against MinIO.
 - Playwright Chromium for this project is installed for Playwright `1.60.0` under `/Users/alune/Library/Caches/ms-playwright/chromium-1223`.
 - Codex sandbox may block Chromium launch with a macOS Mach port permission error; browser smoke tests should be run outside the sandbox when that happens.
 - If local dev servers already occupy 8000 or 5173, use:
@@ -68,7 +72,6 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 
 Stage 6G should continue hardening the internal system foundation:
 
-- Implement the MinIO object storage adapter behind the existing storage factory.
 - Wire a real antivirus scanning engine to the upload scanner interface.
 - Expand frontend interaction tests for dictionary, department, audit, and file-management pages.
 

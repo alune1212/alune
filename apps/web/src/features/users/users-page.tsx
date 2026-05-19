@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { toast } from "sonner";
 
 import { DataTable } from "@/components/data/data-table";
 import { Button } from "@/components/ui/button";
@@ -105,7 +104,6 @@ export function UsersPage() {
       setSelectedUserIds([]);
       setPendingBulkStatusAction(null);
       setBulkStatusResult(`Updated ${response.data.updated_count} users.`);
-      toast.success(`Updated ${response.data.updated_count} users.`);
       queryClient.invalidateQueries({ queryKey: ["internal", "users"] });
     }
   });

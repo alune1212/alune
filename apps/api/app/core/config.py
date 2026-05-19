@@ -31,6 +31,11 @@ class Settings(BaseSettings):
     file_storage_backend: str = "local"
     upload_scanner_enabled: bool = False
     local_file_storage_dir: str = ".local/uploads"
+    minio_endpoint: str | None = None
+    minio_access_key: str | None = None
+    minio_secret_key: str | None = None
+    minio_bucket: str | None = None
+    minio_secure: bool = True
     max_upload_size_bytes: int = 10 * 1024 * 1024
     allowed_upload_content_types: Annotated[list[str], NoDecode] = Field(
         default_factory=lambda: [

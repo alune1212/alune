@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## 项目概述
 
-alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础和阶段 6G-A 内部系统底座交互加固。
+alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础和阶段 6G-B 内部系统底座交互与存储加固。
 
 ## Quick Start
 
@@ -136,6 +136,8 @@ alune-platform/
 - **redis**: Redis 8，端口 6379
 - **api**: FastAPI 应用，端口 8000（profile: app）
 - **web**: Nginx 静态服务，端口 5173（profile: app）
+- **minio**: MinIO 对象存储，端口 9000/9001（profile: minio）
+- **minio-init**: 本地 Docker MinIO bucket 初始化（profile: minio）
 - PostgreSQL 18 volume 必须挂载到 `/var/lib/postgresql`，不要改回 `/var/lib/postgresql/data`
 
 ## 环境变量
@@ -150,7 +152,8 @@ alune-platform/
 - `LOCAL_FILE_STORAGE_DIR` - API 本地文件上传目录（本地默认 `.local/uploads`，Docker app profile 为 `/app/uploads`）
 - `MAX_UPLOAD_SIZE_BYTES` - 上传文件大小上限
 - `ALLOWED_UPLOAD_CONTENT_TYPES` - 允许上传的 MIME 类型列表
-- `FILE_STORAGE_BACKEND` - 文件存储后端，当前仅支持 `local`
+- `FILE_STORAGE_BACKEND` - 文件存储后端，支持 `local` 和 `minio`
+- `MINIO_ENDPOINT` / `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` / `MINIO_BUCKET` / `MINIO_SECURE` - MinIO 存储配置
 - `UPLOAD_SCANNER_ENABLED` - 上传扫描 hook 开关，当前真实扫描引擎尚未实现，默认必须保持 `false`
 
 ## 代码规范
@@ -189,4 +192,4 @@ alune-platform/
 
 ## 当前阶段边界
 
-已完成阶段 0、1、2、3、4、5、6A、6B、6C、6D、6E、阶段 6F 和阶段 6G-A 的最小 MVP。不包含：MinIO/object storage 实际接入、病毒扫描实际引擎、复杂组织架构、审批、报表和公司业务模块。下一阶段建议：阶段 6G-B 继续强化内部系统底座。
+已完成阶段 0、1、2、3、4、5、6A、6B、6C、6D、6E、阶段 6F、阶段 6G-A 和阶段 6G-B 的最小 MVP。不包含：病毒扫描实际引擎、复杂组织架构、审批、报表和公司业务模块。下一阶段建议：阶段 6G-C 继续强化内部系统底座。

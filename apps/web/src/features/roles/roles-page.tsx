@@ -72,9 +72,13 @@ export function RolesPage() {
       );
     });
     return filteredPermissions.reduce<Record<string, PermissionPublic[]>>((groups, permission) => {
-      const group = groups[permission.type] ?? [];
-      group.push(permission);
-      return { ...groups, [permission.type]: group };
+      const group = groups[permission.type];
+      if (group) {
+        group.push(permission);
+      } else {
+        groups[permission.type] = [permission];
+      }
+      return groups;
     }, {});
   }, [permissionSearch, permissions]);
   const updatePermissionsMutation = useMutation({

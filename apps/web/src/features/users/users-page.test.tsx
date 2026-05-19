@@ -1,11 +1,10 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom/vitest";
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { ReactNode } from "react";
 
 import { UsersPage } from "@/features/users/users-page";
+import { mockAuthValue, renderWithQueryClient } from "@/test-utils";
 import {
   fetchDepartments,
   fetchRoles,
@@ -18,14 +17,7 @@ import {
 } from "@alune/api-client";
 
 vi.mock("@/features/auth/auth-provider", () => ({
-  useAuth: () => ({
-    token: "test-token",
-    user: null,
-    isAuthenticated: true,
-    isLoading: false,
-    setSession: vi.fn(),
-    logout: vi.fn()
-  })
+  useAuth: () => mockAuthValue
 }));
 
 vi.mock("@alune/api-client", async (importOriginal) => {
@@ -67,17 +59,6 @@ const users: UserManagementItem[] = [
 
 const roles: RolePublic[] = [];
 const departments: DepartmentPublic[] = [];
-
-function renderWithQueryClient(children: ReactNode) {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-      mutations: { retry: false }
-    }
-  });
-
-  return render(<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>);
-}
 
 describe("UsersPage bulk status operations", () => {
   beforeEach(() => {
