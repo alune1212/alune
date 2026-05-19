@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import delete, func, or_, select
+from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.auth.models import User
@@ -53,6 +53,19 @@ async def get_user_by_id(session: AsyncSession, user_id: UUID) -> User | None:
 
 async def get_user_by_email(session: AsyncSession, email: str) -> User | None:
     return await session.scalar(select(User).where(User.email == email))
+
+
+async def bulk_update_user_status(
+    session: AsyncSession,
+    *,
+    user_ids: list[UUID],
+    is_active: bool,
+) -> int:
+    matching_count = await session.scalar(
+        select(func.count()).select_from(User).where(User.id.in_(user_ids))
+    )
+    await session.execute(update(User).where(User.id.in_(user_ids)).values(is_active=is_active))
+    return matching_count or 0
 
 
 async def list_user_role_codes(session: AsyncSession, user_id: UUID) -> list[str]:

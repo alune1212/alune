@@ -31,6 +31,7 @@ export function RolesPage() {
   const [editRoleCode, setEditRoleCode] = useState("");
   const [editRoleName, setEditRoleName] = useState("");
   const [editRoleDescription, setEditRoleDescription] = useState("");
+  const [permissionSearch, setPermissionSearch] = useState("");
   const rolesQuery = useQuery({
     queryKey: ["internal", "roles"],
     queryFn: () => fetchRoles(auth.token!),
@@ -46,8 +47,8 @@ export function RolesPage() {
     queryFn: () => fetchRolePermissions(auth.token!, selectedRoleId!),
     enabled: auth.token !== null && selectedRoleId !== null
   });
-  const roles = rolesQuery.data?.data ?? [];
-  const permissions = permissionsQuery.data?.data ?? [];
+  const roles = useMemo(() => rolesQuery.data?.data ?? [], [rolesQuery.data?.data]);
+  const permissions = useMemo(() => permissionsQuery.data?.data ?? [], [permissionsQuery.data?.data]);
   const fetchedPermissionCodes = useMemo(
     () => rolePermissionsQuery.data?.data.permission_codes ?? [],
     [rolePermissionsQuery.data?.data.permission_codes]
@@ -58,6 +59,24 @@ export function RolesPage() {
     }
     return new Set(permissionDrafts[selectedRoleId] ?? fetchedPermissionCodes);
   }, [fetchedPermissionCodes, permissionDrafts, selectedRoleId]);
+  const groupedPermissions = useMemo(() => {
+    const search = permissionSearch.trim().toLowerCase();
+    const filteredPermissions = permissions.filter((permission) => {
+      if (!search) {
+        return true;
+      }
+      return (
+        permission.code.toLowerCase().includes(search) ||
+        permission.name.toLowerCase().includes(search) ||
+        (permission.description ?? "").toLowerCase().includes(search)
+      );
+    });
+    return filteredPermissions.reduce<Record<string, PermissionPublic[]>>((groups, permission) => {
+      const group = groups[permission.type] ?? [];
+      group.push(permission);
+      return { ...groups, [permission.type]: group };
+    }, {});
+  }, [permissionSearch, permissions]);
   const updatePermissionsMutation = useMutation({
     mutationFn: () => updateRolePermissions(auth.token!, selectedRoleId!, [...selectedPermissionCodes]),
     onSuccess: () => {
@@ -241,25 +260,38 @@ export function RolesPage() {
             <p className="text-sm text-slate-500">Select a role from the table.</p>
           ) : (
             <>
-              <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-                {permissions.map((permission) => (
-                  <label
-                    key={permission.code}
-                    className="flex items-start gap-2 rounded-md border border-slate-200 px-3 py-2 text-sm"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedPermissionCodes.has(permission.code)}
-                      onChange={() => togglePermission(permission)}
-                      className="mt-1"
-                    />
-                    <span>
-                      <span className="block font-medium text-slate-950">{permission.code}</span>
-                      <span className="block text-xs text-slate-500">{permission.name}</span>
-                    </span>
-                  </label>
-                ))}
-              </div>
+              <Input
+                value={permissionSearch}
+                onChange={(event) => setPermissionSearch(event.target.value)}
+                placeholder="Search permissions"
+              />
+              {Object.entries(groupedPermissions).map(([type, groupPermissions]) => (
+                <section key={type} className="space-y-2">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                    <h3 className="text-sm font-semibold text-slate-950">{type}</h3>
+                    <span className="text-xs text-slate-500">{groupPermissions.length} permissions</span>
+                  </div>
+                  <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+                    {groupPermissions.map((permission) => (
+                      <label
+                        key={permission.code}
+                        className="flex items-start gap-2 rounded-md border border-slate-200 px-3 py-2 text-sm"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedPermissionCodes.has(permission.code)}
+                          onChange={() => togglePermission(permission)}
+                          className="mt-1"
+                        />
+                        <span>
+                          <span className="block font-medium text-slate-950">{permission.code}</span>
+                          <span className="block text-xs text-slate-500">{permission.name}</span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </section>
+              ))}
               <Button type="button" onClick={() => updatePermissionsMutation.mutate()}>
                 Save permissions
               </Button>

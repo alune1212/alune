@@ -16,6 +16,7 @@ import {
   updateUser,
   updateUserPassword,
   updateUserRoles,
+  updateUsersStatus,
   type DepartmentPublic,
   type RolePublic,
   type UserManagementItem
@@ -37,6 +38,7 @@ export function UsersPage() {
   const [editFullName, setEditFullName] = useState("");
   const [editDepartmentId, setEditDepartmentId] = useState("");
   const [resetPassword, setResetPassword] = useState("");
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const usersQuery = useQuery({
     queryKey: ["internal", "users", search, roleFilter, departmentFilter, page],
     queryFn: () =>
@@ -85,6 +87,17 @@ export function UsersPage() {
       updateUser(auth.token!, user.id, { is_active: !user.is_active }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "users"] })
   });
+  const bulkStatusMutation = useMutation({
+    mutationFn: (isActive: boolean) =>
+      updateUsersStatus(auth.token!, {
+        user_ids: selectedUserIds,
+        is_active: isActive
+      }),
+    onSuccess: () => {
+      setSelectedUserIds([]);
+      queryClient.invalidateQueries({ queryKey: ["internal", "users"] });
+    }
+  });
   const saveUserMutation = useMutation({
     mutationFn: () =>
       updateUser(auth.token!, selectedUserId!, {
@@ -116,8 +129,22 @@ export function UsersPage() {
   const departments = departmentsQuery.data?.data.items ?? [];
   const selectedUser = users.find((user) => user.id === selectedUserId) ?? null;
   const selectedRoleCodes = userRolesQuery.data?.data.role_codes ?? [];
+  const selectedUserIdSet = useMemo(() => new Set(selectedUserIds), [selectedUserIds]);
   const userColumns = useMemo<ColumnDef<UserManagementItem>[]>(
     () => [
+      {
+        id: "select",
+        header: "Select",
+        cell: ({ row }) => (
+          <input
+            type="checkbox"
+            aria-label={`Select ${row.original.username}`}
+            checked={selectedUserIdSet.has(row.original.id)}
+            onChange={() => toggleSelectedUser(row.original.id)}
+            className="h-4 w-4 rounded border-slate-300"
+          />
+        )
+      },
       {
         accessorKey: "username",
         header: "Username",
@@ -165,7 +192,7 @@ export function UsersPage() {
         )
       }
     ],
-    [updateUserMutation]
+    [selectedUserIdSet, updateUserMutation]
   );
 
   function toggleRole(role: RolePublic) {
@@ -180,6 +207,23 @@ export function UsersPage() {
     setEditEmail(user.email);
     setEditFullName(user.full_name ?? "");
     setEditDepartmentId(user.department_id ?? "");
+  }
+
+  function toggleSelectedUser(userId: string) {
+    setSelectedUserIds((current) =>
+      current.includes(userId) ? current.filter((id) => id !== userId) : [...current, userId]
+    );
+  }
+
+  function toggleCurrentPageSelection() {
+    const pageUserIds = users.map((user) => user.id);
+    const everyPageUserSelected = pageUserIds.every((userId) => selectedUserIdSet.has(userId));
+    setSelectedUserIds((current) => {
+      if (everyPageUserSelected) {
+        return current.filter((userId) => !pageUserIds.includes(userId));
+      }
+      return [...new Set([...current, ...pageUserIds])];
+    });
   }
 
   function selectDepartment(department: DepartmentPublic) {
@@ -349,6 +393,30 @@ export function UsersPage() {
                 Next
               </Button>
             </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button type="button" variant="outline" disabled={users.length === 0} onClick={toggleCurrentPageSelection}>
+              {users.every((user) => selectedUserIdSet.has(user.id)) && users.length > 0
+                ? "Clear page"
+                : "Select page"}
+            </Button>
+            <span className="text-sm text-slate-500">{selectedUserIds.length} selected</span>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={selectedUserIds.length === 0 || bulkStatusMutation.isPending}
+              onClick={() => bulkStatusMutation.mutate(true)}
+            >
+              Enable selected
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={selectedUserIds.length === 0 || bulkStatusMutation.isPending}
+              onClick={() => bulkStatusMutation.mutate(false)}
+            >
+              Disable selected
+            </Button>
           </div>
           {usersQuery.isError ? (
             <p className="text-sm text-red-600">Unable to load users.</p>

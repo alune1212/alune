@@ -232,3 +232,12 @@ ALLOWED_UPLOAD_CONTENT_TYPES=application/pdf,image/jpeg,image/png,text/plain,app
 ```
 
 Oversized files return `413`. Disallowed content types return `400`.
+
+Stage 6F adds a storage backend factory and an upload scanner hook:
+
+```text
+FILE_STORAGE_BACKEND=local
+UPLOAD_SCANNER_ENABLED=false
+```
+
+Only the `local` backend is implemented. `minio` is reserved for a later phase and currently returns a clear server-side configuration error if enabled. `UPLOAD_SCANNER_ENABLED=true` is also reserved until a real scanning engine is wired in.

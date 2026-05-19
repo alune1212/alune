@@ -14,7 +14,7 @@ Project guidance for Codex and other AI agents working in this repository.
 - Alembic migration baseline with the `system_info` table.
 - Login MVP with `users`, password hashing, JWT login, `/auth/me`, frontend login, and a protected dashboard.
 - Permission baseline with roles, permissions, user-role links, role-permission links, backend permission dependency, and frontend menu filtering.
-- Stage 6E internal system foundation with user create/enable/disable/edit/password reset, user role assignment, user role/department filters, role create/update/delete guards, role permission assignment, department tree/update/delete rules, audit log filtering/pagination/date range/CSV export, dictionary type/item maintenance guards, local file upload/download, upload policy checks, and search/pagination for key management lists.
+- Stage 6F internal system foundation with user create/enable/disable/batch-status/edit/password reset, user role assignment, user role/department filters, role create/update/delete guards, searchable grouped role permission assignment, department tree/update/delete rules, audit log filtering/pagination/date range/CSV export, dictionary type/item maintenance guards, local file upload/download, upload policy checks, file storage backend factory, and upload scanner hook.
 
 Do not add approval flows, reports, payroll, or company-specific business modules unless the user explicitly asks for that phase.
 
@@ -66,6 +66,7 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
   - `GET /api/v1/auth/me`
   - `GET /api/v1/users`
   - `POST /api/v1/users`
+  - `PATCH /api/v1/users/bulk-status`
   - `PATCH /api/v1/users/{user_id}`
   - `PATCH /api/v1/users/{user_id}/password`
   - `GET /api/v1/users/{user_id}/roles`
@@ -107,6 +108,8 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 - Current internal system tables: `departments`, `operation_logs`, `login_logs`, `dictionary_types`, `dictionary_items`, `file_attachments`.
 - Local file storage defaults to `.local/uploads`; Docker app profile mounts `api_uploads` at `/app/uploads`.
 - Upload policy is configured by `MAX_UPLOAD_SIZE_BYTES` and `ALLOWED_UPLOAD_CONTENT_TYPES`.
+- File storage backend is configured by `FILE_STORAGE_BACKEND`; only `local` is implemented. `minio` is reserved.
+- Upload scanner hook is configured by `UPLOAD_SCANNER_ENABLED`; only the default no-op scanner is implemented.
 - Frontend entry: `apps/web/src/app/main.tsx`.
 - TanStack Router setup: `apps/web/src/app/router.tsx` and `apps/web/src/routes/`.
 - App shell: `apps/web/src/components/layout/`.
@@ -120,7 +123,7 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 
 ## Guardrails
 
-- Keep stage 0-6E minimal. Avoid over-abstracting before real business modules exist.
+- Keep stage 0-6F minimal. Avoid over-abstracting before real business modules exist.
 - Use TanStack Query for server state and Zustand only for UI state.
 - Keep shadcn/ui-compatible primitives under `apps/web/src/components/ui/`.
 - Keep backend modules under `apps/api/app/modules/<feature>/`.

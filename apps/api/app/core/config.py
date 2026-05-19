@@ -28,6 +28,8 @@ class Settings(BaseSettings):
     first_superuser_username: str = "admin"
     first_superuser_email: str = "admin@example.com"
     first_superuser_password: str | None = None
+    file_storage_backend: str = "local"
+    upload_scanner_enabled: bool = False
     local_file_storage_dir: str = ".local/uploads"
     max_upload_size_bytes: int = 10 * 1024 * 1024
     allowed_upload_content_types: Annotated[list[str], NoDecode] = Field(

@@ -59,6 +59,7 @@ The seed command also creates the default `admin` role, menu/action permissions,
 - `GET /api/v1/auth/me` - Current user profile and permission codes for a Bearer token.
 - `GET /api/v1/users` - User list for administrators, with optional `q`, `department_id`, and `role_code` filters.
 - `POST /api/v1/users` - Create a user.
+- `PATCH /api/v1/users/bulk-status` - Enable or disable multiple users.
 - `PATCH /api/v1/users/{user_id}` - Update or enable/disable a user.
 - `GET /api/v1/users/{user_id}/roles` - User role codes.
 - `PUT /api/v1/users/{user_id}/roles` - Replace user role codes.
@@ -95,3 +96,5 @@ The seed command also creates the default `admin` role, menu/action permissions,
 `GET /users`, `GET /departments`, `GET /files`, and audit log endpoints return paginated payloads and accept `q`, `page`, and `page_size` query parameters. Users also accept `department_id` and `role_code`. Audit log endpoints also accept `status`, `started_at`, and `ended_at`.
 
 Uploads are checked against `MAX_UPLOAD_SIZE_BYTES` and `ALLOWED_UPLOAD_CONTENT_TYPES`.
+
+`FILE_STORAGE_BACKEND=local` is the only implemented storage backend. `minio` is reserved for a later phase. `UPLOAD_SCANNER_ENABLED=false` keeps the no-op scanner; enabling it before a real scanner is implemented returns a clear configuration error.

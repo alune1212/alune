@@ -14,7 +14,12 @@ from app.modules.auth.models import User
 from app.modules.files.models import FileAttachment
 from app.modules.files.repository import get_file_attachment_by_id, list_file_attachments
 from app.modules.files.schemas import FileAttachmentCreate, FileAttachmentPublic
-from app.modules.files.storage import LocalFileStorage, validate_upload_policy
+from app.modules.files.storage import (
+    LocalFileStorage,
+    get_file_storage,
+    get_upload_scanner,
+    validate_upload_policy,
+)
 from app.modules.permissions.dependencies import require_permission
 
 router = APIRouter(prefix="/files", tags=["files"])
@@ -85,9 +90,22 @@ async def upload_file_attachment(
     upload: Annotated[UploadFile, File()],
     current_user: User = CreateFileDependency,
 ) -> ApiResponse[FileAttachmentPublic]:
+    try:
+        storage = get_file_storage(
+            backend=settings.file_storage_backend,
+            local_root=settings.local_file_storage_dir,
+        )
+        scanner = get_upload_scanner(enabled=settings.upload_scanner_enabled)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(exc),
+        ) from exc
+
     stored = await validate_upload_policy(
         upload,
-        storage=LocalFileStorage(settings.local_file_storage_dir),
+        storage=storage,
+        scanner=scanner,
         max_size_bytes=settings.max_upload_size_bytes,
         allowed_content_types=settings.allowed_upload_content_types,
     )

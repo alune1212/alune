@@ -1,6 +1,6 @@
 # alune-platform
 
-公司内部管理系统 MVP。当前阶段包含最小可运行 monorepo、FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地登录、权限基础，以及阶段 6E 的内部系统底座。
+公司内部管理系统 MVP。当前阶段包含最小可运行 monorepo、FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地登录、权限基础，以及阶段 6F 的内部系统底座。
 
 ## 技术栈
 
@@ -178,7 +178,7 @@ pnpm test
 
 ## 当前阶段边界
 
-已完成阶段 0、阶段 1、阶段 2、阶段 3、阶段 4、阶段 5、阶段 6A、阶段 6B、阶段 6C、阶段 6D 和阶段 6E 的内部系统底座 MVP。当前包含登录 MVP、权限基础、用户创建/启停/资料编辑/部门分配/密码重置、用户角色分配、角色增删改和权限配置、部门创建/启停/删除规则、部门树、登录/操作日志筛选分页/日期过滤/CSV 导出、字典类型维护、字典项维护、文件附件本地上传下载和上传策略。不包含审批、报表和公司业务模块。
+已完成阶段 0、阶段 1、阶段 2、阶段 3、阶段 4、阶段 5、阶段 6A、阶段 6B、阶段 6C、阶段 6D、阶段 6E 和阶段 6F 的内部系统底座 MVP。当前包含登录 MVP、权限基础、用户创建/启停/批量启停/资料编辑/部门分配/密码重置、用户角色分配、角色增删改和权限配置搜索分组、部门创建/启停/删除规则、部门树、登录/操作日志筛选分页/日期过滤/CSV 导出、字典类型维护、字典项维护、文件附件本地上传下载、上传策略、文件存储后端抽象和上传扫描 hook。不包含审批、报表、MinIO 实际接入、病毒扫描实际引擎和公司业务模块。
 
 ## 当前数据库
 
@@ -204,6 +204,7 @@ pnpm test
 | GET | `/api/v1/auth/me` | 根据 Bearer token 返回当前用户和权限码 |
 | GET | `/api/v1/users` | 用户分页列表，支持 `q`/`department_id`/`role_code`/`page`/`page_size`，需 `action:users:read` |
 | POST | `/api/v1/users` | 创建用户，需 `action:users:create` |
+| PATCH | `/api/v1/users/bulk-status` | 批量启用/禁用用户，需 `action:users:update` |
 | PATCH | `/api/v1/users/{user_id}` | 更新/启停用户，需 `action:users:update` |
 | PATCH | `/api/v1/users/{user_id}/password` | 重置用户密码，需 `action:users:update` |
 | GET | `/api/v1/users/{user_id}/roles` | 用户角色码，需 `action:users:read` |

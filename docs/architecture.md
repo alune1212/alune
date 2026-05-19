@@ -1,6 +1,6 @@
 # Architecture
 
-`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6E MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, and internal system pages for users, roles, departments, audit logs, dictionaries, and local file attachments.
+`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6F MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, and internal system pages for users, roles, departments, audit logs, dictionaries, and local file attachments.
 
 ## Monorepo Layout
 
@@ -44,8 +44,8 @@ Important modules:
 - `app/modules/system/models.py` defines the `system_info` table model.
 - `app/modules/auth/` implements the login MVP: `users` model, password hashing, JWT creation, current-user dependency, and auth router.
 - `app/modules/permissions/` implements the RBAC baseline: roles, permissions, association tables, default permission registry, permission queries, and `require_permission`.
-- `app/modules/users/`, `app/modules/roles/`, and `app/modules/departments/` implement user creation/update/password reset, user role assignment, user filtering by role/department, role create/update/delete guards, role permission assignment, department trees, and department edit/delete rules.
-- `app/modules/audit/`, `app/modules/dictionaries/`, and `app/modules/files/` implement paginated log reads with date filters and CSV export, dictionary type/item maintenance with system/delete guards, and local file upload/download metadata with upload policy checks.
+- `app/modules/users/`, `app/modules/roles/`, and `app/modules/departments/` implement user creation/update/password reset, batch user status updates, user role assignment, user filtering by role/department, role create/update/delete guards, role permission assignment, department trees, and department edit/delete rules.
+- `app/modules/audit/`, `app/modules/dictionaries/`, and `app/modules/files/` implement paginated log reads with date filters and CSV export, dictionary type/item maintenance with system/delete guards, and local file upload/download metadata with upload policy checks, a file storage backend factory, and an upload scanner hook.
 - `alembic/` contains migration environment and versioned schema changes.
 
 ## Frontend
@@ -61,7 +61,7 @@ The app uses:
 - App shell layout in `src/components/layout/`.
 - Dashboard page in `src/features/dashboard/dashboard-page.tsx`.
 - Login page and auth provider in `src/features/auth/`.
-- Users, roles, departments, audit, dictionaries, and files pages in `src/features/`; users include role/department filters, roles include guarded create/edit/delete controls, audit includes date filters and CSV export, and dictionaries include type/item maintenance controls.
+- Users, roles, departments, audit, dictionaries, and files pages in `src/features/`; users include role/department filters and batch status controls, roles include guarded create/edit/delete controls plus searchable grouped permissions, audit includes date filters and CSV export, and dictionaries include type/item maintenance controls.
 - Navigation permission filtering in `src/config/navigation.ts`.
 
 The dashboard, login flow, and internal system pages call `@alune/api-client`. That package is still hand-written for the MVP and has a TODO to replace it with Orval-generated output from FastAPI `/openapi.json`.
@@ -114,7 +114,7 @@ Default Compose services:
 
 PostgreSQL 18 stores data under a major-version-specific cluster directory. The Compose volume is mounted at `/var/lib/postgresql` to match the official image layout.
 
-The `api` service stores uploaded file binaries under `/app/uploads`, backed by the named Compose volume `api_uploads`. Local development defaults to `.local/uploads` through `LOCAL_FILE_STORAGE_DIR`. Uploads are limited by `MAX_UPLOAD_SIZE_BYTES` and `ALLOWED_UPLOAD_CONTENT_TYPES`.
+The `api` service stores uploaded file binaries under `/app/uploads`, backed by the named Compose volume `api_uploads`. Local development defaults to `.local/uploads` through `LOCAL_FILE_STORAGE_DIR`. Uploads are limited by `MAX_UPLOAD_SIZE_BYTES` and `ALLOWED_UPLOAD_CONTENT_TYPES`. `FILE_STORAGE_BACKEND=local` is the only implemented backend; `minio` is reserved. `UPLOAD_SCANNER_ENABLED=false` keeps the default no-op scanner until a real scanning engine is wired in.
 
 ## Current API Surface
 
@@ -126,6 +126,7 @@ The `api` service stores uploaded file binaries under `/app/uploads`, backed by 
 | GET | `/api/v1/auth/me` | Returns the current active user and permission codes from a Bearer token. |
 | GET | `/api/v1/users` | Returns paginated user records for administrators. Supports `q`, `department_id`, and `role_code`. |
 | POST | `/api/v1/users` | Creates a user account. |
+| PATCH | `/api/v1/users/bulk-status` | Enables or disables multiple users and records one audit log entry. |
 | PATCH | `/api/v1/users/{user_id}` | Updates user account state. |
 | PATCH | `/api/v1/users/{user_id}/password` | Resets a user password. |
 | GET | `/api/v1/users/{user_id}/roles` | Returns role codes assigned to one user. |
@@ -177,5 +178,5 @@ The `api` service stores uploaded file binaries under `/app/uploads`, backed by 
 
 ## Not Implemented Yet
 
-- MinIO/object storage integration, antivirus scanning integration, complex organization workflows, approvals, reports, and company-specific business modules.
+- MinIO/object storage implementation, antivirus scanning engine integration, complex organization workflows, approvals, reports, and company-specific business modules.
 - Production reverse proxy or deployment topology.

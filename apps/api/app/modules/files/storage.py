@@ -1,12 +1,34 @@
 import asyncio
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from hashlib import sha256
 from pathlib import Path
+from typing import Protocol
 from uuid import uuid4
 
 from fastapi import HTTPException, UploadFile, status
 
 from app.modules.files.schemas import StoredUpload
+
+
+class FileStorage(Protocol):
+    async def save(self, upload: UploadFile, *, max_size_bytes: int = 0) -> StoredUpload: ...
+
+
+@dataclass(frozen=True)
+class UploadScanResult:
+    is_clean: bool
+    message: str | None = None
+
+
+class UploadScanner(Protocol):
+    async def scan(self, upload: UploadFile) -> UploadScanResult: ...
+
+
+class NoopUploadScanner:
+    async def scan(self, upload: UploadFile) -> UploadScanResult:
+        await upload.seek(0)
+        return UploadScanResult(is_clean=True)
 
 
 class LocalFileStorage:
@@ -64,10 +86,28 @@ class LocalFileStorage:
         return resolved_path
 
 
+def get_file_storage(*, backend: str, local_root: str | Path) -> FileStorage:
+    if backend == "local":
+        return LocalFileStorage(local_root)
+    if backend == "minio":
+        msg = "MinIO storage backend is reserved but not implemented"
+        raise ValueError(msg)
+    msg = f"Unsupported file storage backend: {backend}"
+    raise ValueError(msg)
+
+
+def get_upload_scanner(*, enabled: bool) -> UploadScanner:
+    if not enabled:
+        return NoopUploadScanner()
+    msg = "Upload scanner is reserved but not implemented"
+    raise ValueError(msg)
+
+
 async def validate_upload_policy(
     upload: UploadFile,
     *,
-    storage: LocalFileStorage,
+    storage: FileStorage,
+    scanner: UploadScanner | None = None,
     max_size_bytes: int,
     allowed_content_types: list[str],
 ) -> StoredUpload:
@@ -77,5 +117,13 @@ async def validate_upload_policy(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="File type is not allowed",
         )
+
+    scan_result = await (scanner or NoopUploadScanner()).scan(upload)
+    if not scan_result.is_clean:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=scan_result.message or "File did not pass security scan",
+        )
+    await upload.seek(0)
 
     return await storage.save(upload, max_size_bytes=max_size_bytes)

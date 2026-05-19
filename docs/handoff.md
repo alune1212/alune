@@ -18,6 +18,7 @@
 - Added stage 6C internal system hardening: local file binary upload/download, user role assignment API/page controls, department tree API/page view with recursive move guard, and search/pagination for users, departments, and file attachments.
 - Added stage 6D internal system hardening: upload type/size policy, user edit/department assignment/password reset, dictionary item update/enable-disable/delete, and audit log pagination/search/status filters.
 - Added stage 6E internal system hardening: user filtering by role/department, role create/update/delete with system and assignment guards, dictionary type update/delete guards, and audit log date-range filters plus CSV export.
+- Added stage 6F internal system hardening: batch user enable/disable with audit logging, file storage backend factory with reserved MinIO path, upload scanner hook with safe default no-op behavior, and searchable grouped role permissions in the frontend.
 - Verified Docker dependency services with PostgreSQL and Redis healthy.
 - Verified `/api/v1/health/db` returns 200 when the API can reach Docker PostgreSQL.
 
@@ -60,11 +61,11 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 
 ## Recommended Next Phase
 
-Stage 6F should continue hardening the internal system foundation:
+Stage 6G should continue hardening the internal system foundation:
 
-- Add safer bulk status operations with explicit confirmation and audit records.
-- Add MinIO/object storage adapter behind the existing file storage interface.
-- Add antivirus scanning hooks once the upload lifecycle is stable.
-- Improve role/permission UX for larger permission sets.
+- Add explicit confirmation modals and result summaries for batch operations.
+- Implement the MinIO object storage adapter behind the existing storage factory.
+- Wire a real antivirus scanning engine to the upload scanner interface.
+- Add frontend tests around batch user status and permission search behavior.
 
 Do not start approval flows, payroll, reports, or company-specific business modules before the internal system foundation is in place.

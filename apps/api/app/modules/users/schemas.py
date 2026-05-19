@@ -33,6 +33,11 @@ class UserUpdate(BaseModel):
     is_superuser: bool | None = None
 
 
+class UserBulkStatusUpdate(BaseModel):
+    user_ids: list[UUID] = Field(min_length=1, max_length=100)
+    is_active: bool
+
+
 class UserRolePublic(BaseModel):
     user_id: UUID
     role_codes: list[str]

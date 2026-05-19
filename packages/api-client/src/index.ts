@@ -63,6 +63,15 @@ export type UserUpdate = {
   is_superuser?: boolean;
 };
 
+export type UserBulkStatusUpdate = {
+  user_ids: string[];
+  is_active: boolean;
+};
+
+export type UserBulkStatusResult = {
+  updated_count: number;
+};
+
 export type UserPasswordUpdate = {
   password: string;
 };
@@ -358,6 +367,20 @@ export async function updateUser(
   payload: UserUpdate
 ): Promise<ApiResponse<UserManagementItem>> {
   return fetchJson<UserManagementItem>(`/api/v1/users/${userId}`, {
+    method: "PATCH",
+    headers: {
+      ...bearerHeaders(token),
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function updateUsersStatus(
+  token: string,
+  payload: UserBulkStatusUpdate
+): Promise<ApiResponse<UserBulkStatusResult>> {
+  return fetchJson<UserBulkStatusResult>("/api/v1/users/bulk-status", {
     method: "PATCH",
     headers: {
       ...bearerHeaders(token),

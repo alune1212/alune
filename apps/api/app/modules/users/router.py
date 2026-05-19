@@ -12,6 +12,7 @@ from app.modules.auth.security import get_password_hash
 from app.modules.departments.repository import get_department_by_id
 from app.modules.permissions.dependencies import require_permission
 from app.modules.users.repository import (
+    bulk_update_user_status,
     get_user_by_email,
     get_user_by_id,
     list_user_role_codes,
@@ -19,6 +20,7 @@ from app.modules.users.repository import (
     replace_user_roles,
 )
 from app.modules.users.schemas import (
+    UserBulkStatusUpdate,
     UserCreate,
     UserManagementItem,
     UserPasswordUpdate,
@@ -108,6 +110,38 @@ async def create_user(
     await session.commit()
     await session.refresh(user)
     return ApiResponse(success=True, data=UserManagementItem.model_validate(user))
+
+
+@router.patch(
+    "/bulk-status",
+    response_model=ApiResponse[dict[str, int]],
+)
+async def update_users_status(
+    payload: UserBulkStatusUpdate,
+    session: DatabaseSession,
+    current_user: User = UpdateUserDependency,
+) -> ApiResponse[dict[str, int]]:
+    if not payload.is_active and current_user.id in payload.user_ids:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current user cannot be disabled in bulk",
+        )
+
+    updated_count = await bulk_update_user_status(
+        session,
+        user_ids=payload.user_ids,
+        is_active=payload.is_active,
+    )
+    await record_operation_log(
+        session,
+        actor_user_id=current_user.id,
+        action="bulk_update_status",
+        resource="user",
+        resource_id=",".join(str(user_id) for user_id in payload.user_ids),
+        detail=f"is_active={payload.is_active}; updated_count={updated_count}",
+    )
+    await session.commit()
+    return ApiResponse(success=True, data={"updated_count": updated_count})
 
 
 @router.get(
