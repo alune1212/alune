@@ -6,6 +6,7 @@ from fastapi import HTTPException, UploadFile
 from starlette.datastructures import Headers
 
 from app.modules.files.storage import (
+    ClamAvUploadScanner,
     LocalFileStorage,
     MinioFileStorage,
     NoopUploadScanner,
@@ -19,6 +20,16 @@ from app.modules.files.storage import (
 class RejectingScanner:
     async def scan(self, upload: UploadFile) -> UploadScanResult:
         return UploadScanResult(is_clean=False, message="Rejected by scanner")
+
+
+class FakeClamAvClient:
+    def __init__(self, response: str) -> None:
+        self.response = response
+        self.scanned_content = b""
+
+    def scan_bytes(self, content: bytes) -> str:
+        self.scanned_content = content
+        return self.response
 
 
 class FakeMinioClient:
@@ -86,9 +97,21 @@ def test_get_upload_scanner_returns_noop_when_disabled() -> None:
     assert isinstance(scanner, NoopUploadScanner)
 
 
-def test_get_upload_scanner_rejects_enabled_scanner_until_implemented() -> None:
-    with pytest.raises(ValueError, match="not implemented"):
-        get_upload_scanner(enabled=True)
+def test_get_upload_scanner_returns_clamav_when_enabled() -> None:
+    scanner = get_upload_scanner(
+        enabled=True,
+        backend="clamav",
+        clamav_host="localhost",
+        clamav_port=3310,
+        clamav_timeout_seconds=5.0,
+    )
+
+    assert isinstance(scanner, ClamAvUploadScanner)
+
+
+def test_get_upload_scanner_rejects_unknown_backend() -> None:
+    with pytest.raises(ValueError, match="Unsupported upload scanner backend"):
+        get_upload_scanner(enabled=True, backend="unknown")
 
 
 @pytest.mark.asyncio
@@ -98,6 +121,29 @@ async def test_noop_upload_scanner_allows_clean_upload() -> None:
     result = await NoopUploadScanner().scan(upload)
 
     assert result.is_clean is True
+
+
+@pytest.mark.asyncio
+async def test_clamav_scanner_allows_clean_upload() -> None:
+    client = FakeClamAvClient("stream: OK")
+    upload = build_upload(filename="safe.txt", content_type="text/plain", content=b"safe")
+
+    result = await ClamAvUploadScanner(client=client).scan(upload)
+
+    assert result.is_clean is True
+    assert result.message is None
+    assert client.scanned_content == b"safe"
+
+
+@pytest.mark.asyncio
+async def test_clamav_scanner_rejects_infected_upload() -> None:
+    client = FakeClamAvClient("stream: Eicar-Test-Signature FOUND")
+    upload = build_upload(filename="unsafe.txt", content_type="text/plain", content=b"unsafe")
+
+    result = await ClamAvUploadScanner(client=client).scan(upload)
+
+    assert result.is_clean is False
+    assert result.message == "Eicar-Test-Signature"
 
 
 @pytest.mark.asyncio

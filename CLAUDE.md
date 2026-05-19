@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## 项目概述
 
-alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础和阶段 6G-B 内部系统底座交互与存储加固。
+alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础和阶段 6G-C 内部系统底座交互、存储与上传扫描加固。
 
 ## Quick Start
 
@@ -138,6 +138,7 @@ alune-platform/
 - **web**: Nginx 静态服务，端口 5173（profile: app）
 - **minio**: MinIO 对象存储，端口 9000/9001（profile: minio）
 - **minio-init**: 本地 Docker MinIO bucket 初始化（profile: minio）
+- **clamav**: ClamAV/clamd 上传扫描服务，端口 3310（profile: clamav）
 - PostgreSQL 18 volume 必须挂载到 `/var/lib/postgresql`，不要改回 `/var/lib/postgresql/data`
 
 ## 环境变量
@@ -154,7 +155,8 @@ alune-platform/
 - `ALLOWED_UPLOAD_CONTENT_TYPES` - 允许上传的 MIME 类型列表
 - `FILE_STORAGE_BACKEND` - 文件存储后端，支持 `local` 和 `minio`
 - `MINIO_ENDPOINT` / `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` / `MINIO_BUCKET` / `MINIO_SECURE` - MinIO 存储配置
-- `UPLOAD_SCANNER_ENABLED` - 上传扫描 hook 开关，当前真实扫描引擎尚未实现，默认必须保持 `false`
+- `UPLOAD_SCANNER_ENABLED` - 上传扫描开关，默认 `false`
+- `UPLOAD_SCANNER_BACKEND` / `CLAMAV_HOST` / `CLAMAV_PORT` / `CLAMAV_TIMEOUT_SECONDS` - ClamAV 扫描配置
 
 ## 代码规范
 
@@ -192,4 +194,4 @@ alune-platform/
 
 ## 当前阶段边界
 
-已完成阶段 0、1、2、3、4、5、6A、6B、6C、6D、6E、阶段 6F、阶段 6G-A 和阶段 6G-B 的最小 MVP。不包含：病毒扫描实际引擎、复杂组织架构、审批、报表和公司业务模块。下一阶段建议：阶段 6G-C 继续强化内部系统底座。
+已完成阶段 0、1、2、3、4、5、6A、6B、6C、6D、6E、阶段 6F、阶段 6G-A、阶段 6G-B 和阶段 6G-C 的最小 MVP。不包含：复杂组织架构、审批、报表和公司业务模块。下一阶段建议：阶段 6G-D 继续强化内部系统底座。

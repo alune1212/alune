@@ -97,7 +97,13 @@ async def upload_file_attachment(
             minio_bucket=settings.minio_bucket,
             minio_secure=settings.minio_secure,
         )
-        scanner = get_upload_scanner(enabled=settings.upload_scanner_enabled)
+        scanner = get_upload_scanner(
+            enabled=settings.upload_scanner_enabled,
+            backend=settings.upload_scanner_backend,
+            clamav_host=settings.clamav_host,
+            clamav_port=settings.clamav_port,
+            clamav_timeout_seconds=settings.clamav_timeout_seconds,
+        )
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

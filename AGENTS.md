@@ -14,7 +14,7 @@ Project guidance for Codex and other AI agents working in this repository.
 - Alembic migration baseline with the `system_info` table.
 - Login MVP with `users`, password hashing, JWT login, `/auth/me`, frontend login, and a protected dashboard.
 - Permission baseline with roles, permissions, user-role links, role-permission links, backend permission dependency, and frontend menu filtering.
-- Stage 6G-B internal system foundation with user create/enable/disable/batch-status confirmation and result feedback/edit/password reset, user role assignment, user role/department filters, role create/update/delete guards, searchable grouped role permission assignment with empty-state feedback, department tree/update/delete rules, audit log filtering/pagination/date range/CSV export, dictionary type/item maintenance guards, local and MinIO file upload/download, upload policy checks, file storage backend factory, upload scanner hook, and frontend tests for batch status plus permission search/grouping.
+- Stage 6G-C internal system foundation with user create/enable/disable/batch-status confirmation and result feedback/edit/password reset, user role assignment, user role/department filters, role create/update/delete guards, searchable grouped role permission assignment with empty-state feedback, department tree/update/delete rules, audit log filtering/pagination/date range/CSV export, dictionary type/item maintenance guards, local and MinIO file upload/download, upload policy checks, file storage backend factory, ClamAV upload scanner adapter, and frontend tests for batch status plus permission search/grouping.
 
 Do not add approval flows, reports, payroll, or company-specific business modules unless the user explicitly asks for that phase.
 
@@ -110,7 +110,7 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 - Local file storage defaults to `.local/uploads`; Docker app profile mounts `api_uploads` at `/app/uploads`.
 - Upload policy is configured by `MAX_UPLOAD_SIZE_BYTES` and `ALLOWED_UPLOAD_CONTENT_TYPES`.
 - File storage backend is configured by `FILE_STORAGE_BACKEND`; `local` and `minio` are implemented. MinIO uses `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`, and `MINIO_SECURE`.
-- Upload scanner hook is configured by `UPLOAD_SCANNER_ENABLED`; only the default no-op scanner is implemented.
+- Upload scanning is configured by `UPLOAD_SCANNER_ENABLED`; the default is no-op, and `UPLOAD_SCANNER_BACKEND=clamav` scans through clamd using `CLAMAV_HOST`, `CLAMAV_PORT`, and `CLAMAV_TIMEOUT_SECONDS`.
 - Playwright package version is `1.60.0` in the current install; matching Chromium browser binaries are installed under `/Users/alune/Library/Caches/ms-playwright/chromium-1223` and `/Users/alune/Library/Caches/ms-playwright/chromium_headless_shell-1223`.
 - If Chromium launch fails inside Codex with a macOS Mach port permission error, rerun browser checks outside the sandbox.
 - Frontend entry: `apps/web/src/app/main.tsx`.

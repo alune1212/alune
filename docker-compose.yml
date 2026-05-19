@@ -52,6 +52,10 @@ services:
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
       FILE_STORAGE_BACKEND: ${FILE_STORAGE_BACKEND:-local}
       UPLOAD_SCANNER_ENABLED: ${UPLOAD_SCANNER_ENABLED:-false}
+      UPLOAD_SCANNER_BACKEND: ${UPLOAD_SCANNER_BACKEND:-clamav}
+      CLAMAV_HOST: ${CLAMAV_HOST:-clamav}
+      CLAMAV_PORT: ${CLAMAV_PORT:-3310}
+      CLAMAV_TIMEOUT_SECONDS: ${CLAMAV_TIMEOUT_SECONDS:-10}
       LOCAL_FILE_STORAGE_DIR: /app/uploads
       MINIO_ENDPOINT: ${MINIO_ENDPOINT:-minio:9000}
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
@@ -138,8 +142,19 @@ services:
       mc mb --ignore-existing local/$${MINIO_BUCKET};
       "
 
+  clamav:
+    image: clamav/clamav:stable
+    container_name: alune-platform-clamav
+    profiles: ["clamav"]
+    restart: unless-stopped
+    ports:
+      - "${CLAMAV_PORT:-3310}:3310"
+    volumes:
+      - clamav_data:/var/lib/clamav
+
 volumes:
   postgres_cluster_data:
   redis_data:
   api_uploads:
   minio_data:
+  clamav_data:

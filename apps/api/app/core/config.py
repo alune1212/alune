@@ -30,6 +30,10 @@ class Settings(BaseSettings):
     first_superuser_password: str | None = None
     file_storage_backend: str = "local"
     upload_scanner_enabled: bool = False
+    upload_scanner_backend: str = "clamav"
+    clamav_host: str = "localhost"
+    clamav_port: int = 3310
+    clamav_timeout_seconds: float = 10.0
     local_file_storage_dir: str = ".local/uploads"
     minio_endpoint: str | None = None
     minio_access_key: str | None = None

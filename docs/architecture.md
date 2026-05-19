@@ -1,6 +1,6 @@
 # Architecture
 
-`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6G-B MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, and internal system pages for users, roles, departments, audit logs, dictionaries, and file attachments backed by local storage or MinIO.
+`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6G-C MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, and internal system pages for users, roles, departments, audit logs, dictionaries, and file attachments backed by local storage or MinIO with optional ClamAV scanning.
 
 ## Monorepo Layout
 
@@ -45,7 +45,7 @@ Important modules:
 - `app/modules/auth/` implements the login MVP: `users` model, password hashing, JWT creation, current-user dependency, and auth router.
 - `app/modules/permissions/` implements the RBAC baseline: roles, permissions, association tables, default permission registry, permission queries, and `require_permission`.
 - `app/modules/users/`, `app/modules/roles/`, and `app/modules/departments/` implement user creation/update/password reset, batch user status updates, user role assignment, user filtering by role/department, role create/update/delete guards, role permission assignment, department trees, and department edit/delete rules.
-- `app/modules/audit/`, `app/modules/dictionaries/`, and `app/modules/files/` implement paginated log reads with date filters and CSV export, dictionary type/item maintenance with system/delete guards, and local file upload/download metadata with upload policy checks, a file storage backend factory, and an upload scanner hook.
+- `app/modules/audit/`, `app/modules/dictionaries/`, and `app/modules/files/` implement paginated log reads with date filters and CSV export, dictionary type/item maintenance with system/delete guards, and local/MinIO file upload/download metadata with upload policy checks, a file storage backend factory, and an optional ClamAV upload scanner.
 - `alembic/` contains migration environment and versioned schema changes.
 
 ## Frontend
@@ -114,7 +114,7 @@ Default Compose services:
 
 PostgreSQL 18 stores data under a major-version-specific cluster directory. The Compose volume is mounted at `/var/lib/postgresql` to match the official image layout.
 
-The `api` service stores uploaded file binaries under `/app/uploads`, backed by the named Compose volume `api_uploads`, when `FILE_STORAGE_BACKEND=local`. Local development defaults to `.local/uploads` through `LOCAL_FILE_STORAGE_DIR`. Uploads are limited by `MAX_UPLOAD_SIZE_BYTES` and `ALLOWED_UPLOAD_CONTENT_TYPES`. `FILE_STORAGE_BACKEND=minio` uses the MinIO SDK with `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`, and `MINIO_SECURE`; the optional Compose `minio` profile starts MinIO and creates the configured bucket through `minio-init`. `UPLOAD_SCANNER_ENABLED=false` keeps the default no-op scanner until a real scanning engine is wired in.
+The `api` service stores uploaded file binaries under `/app/uploads`, backed by the named Compose volume `api_uploads`, when `FILE_STORAGE_BACKEND=local`. Local development defaults to `.local/uploads` through `LOCAL_FILE_STORAGE_DIR`. Uploads are limited by `MAX_UPLOAD_SIZE_BYTES` and `ALLOWED_UPLOAD_CONTENT_TYPES`. `FILE_STORAGE_BACKEND=minio` uses the MinIO SDK with `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`, and `MINIO_SECURE`; the optional Compose `minio` profile starts MinIO and creates the configured bucket through `minio-init`. `UPLOAD_SCANNER_ENABLED=true` with `UPLOAD_SCANNER_BACKEND=clamav` scans uploads through clamd's `INSTREAM` protocol using `CLAMAV_HOST`, `CLAMAV_PORT`, and `CLAMAV_TIMEOUT_SECONDS`; the optional Compose `clamav` profile starts a local ClamAV service.
 
 ## Current API Surface
 
@@ -178,5 +178,5 @@ The `api` service stores uploaded file binaries under `/app/uploads`, backed by 
 
 ## Not Implemented Yet
 
-- Antivirus scanning engine integration, complex organization workflows, approvals, reports, and company-specific business modules.
+- Complex organization workflows, approvals, reports, and company-specific business modules.
 - Production reverse proxy or deployment topology.

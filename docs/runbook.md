@@ -258,11 +258,12 @@ ALLOWED_UPLOAD_CONTENT_TYPES=application/pdf,image/jpeg,image/png,text/plain,app
 
 Oversized files return `413`. Disallowed content types return `400`.
 
-Stage 6G-B supports both local storage and MinIO through the storage backend factory:
+Stage 6G-B supports both local storage and MinIO through the storage backend factory. Stage 6G-C adds ClamAV scanning behind the upload scanner factory:
 
 ```text
 FILE_STORAGE_BACKEND=local
 UPLOAD_SCANNER_ENABLED=false
+UPLOAD_SCANNER_BACKEND=clamav
 ```
 
 For local Docker testing with MinIO:
@@ -282,4 +283,22 @@ MINIO_BUCKET=alune-files
 MINIO_SECURE=false
 ```
 
-The `minio-init` service creates the configured bucket for local Docker runs. `UPLOAD_SCANNER_ENABLED=true` is still reserved until a real scanning engine is wired in.
+The `minio-init` service creates the configured bucket for local Docker runs.
+
+For local Docker testing with ClamAV:
+
+```bash
+docker compose --profile clamav up -d clamav
+UPLOAD_SCANNER_ENABLED=true docker compose --profile app --profile clamav up --build
+```
+
+ClamAV settings:
+
+```text
+UPLOAD_SCANNER_BACKEND=clamav
+CLAMAV_HOST=localhost
+CLAMAV_PORT=3310
+CLAMAV_TIMEOUT_SECONDS=10
+```
+
+When the API runs inside Docker, `CLAMAV_HOST` defaults to the Compose service name `clamav`. The scanner uses clamd's `INSTREAM` protocol and rejects infected files before storage.

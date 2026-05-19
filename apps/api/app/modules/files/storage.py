@@ -1,4 +1,6 @@
 import asyncio
+import socket
+import struct
 from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -10,6 +12,8 @@ from uuid import uuid4
 
 from fastapi import HTTPException, Response, UploadFile, status
 from starlette.responses import FileResponse, StreamingResponse
+
+_CHUNK_SIZE = 1024 * 1024
 
 from app.modules.files.schemas import StoredUpload
 
@@ -50,10 +54,53 @@ class UploadScanner(Protocol):
     async def scan(self, upload: UploadFile) -> UploadScanResult: ...
 
 
+class ClamAvClient(Protocol):
+    def scan_bytes(self, content: bytes) -> str: ...
+
+
 class NoopUploadScanner:
     async def scan(self, upload: UploadFile) -> UploadScanResult:
         await upload.seek(0)
         return UploadScanResult(is_clean=True)
+
+
+class ClamAvTcpClient:
+    def __init__(self, *, host: str, port: int, timeout_seconds: float) -> None:
+        self.host = host
+        self.port = port
+        self.timeout_seconds = timeout_seconds
+
+    def scan_bytes(self, content: bytes) -> str:
+        with socket.create_connection(
+            (self.host, self.port),
+            timeout=self.timeout_seconds,
+        ) as connection:
+            connection.sendall(b"zINSTREAM\0")
+            for index in range(0, len(content), _CHUNK_SIZE):
+                chunk = content[index : index + _CHUNK_SIZE]
+                connection.sendall(struct.pack("!I", len(chunk)))
+                connection.sendall(chunk)
+            connection.sendall(struct.pack("!I", 0))
+            return connection.recv(4096).decode("utf-8", errors="replace").strip()
+
+
+class ClamAvUploadScanner:
+    def __init__(self, *, client: ClamAvClient) -> None:
+        self.client = client
+
+    async def scan(self, upload: UploadFile) -> UploadScanResult:
+        chunks: list[bytes] = []
+        while chunk := await upload.read(_CHUNK_SIZE):
+            chunks.append(chunk)
+        content = b"".join(chunks)
+        response = await asyncio.to_thread(self.client.scan_bytes, content)
+        await upload.seek(0)
+        if response.endswith("OK"):
+            return UploadScanResult(is_clean=True)
+        if response.endswith("FOUND"):
+            message = response.removeprefix("stream: ").removesuffix("FOUND").strip()
+            return UploadScanResult(is_clean=False, message=message)
+        return UploadScanResult(is_clean=False, message=f"ClamAV scan failed: {response}")
 
 
 class LocalFileStorage:
@@ -72,7 +119,7 @@ class LocalFileStorage:
 
         chunks: list[bytes] = []
         accumulated = 0
-        while chunk := await upload.read(1024 * 1024):
+        while chunk := await upload.read(_CHUNK_SIZE):
             accumulated += len(chunk)
             if max_size_bytes and accumulated > max_size_bytes:
                 target_path.unlink(missing_ok=True)
@@ -142,7 +189,7 @@ class MinioFileStorage:
         chunks: list[bytes] = []
         accumulated = 0
         digest = sha256()
-        while chunk := await upload.read(1024 * 1024):
+        while chunk := await upload.read(_CHUNK_SIZE):
             accumulated += len(chunk)
             if max_size_bytes and accumulated > max_size_bytes:
                 raise HTTPException(
@@ -199,7 +246,7 @@ class MinioFileStorage:
                         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                         detail="Invalid MinIO object response",
                     )
-                yield from stream(1024 * 1024)
+                yield from stream(_CHUNK_SIZE)
             finally:
                 close = getattr(minio_response, "close", None)
                 if callable(close):
@@ -273,10 +320,25 @@ def get_file_storage(
     raise ValueError(msg)
 
 
-def get_upload_scanner(*, enabled: bool) -> UploadScanner:
+def get_upload_scanner(
+    *,
+    enabled: bool,
+    backend: str = "noop",
+    clamav_host: str = "localhost",
+    clamav_port: int = 3310,
+    clamav_timeout_seconds: float = 10.0,
+) -> UploadScanner:
     if not enabled:
         return NoopUploadScanner()
-    msg = "Upload scanner is reserved but not implemented"
+    if backend == "clamav":
+        return ClamAvUploadScanner(
+            client=ClamAvTcpClient(
+                host=clamav_host,
+                port=clamav_port,
+                timeout_seconds=clamav_timeout_seconds,
+            )
+        )
+    msg = f"Unsupported upload scanner backend: {backend}"
     raise ValueError(msg)
 
 
