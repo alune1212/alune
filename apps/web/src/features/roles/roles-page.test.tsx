@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { RolesPage } from "@/features/roles/roles-page";
-import { mockAuthValue, renderWithQueryClient } from "@/test-utils";
+import { mockAuthValue, renderWithQueryClient, successResponse } from "@/test-utils";
 import {
   fetchPermissions,
   fetchRolePermissions,
@@ -60,27 +60,12 @@ const permissions: PermissionPublic[] = [
 
 describe("RolesPage permission assignment", () => {
   beforeEach(() => {
-    vi.mocked(fetchRoles).mockResolvedValue({
-      success: true,
-      data: roles,
-      message: "ok",
-      error: null
-    });
-    vi.mocked(fetchPermissions).mockResolvedValue({
-      success: true,
-      data: permissions,
-      message: "ok",
-      error: null
-    });
-    vi.mocked(fetchRolePermissions).mockResolvedValue({
-      success: true,
-      data: {
-        role_id: "role-admin",
-        permission_codes: ["dashboard:view"]
-      },
-      message: "ok",
-      error: null
-    });
+    vi.mocked(fetchRoles).mockResolvedValue(successResponse(roles));
+    vi.mocked(fetchPermissions).mockResolvedValue(successResponse(permissions));
+    vi.mocked(fetchRolePermissions).mockResolvedValue(successResponse({
+      role_id: "role-admin",
+      permission_codes: ["dashboard:view"]
+    }));
   });
 
   it("groups permissions by type and shows an empty state when search has no matches", async () => {

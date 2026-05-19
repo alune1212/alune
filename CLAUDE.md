@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## 项目概述
 
-alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础和阶段 6G-C 内部系统底座交互、存储与上传扫描加固。
+alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础和阶段 6G-D 内部系统底座交互、存储、上传扫描与前端测试加固。
 
 ## Quick Start
 
@@ -181,6 +181,7 @@ alune-platform/
 
 - **后端**: pytest + pytest-asyncio，测试在 `app/tests/`
 - **前端**: Vitest + Testing Library，测试文件 `*.test.ts` / `*.test.tsx`
+- **前端交互覆盖**: 用户批量状态、角色权限搜索、字典类型创建、部门树和创建、审计导出过滤、文件上传
 - **API 测试**: 使用 httpx AsyncClient + ASGITransport
 - **浏览器测试**: Playwright `1.60.0` 已安装 Chromium `1223` 和 `chromium_headless_shell-1223`。如果 Codex 沙箱内启动 Chromium 出现 macOS Mach port 权限错误，改到沙箱外执行浏览器检查。
 
@@ -194,4 +195,4 @@ alune-platform/
 
 ## 当前阶段边界
 
-已完成阶段 0、1、2、3、4、5、6A、6B、6C、6D、6E、阶段 6F、阶段 6G-A、阶段 6G-B 和阶段 6G-C 的最小 MVP。不包含：复杂组织架构、审批、报表和公司业务模块。下一阶段建议：阶段 6G-D 继续强化内部系统底座。
+已完成阶段 0、1、2、3、4、5、6A、6B、6C、6D、6E、阶段 6F、阶段 6G-A、阶段 6G-B、阶段 6G-C 和阶段 6G-D 的最小 MVP。不包含：复杂组织架构、审批、报表和公司业务模块。下一阶段建议：阶段 6G-E 接入 Orval API client 生成。

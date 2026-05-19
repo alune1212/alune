@@ -11,6 +11,7 @@ export default defineConfig({
     }
   },
   test: {
+    restoreMocks: true,
     environment: "jsdom",
     environmentOptions: {
       jsdom: {

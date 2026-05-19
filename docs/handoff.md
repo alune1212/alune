@@ -22,6 +22,7 @@
 - Added stage 6G-A frontend hardening: batch user enable/disable confirmation with result feedback, plus Vitest/Testing Library coverage for batch user status and role permission search/grouping.
 - Added stage 6G-B storage hardening: MinIO storage adapter, storage-backed download responses, MinIO settings, optional Docker MinIO profile, and bucket initialization service.
 - Added stage 6G-C upload scanning: ClamAV scanner adapter over clamd `INSTREAM`, scanner settings, optional Docker ClamAV profile, and unit coverage for clean/infected scan results.
+- Added stage 6G-D frontend test hardening: Vitest/Testing Library coverage for dictionary type creation, department tree/create flow, audit export filters, and file upload.
 - Verified Docker dependency services with PostgreSQL and Redis healthy.
 - Verified `/api/v1/health/db` returns 200 when the API can reach Docker PostgreSQL.
 
@@ -75,6 +76,6 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 
 Stage 6G should continue hardening the internal system foundation:
 
-- Expand frontend interaction tests for dictionary, department, audit, and file-management pages.
+- Add API client generation with Orval so the frontend stops maintaining duplicate hand-written API types and request functions.
 
 Do not start approval flows, payroll, reports, or company-specific business modules before the internal system foundation is in place.

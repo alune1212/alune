@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { UsersPage } from "@/features/users/users-page";
-import { mockAuthValue, renderWithQueryClient } from "@/test-utils";
+import { mockAuthValue, paginatedResponse, renderWithQueryClient, successResponse } from "@/test-utils";
 import {
   fetchDepartments,
   fetchRoles,
@@ -62,46 +62,11 @@ const departments: DepartmentPublic[] = [];
 
 describe("UsersPage bulk status operations", () => {
   beforeEach(() => {
-    vi.mocked(fetchUsers).mockResolvedValue({
-      success: true,
-      data: {
-        items: users,
-        page: 1,
-        page_size: 10,
-        total: users.length
-      },
-      message: "ok",
-      error: null
-    });
-    vi.mocked(fetchRoles).mockResolvedValue({
-      success: true,
-      data: roles,
-      message: "ok",
-      error: null
-    });
-    vi.mocked(fetchDepartments).mockResolvedValue({
-      success: true,
-      data: {
-        items: departments,
-        page: 1,
-        page_size: 100,
-        total: departments.length
-      },
-      message: "ok",
-      error: null
-    });
-    vi.mocked(fetchUserRoles).mockResolvedValue({
-      success: true,
-      data: { user_id: "user-1", role_codes: [] },
-      message: "ok",
-      error: null
-    });
-    vi.mocked(updateUsersStatus).mockResolvedValue({
-      success: true,
-      data: { updated_count: 2 },
-      message: "ok",
-      error: null
-    });
+    vi.mocked(fetchUsers).mockResolvedValue(paginatedResponse(users));
+    vi.mocked(fetchRoles).mockResolvedValue(successResponse(roles));
+    vi.mocked(fetchDepartments).mockResolvedValue(paginatedResponse(departments, 100));
+    vi.mocked(fetchUserRoles).mockResolvedValue(successResponse({ user_id: "user-1", role_codes: [] }));
+    vi.mocked(updateUsersStatus).mockResolvedValue(successResponse({ updated_count: 2 }));
   });
 
   it("requires confirmation before disabling selected users and shows the result", async () => {

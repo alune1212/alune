@@ -13,9 +13,9 @@ from uuid import uuid4
 from fastapi import HTTPException, Response, UploadFile, status
 from starlette.responses import FileResponse, StreamingResponse
 
-_CHUNK_SIZE = 1024 * 1024
-
 from app.modules.files.schemas import StoredUpload
+
+_CHUNK_SIZE = 1024 * 1024
 
 
 @runtime_checkable

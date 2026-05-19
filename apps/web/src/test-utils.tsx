@@ -14,6 +14,24 @@ export function renderWithQueryClient(children: ReactNode): RenderResult {
   return render(<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>);
 }
 
+export function paginatedResponse<T>(items: T[], pageSize = 10) {
+  return {
+    success: true as const,
+    data: { items, page: 1, page_size: pageSize, total: items.length },
+    message: "ok",
+    error: null
+  };
+}
+
+export function successResponse<T>(data: T) {
+  return {
+    success: true as const,
+    data,
+    message: "ok",
+    error: null
+  };
+}
+
 export const mockAuthValue = {
   token: "test-token",
   user: null,
