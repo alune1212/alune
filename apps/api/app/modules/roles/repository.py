@@ -1,9 +1,14 @@
 from uuid import UUID
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.modules.permissions.models import Permission, Role, role_permissions_table
+from app.modules.permissions.models import (
+    Permission,
+    Role,
+    role_permissions_table,
+    user_roles_table,
+)
 
 
 async def list_roles(session: AsyncSession) -> list[Role]:
@@ -13,6 +18,19 @@ async def list_roles(session: AsyncSession) -> list[Role]:
 
 async def get_role_by_id(session: AsyncSession, role_id: UUID) -> Role | None:
     return await session.scalar(select(Role).where(Role.id == role_id))
+
+
+async def get_role_by_code(session: AsyncSession, code: str) -> Role | None:
+    return await session.scalar(select(Role).where(Role.code == code))
+
+
+async def count_users_by_role(session: AsyncSession, role_id: UUID) -> int:
+    count = await session.scalar(
+        select(func.count())
+        .select_from(user_roles_table)
+        .where(user_roles_table.c.role_id == role_id)
+    )
+    return count or 0
 
 
 async def list_permissions(session: AsyncSession) -> list[Permission]:

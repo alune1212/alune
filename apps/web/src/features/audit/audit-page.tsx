@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/features/auth/auth-provider";
 import {
+  exportLoginLogs,
+  exportOperationLogs,
   fetchLoginLogs,
   fetchOperationLogs,
   type LoginLogPublic,
@@ -33,27 +35,53 @@ export function AuditPage() {
   const auth = useAuth();
   const [operationSearch, setOperationSearch] = useState("");
   const [operationStatus, setOperationStatus] = useState("");
+  const [operationStartedAt, setOperationStartedAt] = useState("");
+  const [operationEndedAt, setOperationEndedAt] = useState("");
   const [operationPage, setOperationPage] = useState(1);
   const [loginSearch, setLoginSearch] = useState("");
   const [loginStatus, setLoginStatus] = useState("");
+  const [loginStartedAt, setLoginStartedAt] = useState("");
+  const [loginEndedAt, setLoginEndedAt] = useState("");
   const [loginPage, setLoginPage] = useState(1);
   const operationLogsQuery = useQuery({
-    queryKey: ["internal", "audit", "operation-logs", operationSearch, operationStatus, operationPage],
+    queryKey: [
+      "internal",
+      "audit",
+      "operation-logs",
+      operationSearch,
+      operationStatus,
+      operationStartedAt,
+      operationEndedAt,
+      operationPage
+    ],
     queryFn: () =>
       fetchOperationLogs(auth.token!, {
         q: operationSearch || undefined,
         status: operationStatus || undefined,
+        startedAt: operationStartedAt || undefined,
+        endedAt: operationEndedAt || undefined,
         page: operationPage,
         pageSize: 10
       }),
     enabled: auth.token !== null
   });
   const loginLogsQuery = useQuery({
-    queryKey: ["internal", "audit", "login-logs", loginSearch, loginStatus, loginPage],
+    queryKey: [
+      "internal",
+      "audit",
+      "login-logs",
+      loginSearch,
+      loginStatus,
+      loginStartedAt,
+      loginEndedAt,
+      loginPage
+    ],
     queryFn: () =>
       fetchLoginLogs(auth.token!, {
         q: loginSearch || undefined,
         status: loginStatus || undefined,
+        startedAt: loginStartedAt || undefined,
+        endedAt: loginEndedAt || undefined,
         page: loginPage,
         pageSize: 10
       }),
@@ -65,6 +93,29 @@ export function AuditPage() {
     : 1;
   const loginLogsPage = loginLogsQuery.data?.data;
   const loginTotalPages = loginLogsPage ? Math.max(1, Math.ceil(loginLogsPage.total / loginLogsPage.page_size)) : 1;
+
+  async function downloadCsv(kind: "operation" | "login") {
+    const blob =
+      kind === "operation"
+        ? await exportOperationLogs(auth.token!, {
+            q: operationSearch || undefined,
+            status: operationStatus || undefined,
+            startedAt: operationStartedAt || undefined,
+            endedAt: operationEndedAt || undefined
+          })
+        : await exportLoginLogs(auth.token!, {
+            q: loginSearch || undefined,
+            status: loginStatus || undefined,
+            startedAt: loginStartedAt || undefined,
+            endedAt: loginEndedAt || undefined
+          });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = kind === "operation" ? "operation-logs.csv" : "login-logs.csv";
+    anchor.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
@@ -79,7 +130,7 @@ export function AuditPage() {
           <CardDescription>{operationLogsPage?.total ?? 0} records</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-3 md:grid-cols-[1fr_12rem_auto_auto_auto]">
+          <div className="grid gap-3 md:grid-cols-[1fr_10rem_11rem_11rem_auto_auto_auto_auto]">
             <Input
               value={operationSearch}
               onChange={(event) => {
@@ -96,6 +147,22 @@ export function AuditPage() {
               }}
               placeholder="Status"
             />
+            <Input
+              type="datetime-local"
+              value={operationStartedAt}
+              onChange={(event) => {
+                setOperationStartedAt(event.target.value);
+                setOperationPage(1);
+              }}
+            />
+            <Input
+              type="datetime-local"
+              value={operationEndedAt}
+              onChange={(event) => {
+                setOperationEndedAt(event.target.value);
+                setOperationPage(1);
+              }}
+            />
             <Button type="button" variant="outline" onClick={() => setOperationPage((value) => Math.max(1, value - 1))}>
               Previous
             </Button>
@@ -108,6 +175,9 @@ export function AuditPage() {
               onClick={() => setOperationPage((value) => Math.min(operationTotalPages, value + 1))}
             >
               Next
+            </Button>
+            <Button type="button" variant="outline" onClick={() => void downloadCsv("operation")}>
+              Export
             </Button>
           </div>
           {operationLogsQuery.isError ? (
@@ -128,7 +198,7 @@ export function AuditPage() {
           <CardDescription>{loginLogsPage?.total ?? 0} records</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-3 md:grid-cols-[1fr_12rem_auto_auto_auto]">
+          <div className="grid gap-3 md:grid-cols-[1fr_10rem_11rem_11rem_auto_auto_auto_auto]">
             <Input
               value={loginSearch}
               onChange={(event) => {
@@ -145,6 +215,22 @@ export function AuditPage() {
               }}
               placeholder="Status"
             />
+            <Input
+              type="datetime-local"
+              value={loginStartedAt}
+              onChange={(event) => {
+                setLoginStartedAt(event.target.value);
+                setLoginPage(1);
+              }}
+            />
+            <Input
+              type="datetime-local"
+              value={loginEndedAt}
+              onChange={(event) => {
+                setLoginEndedAt(event.target.value);
+                setLoginPage(1);
+              }}
+            />
             <Button type="button" variant="outline" onClick={() => setLoginPage((value) => Math.max(1, value - 1))}>
               Previous
             </Button>
@@ -157,6 +243,9 @@ export function AuditPage() {
               onClick={() => setLoginPage((value) => Math.min(loginTotalPages, value + 1))}
             >
               Next
+            </Button>
+            <Button type="button" variant="outline" onClick={() => void downloadCsv("login")}>
+              Export
             </Button>
           </div>
           {loginLogsQuery.isError ? (

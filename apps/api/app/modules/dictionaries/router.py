@@ -8,6 +8,7 @@ from app.modules.auth.dependencies import DatabaseSession
 from app.modules.auth.models import User
 from app.modules.dictionaries.models import DictionaryItem, DictionaryType
 from app.modules.dictionaries.repository import (
+    count_dictionary_items_by_type,
     get_dictionary_item_by_id,
     get_dictionary_item_by_type_and_value,
     get_dictionary_type_by_code,
@@ -21,6 +22,7 @@ from app.modules.dictionaries.schemas import (
     DictionaryItemUpdate,
     DictionaryTypeCreate,
     DictionaryTypePublic,
+    DictionaryTypeUpdate,
 )
 from app.modules.permissions.dependencies import require_permission
 
@@ -69,6 +71,86 @@ async def create_dictionary_type(
     await session.commit()
     await session.refresh(dictionary_type)
     return ApiResponse(success=True, data=DictionaryTypePublic.model_validate(dictionary_type))
+
+
+@router.patch(
+    "/types/{type_id}",
+    response_model=ApiResponse[DictionaryTypePublic],
+)
+async def update_dictionary_type(
+    type_id: UUID,
+    payload: DictionaryTypeUpdate,
+    session: DatabaseSession,
+    current_user: User = UpdateDictionaryDependency,
+) -> ApiResponse[DictionaryTypePublic]:
+    dictionary_type = await get_dictionary_type_by_id(session, type_id)
+    if dictionary_type is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Dictionary type not found"
+        )
+    if dictionary_type.is_system:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="System dictionary type cannot be updated",
+        )
+
+    update_data = payload.model_dump(exclude_unset=True)
+    if "code" in update_data and update_data["code"] is not None:
+        existing_type = await get_dictionary_type_by_code(session, update_data["code"])
+        if existing_type is not None and existing_type.id != dictionary_type.id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT, detail="Dictionary code exists"
+            )
+
+    for field_name, value in update_data.items():
+        setattr(dictionary_type, field_name, value)
+
+    await record_operation_log(
+        session,
+        actor_user_id=current_user.id,
+        action="update",
+        resource="dictionary_type",
+        resource_id=str(dictionary_type.id),
+    )
+    await session.commit()
+    await session.refresh(dictionary_type)
+    return ApiResponse(success=True, data=DictionaryTypePublic.model_validate(dictionary_type))
+
+
+@router.delete(
+    "/types/{type_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_dictionary_type(
+    type_id: UUID,
+    session: DatabaseSession,
+    current_user: User = UpdateDictionaryDependency,
+) -> None:
+    dictionary_type = await get_dictionary_type_by_id(session, type_id)
+    if dictionary_type is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Dictionary type not found"
+        )
+    if dictionary_type.is_system:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="System dictionary type cannot be deleted",
+        )
+    item_count = await count_dictionary_items_by_type(session, dictionary_type.id)
+    if item_count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Dictionary type has items"
+        )
+
+    await session.delete(dictionary_type)
+    await record_operation_log(
+        session,
+        actor_user_id=current_user.id,
+        action="delete",
+        resource="dictionary_type",
+        resource_id=str(dictionary_type.id),
+    )
+    await session.commit()
 
 
 @router.get(

@@ -14,7 +14,7 @@ Project guidance for Codex and other AI agents working in this repository.
 - Alembic migration baseline with the `system_info` table.
 - Login MVP with `users`, password hashing, JWT login, `/auth/me`, frontend login, and a protected dashboard.
 - Permission baseline with roles, permissions, user-role links, role-permission links, backend permission dependency, and frontend menu filtering.
-- Stage 6D internal system foundation with user create/enable/disable/edit/password reset, user role assignment, role permission assignment, department tree/update/delete rules, audit log filtering/pagination, dictionary item maintenance, local file upload/download, upload policy checks, and search/pagination for key management lists.
+- Stage 6E internal system foundation with user create/enable/disable/edit/password reset, user role assignment, user role/department filters, role create/update/delete guards, role permission assignment, department tree/update/delete rules, audit log filtering/pagination/date range/CSV export, dictionary type/item maintenance guards, local file upload/download, upload policy checks, and search/pagination for key management lists.
 
 Do not add approval flows, reports, payroll, or company-specific business modules unless the user explicitly asks for that phase.
 
@@ -71,8 +71,11 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
   - `GET /api/v1/users/{user_id}/roles`
   - `PUT /api/v1/users/{user_id}/roles`
   - `GET /api/v1/roles`
+  - `POST /api/v1/roles`
   - `GET /api/v1/roles/permissions`
   - `GET /api/v1/roles/{role_id}/permissions`
+  - `PATCH /api/v1/roles/{role_id}`
+  - `DELETE /api/v1/roles/{role_id}`
   - `PUT /api/v1/roles/{role_id}/permissions`
   - `GET /api/v1/departments`
   - `GET /api/v1/departments/tree`
@@ -80,9 +83,13 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
   - `PATCH /api/v1/departments/{department_id}`
   - `DELETE /api/v1/departments/{department_id}`
   - `GET /api/v1/audit/operation-logs`
+  - `GET /api/v1/audit/operation-logs/export`
   - `GET /api/v1/audit/login-logs`
+  - `GET /api/v1/audit/login-logs/export`
   - `GET /api/v1/dictionaries/types`
   - `POST /api/v1/dictionaries/types`
+  - `PATCH /api/v1/dictionaries/types/{type_id}`
+  - `DELETE /api/v1/dictionaries/types/{type_id}`
   - `GET /api/v1/dictionaries/items`
   - `POST /api/v1/dictionaries/items`
   - `PATCH /api/v1/dictionaries/items/{item_id}`
@@ -113,7 +120,7 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 
 ## Guardrails
 
-- Keep stage 0-6D minimal. Avoid over-abstracting before real business modules exist.
+- Keep stage 0-6E minimal. Avoid over-abstracting before real business modules exist.
 - Use TanStack Query for server state and Zustand only for UI state.
 - Keep shadcn/ui-compatible primitives under `apps/web/src/components/ui/`.
 - Keep backend modules under `apps/api/app/modules/<feature>/`.

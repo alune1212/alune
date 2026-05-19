@@ -95,6 +95,24 @@ DEFAULT_PERMISSIONS: tuple[PermissionDefinition, ...] = (
         description="Read role management data.",
     ),
     PermissionDefinition(
+        code="action:roles:create",
+        name="Create roles",
+        type="action",
+        description="Create custom roles.",
+    ),
+    PermissionDefinition(
+        code="action:roles:update",
+        name="Update roles",
+        type="action",
+        description="Update custom roles.",
+    ),
+    PermissionDefinition(
+        code="action:roles:delete",
+        name="Delete roles",
+        type="action",
+        description="Delete unused custom roles.",
+    ),
+    PermissionDefinition(
         code="action:roles:update_permissions",
         name="Update role permissions",
         type="action",

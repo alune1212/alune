@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import func, or_, select
@@ -11,6 +12,8 @@ async def list_operation_logs(
     *,
     q: str | None = None,
     status: str | None = None,
+    started_at: datetime | None = None,
+    ended_at: datetime | None = None,
     offset: int = 0,
     limit: int = 20,
 ) -> tuple[list[OperationLog], int]:
@@ -29,6 +32,10 @@ async def list_operation_logs(
         )
     if status:
         filters.append(OperationLog.status == status)
+    if started_at:
+        filters.append(OperationLog.created_at >= started_at)
+    if ended_at:
+        filters.append(OperationLog.created_at <= ended_at)
     for filter_clause in filters:
         statement = statement.where(filter_clause)
         count_statement = count_statement.where(filter_clause)
@@ -45,6 +52,8 @@ async def list_login_logs(
     *,
     q: str | None = None,
     status: str | None = None,
+    started_at: datetime | None = None,
+    ended_at: datetime | None = None,
     offset: int = 0,
     limit: int = 20,
 ) -> tuple[list[LoginLog], int]:
@@ -62,6 +71,10 @@ async def list_login_logs(
         )
     if status:
         filters.append(LoginLog.status == status)
+    if started_at:
+        filters.append(LoginLog.created_at >= started_at)
+    if ended_at:
+        filters.append(LoginLog.created_at <= ended_at)
     for filter_clause in filters:
         statement = statement.where(filter_clause)
         count_statement = count_statement.where(filter_clause)

@@ -29,6 +29,8 @@ export function UsersPage() {
   const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
   const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState("");
   const [page, setPage] = useState(1);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [editEmail, setEditEmail] = useState("");
@@ -36,8 +38,15 @@ export function UsersPage() {
   const [editDepartmentId, setEditDepartmentId] = useState("");
   const [resetPassword, setResetPassword] = useState("");
   const usersQuery = useQuery({
-    queryKey: ["internal", "users", search, page],
-    queryFn: () => fetchUsers(auth.token!, { q: search || undefined, page, pageSize: 10 }),
+    queryKey: ["internal", "users", search, roleFilter, departmentFilter, page],
+    queryFn: () =>
+      fetchUsers(auth.token!, {
+        q: search || undefined,
+        roleCode: roleFilter || undefined,
+        departmentId: departmentFilter || undefined,
+        page,
+        pageSize: 10
+      }),
     enabled: auth.token !== null
   });
   const rolesQuery = useQuery({
@@ -308,6 +317,22 @@ export function UsersPage() {
                 setPage(1);
               }}
               placeholder="Search username, email, or full name"
+            />
+            <Input
+              value={roleFilter}
+              onChange={(event) => {
+                setRoleFilter(event.target.value);
+                setPage(1);
+              }}
+              placeholder="Role code"
+            />
+            <Input
+              value={departmentFilter}
+              onChange={(event) => {
+                setDepartmentFilter(event.target.value);
+                setPage(1);
+              }}
+              placeholder="Department ID"
             />
             <div className="flex items-center gap-2">
               <Button type="button" variant="outline" onClick={() => setPage((value) => Math.max(1, value - 1))}>

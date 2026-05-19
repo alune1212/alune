@@ -1,6 +1,6 @@
 # Architecture
 
-`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6D MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, and internal system pages for users, roles, departments, audit logs, dictionaries, and local file attachments.
+`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6E MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, and internal system pages for users, roles, departments, audit logs, dictionaries, and local file attachments.
 
 ## Monorepo Layout
 
@@ -44,8 +44,8 @@ Important modules:
 - `app/modules/system/models.py` defines the `system_info` table model.
 - `app/modules/auth/` implements the login MVP: `users` model, password hashing, JWT creation, current-user dependency, and auth router.
 - `app/modules/permissions/` implements the RBAC baseline: roles, permissions, association tables, default permission registry, permission queries, and `require_permission`.
-- `app/modules/users/`, `app/modules/roles/`, and `app/modules/departments/` implement user creation/update/password reset, user role assignment, role permission assignment, department trees, and department edit/delete rules.
-- `app/modules/audit/`, `app/modules/dictionaries/`, and `app/modules/files/` implement paginated log reads, dictionary type/item maintenance, and local file upload/download metadata with upload policy checks.
+- `app/modules/users/`, `app/modules/roles/`, and `app/modules/departments/` implement user creation/update/password reset, user role assignment, user filtering by role/department, role create/update/delete guards, role permission assignment, department trees, and department edit/delete rules.
+- `app/modules/audit/`, `app/modules/dictionaries/`, and `app/modules/files/` implement paginated log reads with date filters and CSV export, dictionary type/item maintenance with system/delete guards, and local file upload/download metadata with upload policy checks.
 - `alembic/` contains migration environment and versioned schema changes.
 
 ## Frontend
@@ -61,7 +61,7 @@ The app uses:
 - App shell layout in `src/components/layout/`.
 - Dashboard page in `src/features/dashboard/dashboard-page.tsx`.
 - Login page and auth provider in `src/features/auth/`.
-- Users, roles, departments, audit, dictionaries, and files pages in `src/features/`; users, departments, audit, and files include search/pagination controls.
+- Users, roles, departments, audit, dictionaries, and files pages in `src/features/`; users include role/department filters, roles include guarded create/edit/delete controls, audit includes date filters and CSV export, and dictionaries include type/item maintenance controls.
 - Navigation permission filtering in `src/config/navigation.ts`.
 
 The dashboard, login flow, and internal system pages call `@alune/api-client`. That package is still hand-written for the MVP and has a TODO to replace it with Orval-generated output from FastAPI `/openapi.json`.
@@ -81,6 +81,8 @@ flowchart LR
   InternalClient --> Users["/api/v1/users"]
   InternalClient --> Roles["/api/v1/roles"]
   InternalClient --> Departments["/api/v1/departments"]
+  InternalClient --> Audit["/api/v1/audit"]
+  InternalClient --> Dictionaries["/api/v1/dictionaries"]
   FileClient --> Files["/api/v1/files"]
   API --> DBCheck["/api/v1/health/db"]
   DBCheck --> Postgres["PostgreSQL 18"]
@@ -90,6 +92,8 @@ flowchart LR
   Users --> Postgres
   Roles --> Postgres
   Departments --> Postgres
+  Audit --> Postgres
+  Dictionaries --> Postgres
   Files --> Postgres
   Files --> LocalStorage["Local upload storage"]
   API --> Redis["Redis 8 (reserved for later modules)"]
@@ -120,25 +124,32 @@ The `api` service stores uploaded file binaries under `/app/uploads`, backed by 
 | GET | `/api/v1/health/db` | Run `SELECT 1` through SQLAlchemy AsyncSession. Returns 503 if PostgreSQL is unavailable. |
 | POST | `/api/v1/auth/login` | OAuth2 password login. Returns a JWT access token. |
 | GET | `/api/v1/auth/me` | Returns the current active user and permission codes from a Bearer token. |
-| GET | `/api/v1/users` | Returns paginated user records for administrators. |
+| GET | `/api/v1/users` | Returns paginated user records for administrators. Supports `q`, `department_id`, and `role_code`. |
 | POST | `/api/v1/users` | Creates a user account. |
 | PATCH | `/api/v1/users/{user_id}` | Updates user account state. |
 | PATCH | `/api/v1/users/{user_id}/password` | Resets a user password. |
 | GET | `/api/v1/users/{user_id}/roles` | Returns role codes assigned to one user. |
 | PUT | `/api/v1/users/{user_id}/roles` | Replaces role codes assigned to one user. |
 | GET | `/api/v1/roles` | Returns role records for administrators. |
+| POST | `/api/v1/roles` | Creates non-system role records. |
 | GET | `/api/v1/roles/permissions` | Returns all permission records. |
 | GET | `/api/v1/roles/{role_id}/permissions` | Returns permission codes assigned to one role. |
+| PATCH | `/api/v1/roles/{role_id}` | Updates non-system roles. |
+| DELETE | `/api/v1/roles/{role_id}` | Deletes non-system roles only when no users are assigned. |
 | PUT | `/api/v1/roles/{role_id}/permissions` | Replaces permission codes assigned to one role. |
 | GET | `/api/v1/departments` | Returns paginated department records for administrators. |
 | GET | `/api/v1/departments/tree` | Returns a nested department tree. |
 | POST | `/api/v1/departments` | Creates a department record. |
 | PATCH | `/api/v1/departments/{department_id}` | Updates department fields. |
 | DELETE | `/api/v1/departments/{department_id}` | Deletes departments only when no children or users are assigned. |
-| GET | `/api/v1/audit/operation-logs` | Returns paginated/filterable operation logs. |
-| GET | `/api/v1/audit/login-logs` | Returns paginated/filterable login logs. |
+| GET | `/api/v1/audit/operation-logs` | Returns paginated/filterable operation logs with optional date range. |
+| GET | `/api/v1/audit/operation-logs/export` | Exports operation logs as CSV with the same filters. |
+| GET | `/api/v1/audit/login-logs` | Returns paginated/filterable login logs with optional date range. |
+| GET | `/api/v1/audit/login-logs/export` | Exports login logs as CSV with the same filters. |
 | GET | `/api/v1/dictionaries/types` | Returns dictionary types. |
 | POST | `/api/v1/dictionaries/types` | Creates a dictionary type. |
+| PATCH | `/api/v1/dictionaries/types/{type_id}` | Updates non-system dictionary types. |
+| DELETE | `/api/v1/dictionaries/types/{type_id}` | Deletes non-system dictionary types only when no items exist. |
 | GET | `/api/v1/dictionaries/items` | Returns dictionary items. |
 | POST | `/api/v1/dictionaries/items` | Creates a dictionary item. |
 | PATCH | `/api/v1/dictionaries/items/{item_id}` | Updates or enables/disables a dictionary item. |

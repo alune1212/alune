@@ -11,25 +11,24 @@ import {
   createDictionaryItem,
   createDictionaryType,
   deleteDictionaryItem,
+  deleteDictionaryType,
   fetchDictionaryItems,
   fetchDictionaryTypes,
   updateDictionaryItem,
+  updateDictionaryType,
   type DictionaryItemPublic,
   type DictionaryTypePublic
 } from "@alune/api-client";
-
-const typeColumns: ColumnDef<DictionaryTypePublic>[] = [
-  { accessorKey: "code", header: "Code", cell: ({ row }) => <span className="font-medium">{row.original.code}</span> },
-  { accessorKey: "name", header: "Name" },
-  { accessorKey: "description", header: "Description", cell: ({ row }) => row.original.description ?? "-" },
-  { accessorKey: "is_system", header: "System", cell: ({ row }) => (row.original.is_system ? "Yes" : "No") }
-];
 
 export function DictionariesPage() {
   const auth = useAuth();
   const queryClient = useQueryClient();
   const [typeCode, setTypeCode] = useState("");
   const [typeName, setTypeName] = useState("");
+  const [selectedTypeId, setSelectedTypeId] = useState<string | null>(null);
+  const [editTypeCode, setEditTypeCode] = useState("");
+  const [editTypeName, setEditTypeName] = useState("");
+  const [editTypeDescription, setEditTypeDescription] = useState("");
   const [itemTypeId, setItemTypeId] = useState("");
   const [itemLabel, setItemLabel] = useState("");
   const [itemValue, setItemValue] = useState("");
@@ -66,6 +65,19 @@ export function DictionariesPage() {
       queryClient.invalidateQueries({ queryKey: ["internal", "dictionaries"] });
     }
   });
+  const updateTypeMutation = useMutation({
+    mutationFn: () =>
+      updateDictionaryType(auth.token!, selectedTypeId!, {
+        code: editTypeCode,
+        name: editTypeName,
+        description: editTypeDescription || null
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "dictionaries"] })
+  });
+  const deleteTypeMutation = useMutation({
+    mutationFn: (type: DictionaryTypePublic) => deleteDictionaryType(auth.token!, type.id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "dictionaries"] })
+  });
   const updateItemMutation = useMutation({
     mutationFn: () =>
       updateDictionaryItem(auth.token!, selectedItemId!, {
@@ -86,6 +98,54 @@ export function DictionariesPage() {
   });
 
   const selectedItem = itemsQuery.data?.data.find((item) => item.id === selectedItemId) ?? null;
+
+  const startEditType = useCallback((type: DictionaryTypePublic) => {
+    setSelectedTypeId(type.id);
+    setEditTypeCode(type.code);
+    setEditTypeName(type.name);
+    setEditTypeDescription(type.description ?? "");
+  }, []);
+
+  const startEditItem = useCallback((item: DictionaryItemPublic) => {
+    setSelectedItemId(item.id);
+    setEditLabel(item.label);
+    setEditValue(item.value);
+    setEditSortOrder(String(item.sort_order));
+  }, []);
+
+  const typeColumns: ColumnDef<DictionaryTypePublic>[] = useMemo(
+    () => [
+      {
+        accessorKey: "code",
+        header: "Code",
+        cell: ({ row }) => <span className="font-medium">{row.original.code}</span>
+      },
+      { accessorKey: "name", header: "Name" },
+      { accessorKey: "description", header: "Description", cell: ({ row }) => row.original.description ?? "-" },
+      { accessorKey: "is_system", header: "System", cell: ({ row }) => (row.original.is_system ? "Yes" : "No") },
+      {
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }) => (
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" onClick={() => startEditType(row.original)}>
+              Edit
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={row.original.is_system}
+              onClick={() => deleteTypeMutation.mutate(row.original)}
+            >
+              Delete
+            </Button>
+          </div>
+        )
+      }
+    ],
+    [deleteTypeMutation, startEditType]
+  );
+
   const itemColumns: ColumnDef<DictionaryItemPublic>[] = useMemo(
     () => [
       { accessorKey: "label", header: "Label" },
@@ -118,16 +178,6 @@ export function DictionariesPage() {
     [startEditItem, toggleItemMutation, deleteItemMutation]
   );
 
-  const startEditItem = useCallback(
-    (item: DictionaryItemPublic) => {
-      setSelectedItemId(item.id);
-      setEditLabel(item.label);
-      setEditValue(item.value);
-      setEditSortOrder(String(item.sort_order));
-    },
-    []
-  );
-
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
       <section>
@@ -154,7 +204,23 @@ export function DictionariesPage() {
           <CardTitle>Types</CardTitle>
           <CardDescription>{typesQuery.data?.data.length ?? 0} types</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
+            <Input value={editTypeCode} onChange={(event) => setEditTypeCode(event.target.value)} placeholder="Code" />
+            <Input value={editTypeName} onChange={(event) => setEditTypeName(event.target.value)} placeholder="Name" />
+            <Input
+              value={editTypeDescription}
+              onChange={(event) => setEditTypeDescription(event.target.value)}
+              placeholder="Description"
+            />
+            <Button
+              type="button"
+              onClick={() => updateTypeMutation.mutate()}
+              disabled={!selectedTypeId || !editTypeCode || !editTypeName || updateTypeMutation.isPending}
+            >
+              Save type
+            </Button>
+          </div>
           <DataTable columns={typeColumns} data={typesQuery.data?.data ?? []} emptyLabel="No types found." />
         </CardContent>
       </Card>

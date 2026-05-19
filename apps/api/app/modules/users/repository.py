@@ -11,11 +11,27 @@ async def list_users(
     session: AsyncSession,
     *,
     q: str | None = None,
+    department_id: UUID | None = None,
+    role_code: str | None = None,
     offset: int = 0,
     limit: int = 20,
 ) -> tuple[list[User], int]:
     statement = select(User)
     count_statement = select(func.count()).select_from(User)
+    if role_code:
+        statement = statement.join(user_roles_table, user_roles_table.c.user_id == User.id).join(
+            Role,
+            Role.id == user_roles_table.c.role_id,
+        )
+        count_statement = count_statement.join(
+            user_roles_table,
+            user_roles_table.c.user_id == User.id,
+        ).join(Role, Role.id == user_roles_table.c.role_id)
+        statement = statement.where(Role.code == role_code)
+        count_statement = count_statement.where(Role.code == role_code)
+    if department_id:
+        statement = statement.where(User.department_id == department_id)
+        count_statement = count_statement.where(User.department_id == department_id)
     if q:
         pattern = f"%{q}%"
         filter_clause = or_(

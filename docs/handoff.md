@@ -17,6 +17,7 @@
 - Added stage 6B internal system depth: user create/enable/disable, role permission assignment, department update/delete rules, login/operation log reads and writes, dictionary type/item APIs/pages, and file metadata APIs/pages.
 - Added stage 6C internal system hardening: local file binary upload/download, user role assignment API/page controls, department tree API/page view with recursive move guard, and search/pagination for users, departments, and file attachments.
 - Added stage 6D internal system hardening: upload type/size policy, user edit/department assignment/password reset, dictionary item update/enable-disable/delete, and audit log pagination/search/status filters.
+- Added stage 6E internal system hardening: user filtering by role/department, role create/update/delete with system and assignment guards, dictionary type update/delete guards, and audit log date-range filters plus CSV export.
 - Verified Docker dependency services with PostgreSQL and Redis healthy.
 - Verified `/api/v1/health/db` returns 200 when the API can reach Docker PostgreSQL.
 
@@ -59,12 +60,11 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 
 ## Recommended Next Phase
 
-Stage 6E should continue hardening the internal system foundation:
+Stage 6F should continue hardening the internal system foundation:
 
-- Add user search by role/department and safer bulk status operations.
-- Add role create/update and role deletion guards.
-- Add dictionary type update/delete guards.
-- Add audit log date-range filters and export.
-- Add MinIO/object storage adapter and antivirus scanning hooks once local file behavior is stable.
+- Add safer bulk status operations with explicit confirmation and audit records.
+- Add MinIO/object storage adapter behind the existing file storage interface.
+- Add antivirus scanning hooks once the upload lifecycle is stable.
+- Improve role/permission UX for larger permission sets.
 
 Do not start approval flows, payroll, reports, or company-specific business modules before the internal system foundation is in place.

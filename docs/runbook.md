@@ -82,7 +82,7 @@ The seed command is idempotent by username. It refuses the placeholder password 
 - a default root department
 - user/role and role/permission links
 
-Run the seed command again after permission registry changes. It is idempotent and syncs newly added permission codes such as `action:users:update_roles` and `action:dictionaries:update`.
+Run the seed command again after permission registry changes. It is idempotent and syncs newly added permission codes such as `action:users:update_roles`, `action:dictionaries:update`, `action:roles:create`, `action:roles:update`, and `action:roles:delete`.
 
 ## Start Local Development Servers
 
@@ -139,6 +139,9 @@ docker compose exec -T postgres psql -U app -d company_admin -c "select code, na
 docker compose exec -T postgres psql -U app -d company_admin -c "select code from permissions where code in ('menu:audit','menu:dictionaries','menu:files') order by code;"
 docker compose exec -T postgres psql -U app -d company_admin -c "select code from permissions where code = 'action:users:update_roles';"
 docker compose exec -T postgres psql -U app -d company_admin -c "select code from permissions where code = 'action:dictionaries:update';"
+docker compose exec -T postgres psql -U app -d company_admin -c "select code from permissions where code in ('action:roles:create','action:roles:update','action:roles:delete') order by code;"
+curl -s "http://localhost:8000/api/v1/audit/login-logs?started_at=2026-01-01T00:00:00&ended_at=2026-12-31T23:59:59" -H "Authorization: Bearer <token>"
+curl -s "http://localhost:8000/api/v1/audit/login-logs/export" -H "Authorization: Bearer <token>" -o login-logs.csv
 ```
 
 Expected DB health success:

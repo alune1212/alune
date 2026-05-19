@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.dictionaries.models import DictionaryItem, DictionaryType
@@ -30,6 +30,13 @@ async def get_dictionary_type_by_code(
     code: str,
 ) -> DictionaryType | None:
     return await session.scalar(select(DictionaryType).where(DictionaryType.code == code))
+
+
+async def count_dictionary_items_by_type(session: AsyncSession, type_id: UUID) -> int:
+    count = await session.scalar(
+        select(func.count()).select_from(DictionaryItem).where(DictionaryItem.type_id == type_id)
+    )
+    return count or 0
 
 
 async def get_dictionary_item_by_id(

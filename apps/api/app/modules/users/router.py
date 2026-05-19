@@ -41,12 +41,16 @@ UpdateUserRolesDependency = Depends(require_permission("action:users:update_role
 async def get_users(
     session: DatabaseSession,
     q: str | None = Query(default=None, max_length=100),
+    department_id: UUID | None = None,
+    role_code: str | None = Query(default=None, max_length=100),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
 ) -> ApiResponse[Page[UserManagementItem]]:
     users, total = await list_users(
         session,
         q=q,
+        department_id=department_id,
+        role_code=role_code,
         offset=(page - 1) * page_size,
         limit=page_size,
     )

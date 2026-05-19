@@ -5,43 +5,32 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/data/data-table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "@/features/auth/auth-provider";
 import {
+  createRole,
+  deleteRole,
   fetchPermissions,
   fetchRolePermissions,
   fetchRoles,
+  updateRole,
   updateRolePermissions,
   type PermissionPublic,
   type RolePublic
 } from "@alune/api-client";
-
-const roleColumns: ColumnDef<RolePublic>[] = [
-  {
-    accessorKey: "code",
-    header: "Code",
-    cell: ({ row }) => <span className="font-medium text-slate-950">{row.original.code}</span>
-  },
-  {
-    accessorKey: "name",
-    header: "Name"
-  },
-  {
-    accessorKey: "description",
-    header: "Description",
-    cell: ({ row }) => row.original.description ?? "-"
-  },
-  {
-    accessorKey: "is_system",
-    header: "System",
-    cell: ({ row }) => (row.original.is_system ? "Yes" : "No")
-  }
-];
 
 export function RolesPage() {
   const auth = useAuth();
   const queryClient = useQueryClient();
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
   const [permissionDrafts, setPermissionDrafts] = useState<Record<string, string[]>>({});
+  const [roleCode, setRoleCode] = useState("");
+  const [roleName, setRoleName] = useState("");
+  const [roleDescription, setRoleDescription] = useState("");
+  const [editRoleId, setEditRoleId] = useState<string | null>(null);
+  const [editRoleCode, setEditRoleCode] = useState("");
+  const [editRoleName, setEditRoleName] = useState("");
+  const [editRoleDescription, setEditRoleDescription] = useState("");
   const rolesQuery = useQuery({
     queryKey: ["internal", "roles"],
     queryFn: () => fetchRoles(auth.token!),
@@ -75,27 +64,85 @@ export function RolesPage() {
       queryClient.invalidateQueries({ queryKey: ["internal", "roles"] });
     }
   });
+  const createRoleMutation = useMutation({
+    mutationFn: () =>
+      createRole(auth.token!, {
+        code: roleCode,
+        name: roleName,
+        description: roleDescription || null
+      }),
+    onSuccess: () => {
+      setRoleCode("");
+      setRoleName("");
+      setRoleDescription("");
+      queryClient.invalidateQueries({ queryKey: ["internal", "roles"] });
+    }
+  });
+  const updateRoleMutation = useMutation({
+    mutationFn: () =>
+      updateRole(auth.token!, editRoleId!, {
+        code: editRoleCode,
+        name: editRoleName,
+        description: editRoleDescription || null
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "roles"] })
+  });
+  const deleteRoleMutation = useMutation({
+    mutationFn: (role: RolePublic) => deleteRole(auth.token!, role.id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "roles"] })
+  });
 
   const roleColumnsWithActions = useMemo<ColumnDef<RolePublic>[]>(
     () => [
-      ...roleColumns,
+      {
+        accessorKey: "code",
+        header: "Code",
+        cell: ({ row }) => <span className="font-medium text-slate-950">{row.original.code}</span>
+      },
+      {
+        accessorKey: "name",
+        header: "Name"
+      },
+      {
+        accessorKey: "description",
+        header: "Description",
+        cell: ({ row }) => row.original.description ?? "-"
+      },
+      {
+        accessorKey: "is_system",
+        header: "System",
+        cell: ({ row }) => (row.original.is_system ? "Yes" : "No")
+      },
       {
         id: "actions",
         header: "Actions",
         cell: ({ row }) => (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              setSelectedRoleId(row.original.id);
-            }}
-          >
-            Configure
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setSelectedRoleId(row.original.id);
+              }}
+            >
+              Configure
+            </Button>
+            <Button type="button" variant="outline" onClick={() => startEditRole(row.original)}>
+              Edit
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={row.original.is_system}
+              onClick={() => deleteRoleMutation.mutate(row.original)}
+            >
+              Delete
+            </Button>
+          </div>
         )
       }
     ],
-    []
+    [deleteRoleMutation]
   );
 
   function togglePermission(permission: PermissionPublic) {
@@ -114,12 +161,61 @@ export function RolesPage() {
     });
   }
 
+  function startEditRole(role: RolePublic) {
+    setEditRoleId(role.id);
+    setEditRoleCode(role.code);
+    setEditRoleName(role.name);
+    setEditRoleDescription(role.description ?? "");
+  }
+
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
       <section>
         <h1 className="text-2xl font-semibold tracking-normal text-slate-950">Roles</h1>
         <p className="mt-2 text-sm text-slate-600">Role records used by the permission baseline.</p>
       </section>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Create role</CardTitle>
+          <CardDescription>Add a custom role for permission assignment.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
+          <Input value={roleCode} onChange={(event) => setRoleCode(event.target.value)} placeholder="Code" />
+          <Input value={roleName} onChange={(event) => setRoleName(event.target.value)} placeholder="Name" />
+          <Input
+            value={roleDescription}
+            onChange={(event) => setRoleDescription(event.target.value)}
+            placeholder="Description"
+          />
+          <Button type="button" disabled={!roleCode || !roleName} onClick={() => createRoleMutation.mutate()}>
+            Create
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Edit role</CardTitle>
+          <CardDescription>System roles are protected from edit and delete operations.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
+          <Input value={editRoleCode} onChange={(event) => setEditRoleCode(event.target.value)} placeholder="Code" />
+          <Input value={editRoleName} onChange={(event) => setEditRoleName(event.target.value)} placeholder="Name" />
+          <Input
+            value={editRoleDescription}
+            onChange={(event) => setEditRoleDescription(event.target.value)}
+            placeholder="Description"
+          />
+          <Button
+            type="button"
+            disabled={!editRoleId || !editRoleCode || !editRoleName}
+            onClick={() => updateRoleMutation.mutate()}
+          >
+            Save
+          </Button>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

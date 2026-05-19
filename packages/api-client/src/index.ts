@@ -80,6 +80,14 @@ export type RolePublic = {
   is_system: boolean;
 };
 
+export type RoleCreate = {
+  code: string;
+  name: string;
+  description?: string | null;
+};
+
+export type RoleUpdate = Partial<RoleCreate>;
+
 export type PermissionPublic = {
   id: string;
   code: string;
@@ -164,6 +172,12 @@ export type DictionaryTypeCreate = {
   is_system?: boolean;
 };
 
+export type DictionaryTypeUpdate = {
+  code?: string;
+  name?: string;
+  description?: string | null;
+};
+
 export type DictionaryItemCreate = {
   type_id: string;
   label: string;
@@ -202,6 +216,10 @@ export type FileAttachmentCreate = {
 export type ListParams = {
   q?: string;
   status?: string;
+  departmentId?: string;
+  roleCode?: string;
+  startedAt?: string;
+  endedAt?: string;
   page?: number;
   pageSize?: number;
 };
@@ -245,6 +263,18 @@ function withListParams(url: string, params?: ListParams): string {
   }
   if (params?.status) {
     searchParams.set("status", params.status);
+  }
+  if (params?.departmentId) {
+    searchParams.set("department_id", params.departmentId);
+  }
+  if (params?.roleCode) {
+    searchParams.set("role_code", params.roleCode);
+  }
+  if (params?.startedAt) {
+    searchParams.set("started_at", params.startedAt);
+  }
+  if (params?.endedAt) {
+    searchParams.set("ended_at", params.endedAt);
   }
   if (params?.page) {
     searchParams.set("page", String(params.page));
@@ -382,6 +412,46 @@ export async function fetchRoles(token: string): Promise<ApiResponse<RolePublic[
   });
 }
 
+export async function createRole(
+  token: string,
+  payload: RoleCreate
+): Promise<ApiResponse<RolePublic>> {
+  return fetchJson<RolePublic>("/api/v1/roles", {
+    method: "POST",
+    headers: {
+      ...bearerHeaders(token),
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function updateRole(
+  token: string,
+  roleId: string,
+  payload: RoleUpdate
+): Promise<ApiResponse<RolePublic>> {
+  return fetchJson<RolePublic>(`/api/v1/roles/${roleId}`, {
+    method: "PATCH",
+    headers: {
+      ...bearerHeaders(token),
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function deleteRole(token: string, roleId: string): Promise<void> {
+  const response = await fetch(`${apiBaseUrl}/api/v1/roles/${roleId}`, {
+    method: "DELETE",
+    headers: bearerHeaders(token)
+  });
+
+  if (!response.ok) {
+    throw await parseError(response, "Failed to delete role");
+  }
+}
+
 export async function fetchPermissions(token: string): Promise<ApiResponse<PermissionPublic[]>> {
   return fetchJson<PermissionPublic[]>("/api/v1/roles/permissions", {
     headers: bearerHeaders(token)
@@ -485,6 +555,30 @@ export async function fetchLoginLogs(
   });
 }
 
+export async function exportOperationLogs(token: string, params?: ListParams): Promise<Blob> {
+  const response = await fetch(`${apiBaseUrl}${withListParams("/api/v1/audit/operation-logs/export", params)}`, {
+    headers: bearerHeaders(token)
+  });
+
+  if (!response.ok) {
+    throw await parseError(response, "Failed to export operation logs");
+  }
+
+  return response.blob();
+}
+
+export async function exportLoginLogs(token: string, params?: ListParams): Promise<Blob> {
+  const response = await fetch(`${apiBaseUrl}${withListParams("/api/v1/audit/login-logs/export", params)}`, {
+    headers: bearerHeaders(token)
+  });
+
+  if (!response.ok) {
+    throw await parseError(response, "Failed to export login logs");
+  }
+
+  return response.blob();
+}
+
 export async function fetchDictionaryTypes(token: string): Promise<ApiResponse<DictionaryTypePublic[]>> {
   return fetchJson<DictionaryTypePublic[]>("/api/v1/dictionaries/types", {
     headers: bearerHeaders(token)
@@ -503,6 +597,32 @@ export async function createDictionaryType(
     },
     body: JSON.stringify(payload)
   });
+}
+
+export async function updateDictionaryType(
+  token: string,
+  typeId: string,
+  payload: DictionaryTypeUpdate
+): Promise<ApiResponse<DictionaryTypePublic>> {
+  return fetchJson<DictionaryTypePublic>(`/api/v1/dictionaries/types/${typeId}`, {
+    method: "PATCH",
+    headers: {
+      ...bearerHeaders(token),
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function deleteDictionaryType(token: string, typeId: string): Promise<void> {
+  const response = await fetch(`${apiBaseUrl}/api/v1/dictionaries/types/${typeId}`, {
+    method: "DELETE",
+    headers: bearerHeaders(token)
+  });
+
+  if (!response.ok) {
+    throw await parseError(response, "Failed to delete dictionary type");
+  }
 }
 
 export async function fetchDictionaryItems(token: string): Promise<ApiResponse<DictionaryItemPublic[]>> {

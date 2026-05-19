@@ -57,15 +57,18 @@ The seed command also creates the default `admin` role, menu/action permissions,
 - `GET /api/v1/health/db` - PostgreSQL connectivity check.
 - `POST /api/v1/auth/login` - OAuth2 password login, returns a JWT access token.
 - `GET /api/v1/auth/me` - Current user profile and permission codes for a Bearer token.
-- `GET /api/v1/users` - User list for administrators.
+- `GET /api/v1/users` - User list for administrators, with optional `q`, `department_id`, and `role_code` filters.
 - `POST /api/v1/users` - Create a user.
 - `PATCH /api/v1/users/{user_id}` - Update or enable/disable a user.
 - `GET /api/v1/users/{user_id}/roles` - User role codes.
 - `PUT /api/v1/users/{user_id}/roles` - Replace user role codes.
 - `PATCH /api/v1/users/{user_id}/password` - Reset a user password.
 - `GET /api/v1/roles` - Role list for administrators.
+- `POST /api/v1/roles` - Create a role.
 - `GET /api/v1/roles/permissions` - Permission list.
 - `GET /api/v1/roles/{role_id}/permissions` - Role permission codes.
+- `PATCH /api/v1/roles/{role_id}` - Update a non-system role.
+- `DELETE /api/v1/roles/{role_id}` - Delete a non-system role that has no assigned users.
 - `PUT /api/v1/roles/{role_id}/permissions` - Replace role permission codes.
 - `GET /api/v1/departments` - Department list for administrators.
 - `GET /api/v1/departments/tree` - Department hierarchy tree.
@@ -73,9 +76,13 @@ The seed command also creates the default `admin` role, menu/action permissions,
 - `PATCH /api/v1/departments/{department_id}` - Update a department.
 - `DELETE /api/v1/departments/{department_id}` - Delete an unused department.
 - `GET /api/v1/audit/operation-logs` - Operation logs.
+- `GET /api/v1/audit/operation-logs/export` - Export operation logs as CSV.
 - `GET /api/v1/audit/login-logs` - Login logs.
+- `GET /api/v1/audit/login-logs/export` - Export login logs as CSV.
 - `GET /api/v1/dictionaries/types` - Dictionary types.
 - `POST /api/v1/dictionaries/types` - Create a dictionary type.
+- `PATCH /api/v1/dictionaries/types/{type_id}` - Update a non-system dictionary type.
+- `DELETE /api/v1/dictionaries/types/{type_id}` - Delete a non-system dictionary type that has no items.
 - `GET /api/v1/dictionaries/items` - Dictionary items.
 - `POST /api/v1/dictionaries/items` - Create a dictionary item.
 - `PATCH /api/v1/dictionaries/items/{item_id}` - Update or enable/disable a dictionary item.
@@ -85,6 +92,6 @@ The seed command also creates the default `admin` role, menu/action permissions,
 - `POST /api/v1/files/upload` - Upload file content and create attachment metadata.
 - `GET /api/v1/files/{file_id}/download` - Download stored file content.
 
-`GET /users`, `GET /departments`, `GET /files`, and audit log endpoints return paginated payloads and accept `q`, `page`, and `page_size` query parameters. Audit log endpoints also accept `status`.
+`GET /users`, `GET /departments`, `GET /files`, and audit log endpoints return paginated payloads and accept `q`, `page`, and `page_size` query parameters. Users also accept `department_id` and `role_code`. Audit log endpoints also accept `status`, `started_at`, and `ended_at`.
 
 Uploads are checked against `MAX_UPLOAD_SIZE_BYTES` and `ALLOWED_UPLOAD_CONTENT_TYPES`.

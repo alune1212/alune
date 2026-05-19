@@ -31,6 +31,17 @@ class DictionaryTypeCreate(BaseModel):
     is_system: bool = False
 
 
+class DictionaryTypeUpdate(BaseModel):
+    code: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=100,
+        pattern=r"^[A-Za-z0-9:_-]+$",
+    )
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    description: str | None = Field(default=None, max_length=255)
+
+
 class DictionaryItemCreate(BaseModel):
     type_id: UUID
     label: str = Field(min_length=1, max_length=100)
