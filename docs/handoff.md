@@ -39,6 +39,8 @@ UV_CACHE_DIR=.uv-cache pnpm test
 pnpm build
 UV_CACHE_DIR=.uv-cache uv run alembic check
 pnpm --filter @alune/web typecheck
+pnpm --filter @alune/web exec playwright install chromium
+pnpm --filter @alune/web exec playwright install --list
 ```
 
 ## Current Services
@@ -53,6 +55,8 @@ pnpm --filter @alune/web typecheck
 ## Known Local Notes
 
 - Full Docker app profile can be started with `docker compose --profile app up --build`.
+- Playwright Chromium for this project is installed for Playwright `1.60.0` under `/Users/alune/Library/Caches/ms-playwright/chromium-1223`.
+- Codex sandbox may block Chromium launch with a macOS Mach port permission error; browser smoke tests should be run outside the sandbox when that happens.
 - If local dev servers already occupy 8000 or 5173, use:
 
 ```bash

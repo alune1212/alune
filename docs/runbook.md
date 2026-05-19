@@ -13,6 +13,7 @@
 ```bash
 cp .env.example .env
 pnpm install
+pnpm --filter @alune/web exec playwright install chromium
 cd apps/api
 uv sync
 cd ../..
@@ -164,6 +165,30 @@ FIRST_SUPERUSER_PASSWORD=change-this-password pnpm db:seed
 ```
 
 `UV_CACHE_DIR=.uv-cache` keeps uv cache writes inside the workspace when running from constrained agent environments.
+
+## Playwright Browser Setup
+
+The frontend package includes `@playwright/test`. Install the matching browser binaries after `pnpm install`:
+
+```bash
+pnpm --filter @alune/web exec playwright install chromium
+```
+
+Check the installed browser list:
+
+```bash
+pnpm --filter @alune/web exec playwright --version
+pnpm --filter @alune/web exec playwright install --list
+```
+
+On this Mac as of 2026-05-19, `alune-platform` uses Playwright `1.60.0` with:
+
+```text
+/Users/alune/Library/Caches/ms-playwright/chromium-1223
+/Users/alune/Library/Caches/ms-playwright/chromium_headless_shell-1223
+```
+
+In constrained Codex sandbox sessions, launching Chromium may fail with a macOS Mach port permission error. Run Playwright browser checks outside the sandbox when that happens.
 
 ## Troubleshooting
 

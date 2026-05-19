@@ -22,6 +22,7 @@ Do not add approval flows, reports, payroll, or company-specific business module
 
 ```bash
 pnpm install
+pnpm --filter @alune/web exec playwright install chromium
 cd apps/api && uv sync && cd ../..
 pnpm docker:deps
 pnpm dev
@@ -110,6 +111,8 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 - Upload policy is configured by `MAX_UPLOAD_SIZE_BYTES` and `ALLOWED_UPLOAD_CONTENT_TYPES`.
 - File storage backend is configured by `FILE_STORAGE_BACKEND`; only `local` is implemented. `minio` is reserved.
 - Upload scanner hook is configured by `UPLOAD_SCANNER_ENABLED`; only the default no-op scanner is implemented.
+- Playwright package version is `1.60.0` in the current install; matching Chromium browser binaries are installed under `/Users/alune/Library/Caches/ms-playwright/chromium-1223` and `/Users/alune/Library/Caches/ms-playwright/chromium_headless_shell-1223`.
+- If Chromium launch fails inside Codex with a macOS Mach port permission error, rerun browser checks outside the sandbox.
 - Frontend entry: `apps/web/src/app/main.tsx`.
 - TanStack Router setup: `apps/web/src/app/router.tsx` and `apps/web/src/routes/`.
 - App shell: `apps/web/src/components/layout/`.

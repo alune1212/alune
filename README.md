@@ -4,7 +4,7 @@
 
 ## 技术栈
 
-- 前端：React 19、TypeScript、Vite、Tailwind CSS v4、shadcn/ui、Radix UI、TanStack Router、TanStack Query、Zustand、Sonner。
+- 前端：React 19、TypeScript、Vite、Tailwind CSS v4、shadcn/ui、Radix UI、TanStack Router、TanStack Query、Zustand、Sonner、Vitest、Playwright。
 - 后端：Python 3.14、uv、FastAPI、Pydantic v2、pydantic-settings、SQLAlchemy 2.0 Async、asyncpg、Alembic、Ruff、ty、pytest。
 - 工程化：pnpm workspace、Turborepo、Docker Compose。
 
@@ -53,6 +53,12 @@ cp .env.example .env
 
 ```bash
 pnpm install
+```
+
+安装 Playwright Chromium 浏览器：
+
+```bash
+pnpm --filter @alune/web exec playwright install chromium
 ```
 
 同步后端依赖：
@@ -167,6 +173,7 @@ cd apps/web
 pnpm typecheck
 pnpm build
 pnpm test
+pnpm exec playwright --version
 ```
 
 ## 访问地址

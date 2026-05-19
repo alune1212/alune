@@ -11,6 +11,7 @@ alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turbore
 ```bash
 # 1. 安装依赖
 pnpm install
+pnpm --filter @alune/web exec playwright install chromium
 cd apps/api && uv sync && cd ../..
 
 # 2. 启动数据库
@@ -71,6 +72,7 @@ pnpm build       # TypeScript 编译 + Vite 构建
 pnpm test        # 运行 Vitest 测试
 pnpm typecheck   # TypeScript 类型检查
 pnpm lint        # ESLint
+pnpm exec playwright --version  # 检查 Playwright CLI
 ```
 
 ## 架构
@@ -175,6 +177,7 @@ alune-platform/
 - **后端**: pytest + pytest-asyncio，测试在 `app/tests/`
 - **前端**: Vitest + Testing Library，测试文件 `*.test.ts` / `*.test.tsx`
 - **API 测试**: 使用 httpx AsyncClient + ASGITransport
+- **浏览器测试**: Playwright `1.60.0` 已安装 Chromium `1223` 和 `chromium_headless_shell-1223`。如果 Codex 沙箱内启动 Chromium 出现 macOS Mach port 权限错误，改到沙箱外执行浏览器检查。
 
 ## 文档同步
 
