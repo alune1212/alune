@@ -5,7 +5,7 @@
 - Initialized pnpm workspace and Turborepo root scripts.
 - Added Vite React 19 frontend with TypeScript, Tailwind CSS v4, shadcn/ui-style primitives, TanStack Router, TanStack Query, Zustand, Sonner, and a dashboard shell.
 - Added FastAPI backend with pydantic-settings, CORS, SQLAlchemy async engine/session, health routes, Ruff, ty, and pytest.
-- Added `packages/api-client` as a temporary hand-written API client for health/auth/internal-system APIs with an Orval TODO.
+- Added `packages/api-client` with the current compatibility client plus Orval-generated API client output.
 - Added `packages/shared` for shared constants.
 - Added Docker Compose for PostgreSQL 18, Redis 8, API, and Web.
 - Added Dockerfiles for API and Web images.
@@ -23,6 +23,13 @@
 - Added stage 6G-B storage hardening: MinIO storage adapter, storage-backed download responses, MinIO settings, optional Docker MinIO profile, and bucket initialization service.
 - Added stage 6G-C upload scanning: ClamAV scanner adapter over clamd `INSTREAM`, scanner settings, optional Docker ClamAV profile, and unit coverage for clean/infected scan results.
 - Added stage 6G-D frontend test hardening: Vitest/Testing Library coverage for dictionary type creation, department tree/create flow, audit export filters, and file upload.
+- Added stage 6G-E API client generation: FastAPI OpenAPI export script, local OpenAPI schema artifact, Orval fetch/react-query generation, generated client export path, and api-client package typecheck.
+- Added stage 6G-F generated client migration: runtime API client configuration initialized from the web app, custom Orval fetcher with API base URL handling, api-client Vitest coverage for generated requests, and `fetchHealthStatus` delegation to the generated health request.
+- Added stage 6G-G auth generated client migration: `loginWithPassword` and `fetchCurrentUser` now delegate to Orval-generated auth requests while keeping the compatibility API stable.
+- Added stage 6G-H read-list generated client migration: `fetchUsers`, `fetchRoles`, and `fetchDepartments` now delegate to Orval-generated requests with token and filter mapping covered by api-client tests.
+- Added stage 6G-I remaining read-only generated client migration: department tree, audit log lists, dictionary lists, and file attachment list now delegate to Orval-generated requests; login failure logs now use the OpenAPI/model status value `failure`.
+- Added stage 6G-J JSON write generated client migration: user, role, department, dictionary, file metadata, and role/user permission compatibility functions now delegate to Orval-generated requests while keeping the frontend-facing API stable.
+- Added stage 6G-K binary/multipart migration boundary: file upload now delegates to the generated multipart request; CSV export and file download keep `Blob` compatibility while reusing generated URL helpers.
 - Verified Docker dependency services with PostgreSQL and Redis healthy.
 - Verified `/api/v1/health/db` returns 200 when the API can reach Docker PostgreSQL.
 
@@ -41,6 +48,9 @@ UV_CACHE_DIR=.uv-cache pnpm lint
 UV_CACHE_DIR=.uv-cache pnpm typecheck
 UV_CACHE_DIR=.uv-cache pnpm test
 pnpm build
+UV_CACHE_DIR=.uv-cache pnpm api-client:generate
+pnpm --filter @alune/api-client typecheck
+pnpm --filter @alune/api-client test
 UV_CACHE_DIR=.uv-cache uv run alembic check
 pnpm --filter @alune/web typecheck
 pnpm --filter @alune/web exec playwright install chromium
@@ -74,8 +84,8 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 
 ## Recommended Next Phase
 
-Stage 6G should continue hardening the internal system foundation:
+Next stage should continue hardening the internal system foundation:
 
-- Add API client generation with Orval so the frontend stops maintaining duplicate hand-written API types and request functions.
+- Continue migrating frontend call sites from the compatibility functions to `@alune/api-client/generated` where useful. If keeping the compatibility layer longer, fix multipart `binary` typing at the OpenAPI/Orval configuration boundary so upload fields generate as `Blob`/`File` instead of `string`.
 
 Do not start approval flows, payroll, reports, or company-specific business modules before the internal system foundation is in place.

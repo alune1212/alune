@@ -1,6 +1,6 @@
 # alune-platform
 
-公司内部管理系统 MVP。当前阶段包含最小可运行 monorepo、FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地登录、权限基础，以及阶段 6G-D 的内部系统底座交互、存储、上传扫描与前端测试加固。
+公司内部管理系统 MVP。当前阶段包含最小可运行 monorepo、FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地登录、权限基础，以及阶段 6G-K 的内部系统底座交互、存储、上传扫描、前端测试、Orval API client 生成和兼容层请求迁移切口。
 
 ## 技术栈
 
@@ -153,6 +153,7 @@ pnpm docker:logs
 pnpm db:upgrade
 pnpm db:revision
 pnpm db:seed
+UV_CACHE_DIR=.uv-cache pnpm api-client:generate
 ```
 
 后端：
@@ -185,7 +186,7 @@ pnpm exec playwright --version
 
 ## 当前阶段边界
 
-已完成阶段 0、阶段 1、阶段 2、阶段 3、阶段 4、阶段 5、阶段 6A、阶段 6B、阶段 6C、阶段 6D、阶段 6E、阶段 6F、阶段 6G-A、阶段 6G-B、阶段 6G-C 和阶段 6G-D 的内部系统底座 MVP。当前包含登录 MVP、权限基础、用户创建/启停/批量启停确认与结果反馈/资料编辑/部门分配/密码重置、用户角色分配、角色增删改和权限配置搜索分组及空状态、部门创建/启停/删除规则、部门树、登录/操作日志筛选分页/日期过滤/CSV 导出、字典类型维护、字典项维护、文件附件本地和 MinIO 上传下载、上传策略、文件存储后端抽象、ClamAV 上传扫描，以及用户/角色/字典/部门/审计/文件页面的前端交互测试。不包含审批、报表和公司业务模块。
+已完成阶段 0、阶段 1、阶段 2、阶段 3、阶段 4、阶段 5、阶段 6A、阶段 6B、阶段 6C、阶段 6D、阶段 6E、阶段 6F、阶段 6G-A、阶段 6G-B、阶段 6G-C、阶段 6G-D、阶段 6G-E、阶段 6G-F、阶段 6G-G、阶段 6G-H、阶段 6G-I、阶段 6G-J 和阶段 6G-K 的内部系统底座 MVP。当前包含登录 MVP、权限基础、用户创建/启停/批量启停确认与结果反馈/资料编辑/部门分配/密码重置、用户角色分配、角色增删改和权限配置搜索分组及空状态、部门创建/启停/删除规则、部门树、登录/操作日志筛选分页/日期过滤/CSV 导出、字典类型维护、字典项维护、文件附件本地和 MinIO 上传下载、上传策略、文件存储后端抽象、ClamAV 上传扫描、用户/角色/字典/部门/审计/文件页面的前端交互测试、基于 FastAPI OpenAPI 的 Orval API client 生成，以及兼容层函数对生成 client/URL helper 的迁移。不包含审批、报表和公司业务模块。
 
 ## 当前数据库
 
@@ -229,9 +230,9 @@ pnpm exec playwright --version
 | PATCH | `/api/v1/departments/{department_id}` | 更新/启停部门，需 `action:departments:update` |
 | DELETE | `/api/v1/departments/{department_id}` | 删除无子部门且无用户的部门，需 `action:departments:delete` |
 | GET | `/api/v1/audit/operation-logs` | 操作日志分页筛选，支持 `q`/`status`/`started_at`/`ended_at`/`page`/`page_size`，需 `action:audit:read` |
-| GET | `/api/v1/audit/operation-logs/export` | 导出操作日志 CSV，支持同列表筛选，需 `action:audit:read` |
+| GET | `/api/v1/audit/operation-logs/export` | 导出操作日志 CSV，支持 `q`/`status`/`started_at`/`ended_at`，需 `action:audit:read` |
 | GET | `/api/v1/audit/login-logs` | 登录日志分页筛选，支持 `q`/`status`/`started_at`/`ended_at`/`page`/`page_size`，需 `action:audit:read` |
-| GET | `/api/v1/audit/login-logs/export` | 导出登录日志 CSV，支持同列表筛选，需 `action:audit:read` |
+| GET | `/api/v1/audit/login-logs/export` | 导出登录日志 CSV，支持 `q`/`status`/`started_at`/`ended_at`，需 `action:audit:read` |
 | GET | `/api/v1/dictionaries/types` | 字典类型列表，需 `action:dictionaries:read` |
 | POST | `/api/v1/dictionaries/types` | 创建字典类型，需 `action:dictionaries:create` |
 | PATCH | `/api/v1/dictionaries/types/{type_id}` | 更新非系统字典类型，需 `action:dictionaries:update` |

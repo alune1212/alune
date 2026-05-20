@@ -158,6 +158,7 @@ UV_CACHE_DIR=.uv-cache pnpm lint
 UV_CACHE_DIR=.uv-cache pnpm typecheck
 UV_CACHE_DIR=.uv-cache pnpm test
 pnpm build
+UV_CACHE_DIR=.uv-cache pnpm api-client:generate
 docker compose config
 docker compose --profile app config
 pnpm db:upgrade
@@ -165,6 +166,20 @@ FIRST_SUPERUSER_PASSWORD=change-this-password pnpm db:seed
 ```
 
 `UV_CACHE_DIR=.uv-cache` keeps uv cache writes inside the workspace when running from constrained agent environments.
+
+## API Client Generation
+
+Generate the frontend API client from FastAPI OpenAPI:
+
+```bash
+UV_CACHE_DIR=.uv-cache pnpm api-client:generate
+pnpm --filter @alune/api-client typecheck
+pnpm --filter @alune/api-client test
+```
+
+The generation command writes `packages/api-client/openapi/openapi.json` through `apps/api/app/scripts/export_openapi.py`, then Orval writes `packages/api-client/src/generated/api.ts`. Current frontend pages still use the compatibility client in `packages/api-client/src/index.ts`; migrate call sites incrementally to `@alune/api-client/generated`.
+
+Generated requests use `packages/api-client/src/orval-fetch.ts` and the runtime configuration in `packages/api-client/src/runtime-config.ts` so they follow the same API base URL behavior as the compatibility client. The web app initializes this from `VITE_API_BASE_URL`; JSON compatibility functions and multipart upload delegate to generated requests. CSV export and file download helpers still return `Blob`, but they reuse generated URL helpers for paths and supported filters.
 
 ## Playwright Browser Setup
 

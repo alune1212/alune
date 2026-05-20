@@ -4,12 +4,24 @@
   "version": "0.1.0",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./generated": "./src/generated/api.ts"
   },
   "scripts": {
-    "generate": "orval --config orval.config.ts"
+    "openapi:export": "pnpm --filter @alune/api openapi:export",
+    "generate": "pnpm run openapi:export && orval --config orval.config.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.90.12",
+    "react": "^19.2.0"
   },
   "devDependencies": {
-    "orval": "^7.13.0"
+    "@tanstack/react-query": "^5.90.12",
+    "orval": "^7.13.0",
+    "react": "^19.2.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.15"
   }
 }

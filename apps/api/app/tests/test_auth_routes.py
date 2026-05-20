@@ -6,6 +6,7 @@ from httpx import ASGITransport, AsyncClient
 
 from app.db.session import get_db_session
 from app.main import app
+from app.modules.audit.models import LoginLog
 from app.modules.auth.models import User
 from app.modules.auth.security import create_access_token, get_password_hash
 
@@ -89,6 +90,29 @@ async def test_login_rejects_invalid_credentials() -> None:
 
     assert response.status_code == 401
     assert response.json() == {"detail": "Incorrect username or password"}
+
+
+@pytest.mark.asyncio
+async def test_login_records_failure_status_for_invalid_credentials() -> None:
+    session = FakeUserSession(build_active_user())
+
+    async def _override() -> AsyncIterator[FakeUserSession]:
+        yield session
+
+    app.dependency_overrides[get_db_session] = _override
+    transport = ASGITransport(app=app)
+
+    try:
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            await client.post(
+                "/api/v1/auth/login",
+                data={"username": "admin", "password": "wrong-password"},
+            )
+    finally:
+        app.dependency_overrides.clear()
+
+    login_log = next(value for value in session.added_objects if isinstance(value, LoginLog))
+    assert login_log.status == "failure"
 
 
 @pytest.mark.asyncio

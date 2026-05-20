@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## 项目概述
 
-alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础和阶段 6G-D 内部系统底座交互、存储、上传扫描与前端测试加固。
+alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础和阶段 6G-K 内部系统底座交互、存储、上传扫描、前端测试、Orval API client 生成与兼容层请求迁移切口加固。
 
 ## Quick Start
 
@@ -45,6 +45,7 @@ pnpm docker:down  # 停止所有 Docker 服务
 pnpm docker:logs  # 查看 Docker 服务日志
 pnpm db:upgrade   # 执行 Alembic upgrade head
 pnpm db:seed      # 创建本地管理员，需要 FIRST_SUPERUSER_PASSWORD
+UV_CACHE_DIR=.uv-cache pnpm api-client:generate  # 导出 OpenAPI 并生成前端 API client
 ```
 
 ### 后端（apps/api）
@@ -85,7 +86,7 @@ alune-platform/
 │   ├── api/          # FastAPI 后端 (Python 3.14, uv)
 │   └── web/          # Vite React 前端
 ├── packages/
-│   ├── api-client/   # API 客户端（当前为手写 MVP client，后续替换为 Orval 生成结果）
+│   ├── api-client/   # API 客户端（兼容层 + Orval 生成结果）
 │   ├── shared/       # 共享常量
 │   ├── eslint-config/# ESLint 配置
 │   └── tsconfig/     # TypeScript 配置
@@ -126,7 +127,7 @@ alune-platform/
 - **内部系统前端**: `src/features/users/`、`src/features/roles/`、`src/features/departments/`、`src/features/audit/`、`src/features/dictionaries/`、`src/features/files/`；用户页面包含角色/部门过滤、批量启停确认和结果反馈，角色页面包含角色增删改、权限搜索、按类型分组配置和搜索空状态，审计页面包含日期过滤和 CSV 导出，字典页面包含类型/字典项维护
 - **表单验证**: 项目使用 Zod v4，必须用 `@hookform/resolvers/standard-schema` 的 `standardSchemaResolver`，不能用 `zodResolver`（仅支持 Zod v3）
 - **菜单权限**: `src/config/navigation.ts` - 根据 `/api/v1/auth/me` 返回的权限码过滤菜单
-- **API client**: `packages/api-client/src/index.ts` - 当前是临时手写 client（health、auth、users、roles、departments、audit、dictionaries、files），后续替换为 Orval 生成结果
+- **API client**: `packages/api-client/src/index.ts` - 当前兼容 client（health、auth、users、roles、departments、audit、dictionaries、files），其中 JSON 请求和 multipart 上传已委托给生成 request；CSV 导出和文件下载保留 `Blob` 返回，同时复用生成 URL helper；`packages/api-client/src/generated/api.ts` 是 Orval 从 FastAPI OpenAPI 生成的 types/request functions/React Query hooks；`packages/api-client/src/runtime-config.ts` 保存运行时 API base URL；`packages/api-client/src/orval-fetch.ts` 是生成 client 的自定义 fetcher
 - **Shared constants**: `packages/shared/src/index.ts` - 当前导出 `platformName`
 - **路径别名**: `@/*` -> `./src/*`
 
@@ -195,4 +196,4 @@ alune-platform/
 
 ## 当前阶段边界
 
-已完成阶段 0、1、2、3、4、5、6A、6B、6C、6D、6E、阶段 6F、阶段 6G-A、阶段 6G-B、阶段 6G-C 和阶段 6G-D 的最小 MVP。不包含：复杂组织架构、审批、报表和公司业务模块。下一阶段建议：阶段 6G-E 接入 Orval API client 生成。
+已完成阶段 0、1、2、3、4、5、6A、6B、6C、6D、6E、阶段 6F、阶段 6G-A、阶段 6G-B、阶段 6G-C、阶段 6G-D、阶段 6G-E、阶段 6G-F、阶段 6G-G、阶段 6G-H、阶段 6G-I、阶段 6G-J 和阶段 6G-K 的最小 MVP。不包含：复杂组织架构、审批、报表和公司业务模块。下一阶段建议：逐步把前端调用点迁移到 Orval 生成的 `@alune/api-client/generated`，或修正 multipart `binary` 字段生成类型。

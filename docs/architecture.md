@@ -1,6 +1,6 @@
 # Architecture
 
-`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6G-D MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, and internal system pages for users, roles, departments, audit logs, dictionaries, and file attachments backed by local storage or MinIO with optional ClamAV scanning.
+`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6G-K MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, internal system pages for users, roles, departments, audit logs, dictionaries, and file attachments backed by local storage or MinIO with optional ClamAV scanning, plus Orval API client generation from FastAPI OpenAPI and generated-client migration for compatibility calls.
 
 ## Monorepo Layout
 
@@ -10,7 +10,7 @@ alune-platform/
 │   ├── api/          # FastAPI backend
 │   └── web/          # Vite React frontend
 ├── packages/
-│   ├── api-client/   # Temporary API client; Orval target later
+│   ├── api-client/   # Compatibility client plus Orval-generated API client
 │   ├── eslint-config/
 │   ├── shared/
 │   └── tsconfig/
@@ -65,7 +65,15 @@ The app uses:
 - Frontend interaction tests cover user batch status, role permission search, dictionary type creation, department tree/create flow, audit export filters, and file upload.
 - Navigation permission filtering in `src/config/navigation.ts`.
 
-The dashboard, login flow, and internal system pages call `@alune/api-client`. That package is still hand-written for the MVP and has a TODO to replace it with Orval-generated output from FastAPI `/openapi.json`.
+The dashboard, login flow, and internal system pages call `@alune/api-client`. That package now keeps a compatibility layer over Orval-generated output from FastAPI `/openapi.json` while frontend call sites are migrated incrementally.
+
+Stage 6G-E adds a reproducible generation path:
+
+- `apps/api/app/scripts/export_openapi.py` exports FastAPI OpenAPI to `packages/api-client/openapi/openapi.json`.
+- `packages/api-client/orval.config.ts` reads that local schema and writes `packages/api-client/src/generated/api.ts`.
+- `packages/api-client/src/runtime-config.ts` stores the API base URL; `apps/web/src/app/main.tsx` initializes it from `VITE_API_BASE_URL`.
+- `packages/api-client/src/orval-fetch.ts` is the generated client's custom fetcher. It uses the runtime API base URL and returns Orval's `{ data, status, headers }` response shape.
+- `packages/api-client/src/index.ts` remains a compatibility layer while frontend call sites are migrated incrementally. JSON compatibility functions and multipart upload delegate to generated requests; CSV export and file download still return `Blob`, but now reuse generated URL helpers for paths and supported filters.
 
 ## Runtime Data Flow
 
@@ -145,9 +153,9 @@ The `api` service stores uploaded file binaries under `/app/uploads`, backed by 
 | PATCH | `/api/v1/departments/{department_id}` | Updates department fields. |
 | DELETE | `/api/v1/departments/{department_id}` | Deletes departments only when no children or users are assigned. |
 | GET | `/api/v1/audit/operation-logs` | Returns paginated/filterable operation logs with optional date range. |
-| GET | `/api/v1/audit/operation-logs/export` | Exports operation logs as CSV with the same filters. |
+| GET | `/api/v1/audit/operation-logs/export` | Exports operation logs as CSV with `q`, `status`, `started_at`, and `ended_at` filters. |
 | GET | `/api/v1/audit/login-logs` | Returns paginated/filterable login logs with optional date range. |
-| GET | `/api/v1/audit/login-logs/export` | Exports login logs as CSV with the same filters. |
+| GET | `/api/v1/audit/login-logs/export` | Exports login logs as CSV with `q`, `status`, `started_at`, and `ended_at` filters. |
 | GET | `/api/v1/dictionaries/types` | Returns dictionary types. |
 | POST | `/api/v1/dictionaries/types` | Creates a dictionary type. |
 | PATCH | `/api/v1/dictionaries/types/{type_id}` | Updates non-system dictionary types. |
