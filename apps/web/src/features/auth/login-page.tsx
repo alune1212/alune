@@ -1,5 +1,4 @@
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
-import { useMutation } from "@tanstack/react-query";
 import { Navigate, useNavigate } from "@tanstack/react-router";
 import { LogIn } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -10,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/features/auth/auth-provider";
-import { loginWithPassword } from "@alune/api-client";
+import { useLoginApiV1AuthLoginPost } from "@alune/api-client/generated";
 import { platformName } from "@alune/shared";
 
 const loginSchema = z.object({
@@ -24,15 +23,19 @@ export function LoginPage() {
   const auth = useAuth();
   const navigate = useNavigate();
 
-  const loginMutation = useMutation({
-    mutationFn: loginWithPassword,
-    onSuccess: (response) => {
-      auth.setSession(response.data.access_token);
-      toast.success("Signed in");
-      navigate({ to: "/" });
-    },
-    onError: (error) => {
-      toast.error(error.message);
+  const loginMutation = useLoginApiV1AuthLoginPost<Error>({
+    mutation: {
+      onSuccess: (response) => {
+        if (response.status !== 200) {
+          throw new Error("Sign in failed");
+        }
+        auth.setSession(response.data.data.access_token);
+        toast.success("Signed in");
+        navigate({ to: "/" });
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      }
     }
   });
 
@@ -45,7 +48,7 @@ export function LoginPage() {
   });
 
   function handleSubmit(values: LoginFormValues) {
-    loginMutation.mutate(values);
+    loginMutation.mutate({ data: values });
   }
 
   if (auth.isAuthenticated) {

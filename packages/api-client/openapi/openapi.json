@@ -2955,8 +2955,8 @@
         "properties": {
           "upload": {
             "type": "string",
-            "contentMediaType": "application/octet-stream",
-            "title": "Upload"
+            "title": "Upload",
+            "format": "binary"
           }
         },
         "type": "object",

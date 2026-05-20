@@ -1,6 +1,6 @@
 # Architecture
 
-`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6G-K MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, internal system pages for users, roles, departments, audit logs, dictionaries, and file attachments backed by local storage or MinIO with optional ClamAV scanning, plus Orval API client generation from FastAPI OpenAPI and generated-client migration for compatibility calls.
+`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6G-L MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, internal system pages for users, roles, departments, audit logs, dictionaries, and file attachments backed by local storage or MinIO with optional ClamAV scanning, plus Orval API client generation from FastAPI OpenAPI and generated-client migration for compatibility calls and low-risk frontend entry points.
 
 ## Monorepo Layout
 
@@ -65,11 +65,12 @@ The app uses:
 - Frontend interaction tests cover user batch status, role permission search, dictionary type creation, department tree/create flow, audit export filters, and file upload.
 - Navigation permission filtering in `src/config/navigation.ts`.
 
-The dashboard, login flow, and internal system pages call `@alune/api-client`. That package now keeps a compatibility layer over Orval-generated output from FastAPI `/openapi.json` while frontend call sites are migrated incrementally.
+The dashboard health check and auth entry points now use Orval-generated React Query hooks from `@alune/api-client/generated`. Internal system pages still call the `@alune/api-client` compatibility layer while call sites are migrated incrementally.
 
 Stage 6G-E adds a reproducible generation path:
 
 - `apps/api/app/scripts/export_openapi.py` exports FastAPI OpenAPI to `packages/api-client/openapi/openapi.json`.
+- The export script normalizes Pydantic v2 multipart binary schemas from `contentMediaType: application/octet-stream` to OpenAPI `format: binary`, so Orval generates upload fields as `Blob`.
 - `packages/api-client/orval.config.ts` reads that local schema and writes `packages/api-client/src/generated/api.ts`.
 - `packages/api-client/src/runtime-config.ts` stores the API base URL; `apps/web/src/app/main.tsx` initializes it from `VITE_API_BASE_URL`.
 - `packages/api-client/src/orval-fetch.ts` is the generated client's custom fetcher. It uses the runtime API base URL and returns Orval's `{ data, status, headers }` response shape.

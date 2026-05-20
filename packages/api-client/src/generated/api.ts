@@ -249,7 +249,7 @@ export interface BodyLoginApiV1AuthLoginPost {
 }
 
 export interface BodyUploadFileAttachmentApiV1FilesUploadPost {
-  upload: string;
+  upload: Blob;
 }
 
 export interface DatabaseHealthStatus {

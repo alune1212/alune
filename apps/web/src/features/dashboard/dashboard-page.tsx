@@ -1,8 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
 import { Activity, Database, FileText, ShieldCheck } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { fetchHealthStatus } from "@alune/api-client";
+import { useHealthCheckApiV1HealthGet } from "@alune/api-client/generated";
 import { platformName } from "@alune/shared";
 
 const summaryCards = [
@@ -27,11 +26,12 @@ const summaryCards = [
 ];
 
 export function DashboardPage() {
-  const healthQuery = useQuery({
-    queryKey: ["health"],
-    queryFn: fetchHealthStatus,
-    refetchInterval: 30_000
+  const healthQuery = useHealthCheckApiV1HealthGet({
+    query: {
+      refetchInterval: 30_000
+    }
   });
+  const healthStatus = healthQuery.data?.data.data;
 
   let healthLabel: string;
   let badgeColor: string;
@@ -43,7 +43,7 @@ export function DashboardPage() {
     healthLabel = "Offline";
     badgeColor = "text-red-600";
   } else {
-    healthLabel = healthQuery.data?.data.status.toUpperCase() ?? "Unknown";
+    healthLabel = healthStatus?.status.toUpperCase() ?? "Unknown";
     badgeColor = "text-emerald-600";
   }
 
@@ -92,11 +92,11 @@ export function DashboardPage() {
             <dl className="grid gap-3 text-sm sm:grid-cols-3">
               <div>
                 <dt className="text-slate-500">Service</dt>
-                <dd className="mt-1 font-medium text-slate-950">{healthQuery.data?.data.service ?? "api"}</dd>
+                <dd className="mt-1 font-medium text-slate-950">{healthStatus?.service ?? "api"}</dd>
               </div>
               <div>
                 <dt className="text-slate-500">Status</dt>
-                <dd className="mt-1 font-medium text-slate-950">{healthQuery.data?.data.status ?? "checking"}</dd>
+                <dd className="mt-1 font-medium text-slate-950">{healthStatus?.status ?? "checking"}</dd>
               </div>
               <div>
                 <dt className="text-slate-500">Refresh</dt>

@@ -1,8 +1,8 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { createContext, type ReactNode, useContext, useMemo, useState } from "react";
 
 import { clearAccessToken, readAccessToken, saveAccessToken } from "@/features/auth/auth-token";
-import { fetchCurrentUser, type UserPublic } from "@alune/api-client";
+import { useGetMeApiV1AuthMeGet, type UserPublic } from "@alune/api-client/generated";
 
 type AuthContextValue = {
   token: string | null;
@@ -23,17 +23,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const queryClient = useQueryClient();
   const [token, setToken] = useState<string | null>(() => readAccessToken());
 
-  const currentUserQuery = useQuery({
-    queryKey: ["auth", "me", token],
-    queryFn: () => fetchCurrentUser(token!),
-    enabled: token !== null,
-    retry: false
+  const currentUserQuery = useGetMeApiV1AuthMeGet({
+    query: {
+      queryKey: ["auth", "me", token],
+      enabled: token !== null,
+      retry: false
+    },
+    request: {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined
+    }
   });
+  const currentUser = currentUserQuery.data?.data.data ?? null;
 
   const value = useMemo<AuthContextValue>(
     () => ({
       token,
-      user: currentUserQuery.data?.data ?? null,
+      user: currentUser,
       isAuthenticated: token !== null && currentUserQuery.isSuccess,
       isLoading: token !== null && currentUserQuery.isLoading,
       setSession: (nextToken: string) => {
@@ -47,7 +52,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         queryClient.removeQueries({ queryKey: ["auth"] });
       }
     }),
-    [currentUserQuery.data?.data, currentUserQuery.isLoading, currentUserQuery.isSuccess, queryClient, token]
+    [currentUser, currentUserQuery.isLoading, currentUserQuery.isSuccess, queryClient, token]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

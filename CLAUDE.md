@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## 项目概述
 
-alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础和阶段 6G-K 内部系统底座交互、存储、上传扫描、前端测试、Orval API client 生成与兼容层请求迁移切口加固。
+alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础和阶段 6G-L 内部系统底座交互、存储、上传扫描、前端测试、Orval API client 生成与 generated hooks 迁移切口加固。
 
 ## Quick Start
 
@@ -127,7 +127,7 @@ alune-platform/
 - **内部系统前端**: `src/features/users/`、`src/features/roles/`、`src/features/departments/`、`src/features/audit/`、`src/features/dictionaries/`、`src/features/files/`；用户页面包含角色/部门过滤、批量启停确认和结果反馈，角色页面包含角色增删改、权限搜索、按类型分组配置和搜索空状态，审计页面包含日期过滤和 CSV 导出，字典页面包含类型/字典项维护
 - **表单验证**: 项目使用 Zod v4，必须用 `@hookform/resolvers/standard-schema` 的 `standardSchemaResolver`，不能用 `zodResolver`（仅支持 Zod v3）
 - **菜单权限**: `src/config/navigation.ts` - 根据 `/api/v1/auth/me` 返回的权限码过滤菜单
-- **API client**: `packages/api-client/src/index.ts` - 当前兼容 client（health、auth、users、roles、departments、audit、dictionaries、files），其中 JSON 请求和 multipart 上传已委托给生成 request；CSV 导出和文件下载保留 `Blob` 返回，同时复用生成 URL helper；`packages/api-client/src/generated/api.ts` 是 Orval 从 FastAPI OpenAPI 生成的 types/request functions/React Query hooks；`packages/api-client/src/runtime-config.ts` 保存运行时 API base URL；`packages/api-client/src/orval-fetch.ts` 是生成 client 的自定义 fetcher
+- **API client**: `packages/api-client/src/index.ts` - 当前兼容 client（users、roles、departments、audit、dictionaries、files 等内部系统页面仍在使用），其中 JSON 请求和 multipart 上传已委托给生成 request；CSV 导出和文件下载保留 `Blob` 返回，同时复用生成 URL helper；dashboard health 和 auth 前端入口已直接使用 `@alune/api-client/generated` hooks；`packages/api-client/src/generated/api.ts` 是 Orval 从 FastAPI OpenAPI 生成的 types/request functions/React Query hooks；`packages/api-client/src/runtime-config.ts` 保存运行时 API base URL；`packages/api-client/src/orval-fetch.ts` 是生成 client 的自定义 fetcher
 - **Shared constants**: `packages/shared/src/index.ts` - 当前导出 `platformName`
 - **路径别名**: `@/*` -> `./src/*`
 
@@ -196,4 +196,4 @@ alune-platform/
 
 ## 当前阶段边界
 
-已完成阶段 0、1、2、3、4、5、6A、6B、6C、6D、6E、阶段 6F、阶段 6G-A、阶段 6G-B、阶段 6G-C、阶段 6G-D、阶段 6G-E、阶段 6G-F、阶段 6G-G、阶段 6G-H、阶段 6G-I、阶段 6G-J 和阶段 6G-K 的最小 MVP。不包含：复杂组织架构、审批、报表和公司业务模块。下一阶段建议：逐步把前端调用点迁移到 Orval 生成的 `@alune/api-client/generated`，或修正 multipart `binary` 字段生成类型。
+已完成阶段 0、1、2、3、4、5、6A、6B、6C、6D、6E、阶段 6F、阶段 6G-A、阶段 6G-B、阶段 6G-C、阶段 6G-D、阶段 6G-E、阶段 6G-F、阶段 6G-G、阶段 6G-H、阶段 6G-I、阶段 6G-J、阶段 6G-K 和阶段 6G-L 的最小 MVP。不包含：复杂组织架构、审批、报表和公司业务模块。下一阶段建议：继续把内部系统页面从兼容函数迁移到 Orval 生成的 `@alune/api-client/generated`。

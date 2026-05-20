@@ -754,9 +754,8 @@ export async function uploadFileAttachment(
   token: string,
   file: File
 ): Promise<ApiResponse<FileAttachmentPublic>> {
-  // TODO: Adjust OpenAPI/Orval multipart typing so binary upload fields generate as Blob/File.
   const response = await uploadFileAttachmentApiV1FilesUploadPost(
-    { upload: file as unknown as string },
+    { upload: file },
     {
       headers: bearerHeaders(token)
     }
