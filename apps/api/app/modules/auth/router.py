@@ -29,7 +29,7 @@ async def login(
             user_id=None,
             ip_address=request.client.host if request.client else None,
             user_agent=request.headers.get("user-agent"),
-            status="failed",
+            status="failure",
             message="Incorrect username or password",
         )
         await session.commit()

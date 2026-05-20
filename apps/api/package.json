@@ -9,6 +9,7 @@
     "format:check": "uv run ruff format . --check",
     "typecheck": "uv run ty check",
     "test": "uv run pytest",
+    "openapi:export": "uv run python -m app.scripts.export_openapi ../../packages/api-client/openapi/openapi.json",
     "db:upgrade": "uv run alembic upgrade head",
     "db:downgrade": "uv run alembic downgrade -1",
     "db:revision": "uv run alembic revision --autogenerate",

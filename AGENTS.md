@@ -14,7 +14,7 @@ Project guidance for Codex and other AI agents working in this repository.
 - Alembic migration baseline with the `system_info` table.
 - Login MVP with `users`, password hashing, JWT login, `/auth/me`, frontend login, and a protected dashboard.
 - Permission baseline with roles, permissions, user-role links, role-permission links, backend permission dependency, and frontend menu filtering.
-- Stage 6G-D internal system foundation with user create/enable/disable/batch-status confirmation and result feedback/edit/password reset, user role assignment, user role/department filters, role create/update/delete guards, searchable grouped role permission assignment with empty-state feedback, department tree/update/delete rules, audit log filtering/pagination/date range/CSV export, dictionary type/item maintenance guards, local and MinIO file upload/download, upload policy checks, file storage backend factory, ClamAV upload scanner adapter, and frontend tests for user batch status, role permission search, dictionary type creation, department tree/create flow, audit export filters, and file upload.
+- Stage 6G-K internal system foundation with user create/enable/disable/batch-status confirmation and result feedback/edit/password reset, user role assignment, user role/department filters, role create/update/delete guards, searchable grouped role permission assignment with empty-state feedback, department tree/update/delete rules, audit log filtering/pagination/date range/CSV export, dictionary type/item maintenance guards, local and MinIO file upload/download, upload policy checks, file storage backend factory, ClamAV upload scanner adapter, frontend interaction tests, Orval API client generation from FastAPI OpenAPI, and generated-client migration for compatibility calls.
 
 Do not add approval flows, reports, payroll, or company-specific business modules unless the user explicitly asks for that phase.
 
@@ -34,6 +34,9 @@ Quality gates:
 UV_CACHE_DIR=.uv-cache pnpm lint
 UV_CACHE_DIR=.uv-cache pnpm typecheck
 UV_CACHE_DIR=.uv-cache pnpm test
+UV_CACHE_DIR=.uv-cache pnpm api-client:generate
+pnpm --filter @alune/api-client typecheck
+pnpm --filter @alune/api-client test
 pnpm build
 docker compose config
 docker compose --profile app config
@@ -121,7 +124,11 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 - Internal system pages: `apps/web/src/features/users/`, `apps/web/src/features/roles/`, `apps/web/src/features/departments/`, `apps/web/src/features/audit/`, `apps/web/src/features/dictionaries/`, `apps/web/src/features/files/`.
 - Navigation config: `apps/web/src/config/navigation.ts`.
 - Menu filtering: `apps/web/src/config/navigation.ts`.
-- Temporary hand-written API client: `packages/api-client/src/index.ts`; keep the TODO to replace it with Orval-generated code later.
+- Compatibility API client: `packages/api-client/src/index.ts`; keep the TODO to migrate call sites to `@alune/api-client/generated`.
+- Generated API client: `packages/api-client/src/generated/api.ts`, generated from `packages/api-client/openapi/openapi.json` by Orval.
+- API client runtime config: `packages/api-client/src/runtime-config.ts`; web initializes it in `apps/web/src/app/main.tsx`.
+- Generated client fetcher: `packages/api-client/src/orval-fetch.ts`.
+- OpenAPI export script: `apps/api/app/scripts/export_openapi.py`.
 - Shared constants: `packages/shared/src/index.ts`.
 
 ## Guardrails

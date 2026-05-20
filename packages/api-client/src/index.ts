@@ -1,4 +1,51 @@
-// TODO: Replace with Orval-generated API client from ./generated/api.
+// TODO: Migrate frontend call sites to the Orval-generated client exported as
+// @alune/api-client/generated, then remove this compatibility layer.
+import {
+  createDepartmentApiV1DepartmentsPost,
+  createDictionaryItemApiV1DictionariesItemsPost,
+  createDictionaryTypeApiV1DictionariesTypesPost,
+  createFileAttachmentApiV1FilesPost,
+  createRoleApiV1RolesPost,
+  createUserApiV1UsersPost,
+  deleteDepartmentApiV1DepartmentsDepartmentIdDelete,
+  deleteDictionaryItemApiV1DictionariesItemsItemIdDelete,
+  deleteDictionaryTypeApiV1DictionariesTypesTypeIdDelete,
+  deleteRoleApiV1RolesRoleIdDelete,
+  type ExportLoginLogsApiV1AuditLoginLogsExportGetParams,
+  type ExportOperationLogsApiV1AuditOperationLogsExportGetParams,
+  getDownloadFileAttachmentApiV1FilesFileIdDownloadGetUrl,
+  getDepartmentTreeApiV1DepartmentsTreeGet,
+  getDepartmentsApiV1DepartmentsGet,
+  getDictionaryItemsApiV1DictionariesItemsGet,
+  getDictionaryTypesApiV1DictionariesTypesGet,
+  getExportLoginLogsApiV1AuditLoginLogsExportGetUrl,
+  getExportOperationLogsApiV1AuditOperationLogsExportGetUrl,
+  getFileAttachmentsApiV1FilesGet,
+  getPermissionsApiV1RolesPermissionsGet,
+  getRolePermissionsApiV1RolesRoleIdPermissionsGet,
+  uploadFileAttachmentApiV1FilesUploadPost,
+  getUserRolesApiV1UsersUserIdRolesGet,
+  type GetLoginLogsApiV1AuditLoginLogsGetParams,
+  type GetOperationLogsApiV1AuditOperationLogsGetParams,
+  getLoginLogsApiV1AuditLoginLogsGet,
+  getMeApiV1AuthMeGet,
+  getOperationLogsApiV1AuditOperationLogsGet,
+  getRolesApiV1RolesGet,
+  getUsersApiV1UsersGet,
+  healthCheckApiV1HealthGet,
+  loginApiV1AuthLoginPost,
+  updateDepartmentApiV1DepartmentsDepartmentIdPatch,
+  updateDictionaryItemApiV1DictionariesItemsItemIdPatch,
+  updateDictionaryTypeApiV1DictionariesTypesTypeIdPatch,
+  updateRoleApiV1RolesRoleIdPatch,
+  updateRolePermissionsApiV1RolesRoleIdPermissionsPut,
+  updateUserApiV1UsersUserIdPatch,
+  updateUserPasswordApiV1UsersUserIdPasswordPatch,
+  updateUserRolesApiV1UsersUserIdRolesPut,
+  updateUsersStatusApiV1UsersBulkStatusPatch
+} from "./generated/api";
+import { getApiBaseUrl } from "./runtime-config";
+export { configureApiClient } from "./runtime-config";
 
 export type ApiResponse<TData> = {
   success: boolean;
@@ -238,8 +285,6 @@ export type LoginCredentials = {
   password: string;
 };
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
-
 async function parseError(response: Response, fallbackMessage: string): Promise<Error> {
   try {
     const body = (await response.json()) as { detail?: unknown };
@@ -255,110 +300,118 @@ function bearerHeaders(token: string): HeadersInit {
   };
 }
 
-async function fetchJson<TData>(url: string, options?: RequestInit): Promise<ApiResponse<TData>> {
-  const response = await fetch(`${apiBaseUrl}${url}`, options);
-
-  if (!response.ok) {
-    throw await parseError(response, `Request failed with status ${response.status}`);
-  }
-
-  return response.json() as Promise<ApiResponse<TData>>;
+function apiUrl(path: string): string {
+  return `${getApiBaseUrl()}${path}`;
 }
 
-function withListParams(url: string, params?: ListParams): string {
-  const searchParams = new URLSearchParams();
-  if (params?.q) {
-    searchParams.set("q", params.q);
-  }
-  if (params?.status) {
-    searchParams.set("status", params.status);
-  }
-  if (params?.departmentId) {
-    searchParams.set("department_id", params.departmentId);
-  }
-  if (params?.roleCode) {
-    searchParams.set("role_code", params.roleCode);
-  }
-  if (params?.startedAt) {
-    searchParams.set("started_at", params.startedAt);
-  }
-  if (params?.endedAt) {
-    searchParams.set("ended_at", params.endedAt);
-  }
-  if (params?.page) {
-    searchParams.set("page", String(params.page));
-  }
-  if (params?.pageSize) {
-    searchParams.set("page_size", String(params.pageSize));
-  }
+function toGeneratedListParams(params?: ListParams) {
+  return {
+    q: params?.q,
+    department_id: params?.departmentId,
+    role_code: params?.roleCode,
+    page: params?.page,
+    page_size: params?.pageSize
+  };
+}
 
-  const queryString = searchParams.toString();
-  return queryString ? `${url}?${queryString}` : url;
+function toGeneratedAuditParams(params?: ListParams) {
+  return {
+    q: params?.q,
+    started_at: params?.startedAt,
+    ended_at: params?.endedAt,
+    page: params?.page,
+    page_size: params?.pageSize
+  };
+}
+
+function toGeneratedOperationLogParams(params?: ListParams): GetOperationLogsApiV1AuditOperationLogsGetParams {
+  return {
+    ...toGeneratedAuditParams(params),
+    status:
+      params?.status === "success" || params?.status === "failure" || params?.status === "error"
+        ? params.status
+        : undefined
+  };
+}
+
+function toGeneratedLoginLogParams(params?: ListParams): GetLoginLogsApiV1AuditLoginLogsGetParams {
+  return {
+    ...toGeneratedAuditParams(params),
+    status: params?.status === "success" || params?.status === "failure" ? params.status : undefined
+  };
+}
+
+function toGeneratedOperationLogExportParams(
+  params?: ListParams
+): ExportOperationLogsApiV1AuditOperationLogsExportGetParams {
+  return {
+    q: params?.q,
+    status:
+      params?.status === "success" || params?.status === "failure" || params?.status === "error"
+        ? params.status
+        : undefined,
+    started_at: params?.startedAt,
+    ended_at: params?.endedAt
+  };
+}
+
+function toGeneratedLoginLogExportParams(
+  params?: ListParams
+): ExportLoginLogsApiV1AuditLoginLogsExportGetParams {
+  return {
+    q: params?.q,
+    status: params?.status === "success" || params?.status === "failure" ? params.status : undefined,
+    started_at: params?.startedAt,
+    ended_at: params?.endedAt
+  };
+}
+
+function toGeneratedBasicListParams(params?: ListParams) {
+  return {
+    q: params?.q,
+    page: params?.page,
+    page_size: params?.pageSize
+  };
 }
 
 export async function fetchHealthStatus(): Promise<ApiResponse<HealthStatus>> {
-  const response = await fetch(`${apiBaseUrl}/api/v1/health`);
-
-  if (!response.ok) {
-    throw await parseError(response, `Health check failed with status ${response.status}`);
-  }
-
-  return response.json() as Promise<ApiResponse<HealthStatus>>;
+  const response = await healthCheckApiV1HealthGet();
+  return response.data as ApiResponse<HealthStatus>;
 }
 
 export async function loginWithPassword(credentials: LoginCredentials): Promise<ApiResponse<Token>> {
-  const body = new URLSearchParams();
-  body.set("username", credentials.username);
-  body.set("password", credentials.password);
-
-  const response = await fetch(`${apiBaseUrl}/api/v1/auth/login`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
-    body
-  });
-
-  if (!response.ok) {
-    throw await parseError(response, "Login failed");
-  }
-
-  return response.json() as Promise<ApiResponse<Token>>;
+  const response = await loginApiV1AuthLoginPost(credentials);
+  return response.data as ApiResponse<Token>;
 }
 
 export async function fetchCurrentUser(token: string): Promise<ApiResponse<UserPublic>> {
-  const response = await fetch(`${apiBaseUrl}/api/v1/auth/me`, {
+  const response = await getMeApiV1AuthMeGet({
     headers: bearerHeaders(token)
   });
 
-  if (!response.ok) {
-    throw await parseError(response, "Failed to load current user");
-  }
-
-  return response.json() as Promise<ApiResponse<UserPublic>>;
+  return response.data as ApiResponse<UserPublic>;
 }
 
 export async function fetchUsers(
   token: string,
   params?: ListParams
 ): Promise<ApiResponse<Page<UserManagementItem>>> {
-  return fetchJson<Page<UserManagementItem>>(withListParams("/api/v1/users", params), {
+  const response = await getUsersApiV1UsersGet(toGeneratedListParams(params), {
     headers: bearerHeaders(token)
   });
+
+  return response.data as ApiResponse<Page<UserManagementItem>>;
 }
 
 export async function createUser(
   token: string,
   payload: UserCreate
 ): Promise<ApiResponse<UserManagementItem>> {
-  return fetchJson<UserManagementItem>("/api/v1/users", {
-    method: "POST",
-    headers: {
-      ...bearerHeaders(token),
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
+  const response = await createUserApiV1UsersPost(payload, {
+    headers: bearerHeaders(token)
   });
+
+  return response.data as ApiResponse<UserManagementItem>;
 }
 
 export async function updateUser(
@@ -366,28 +419,22 @@ export async function updateUser(
   userId: string,
   payload: UserUpdate
 ): Promise<ApiResponse<UserManagementItem>> {
-  return fetchJson<UserManagementItem>(`/api/v1/users/${userId}`, {
-    method: "PATCH",
-    headers: {
-      ...bearerHeaders(token),
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
+  const response = await updateUserApiV1UsersUserIdPatch(userId, payload, {
+    headers: bearerHeaders(token)
   });
+
+  return response.data as ApiResponse<UserManagementItem>;
 }
 
 export async function updateUsersStatus(
   token: string,
   payload: UserBulkStatusUpdate
 ): Promise<ApiResponse<UserBulkStatusResult>> {
-  return fetchJson<UserBulkStatusResult>("/api/v1/users/bulk-status", {
-    method: "PATCH",
-    headers: {
-      ...bearerHeaders(token),
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
+  const response = await updateUsersStatusApiV1UsersBulkStatusPatch(payload, {
+    headers: bearerHeaders(token)
   });
+
+  return response.data as ApiResponse<UserBulkStatusResult>;
 }
 
 export async function updateUserPassword(
@@ -395,23 +442,22 @@ export async function updateUserPassword(
   userId: string,
   payload: UserPasswordUpdate
 ): Promise<ApiResponse<UserManagementItem>> {
-  return fetchJson<UserManagementItem>(`/api/v1/users/${userId}/password`, {
-    method: "PATCH",
-    headers: {
-      ...bearerHeaders(token),
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
+  const response = await updateUserPasswordApiV1UsersUserIdPasswordPatch(userId, payload, {
+    headers: bearerHeaders(token)
   });
+
+  return response.data as ApiResponse<UserManagementItem>;
 }
 
 export async function fetchUserRoles(
   token: string,
   userId: string
 ): Promise<ApiResponse<UserRolePublic>> {
-  return fetchJson<UserRolePublic>(`/api/v1/users/${userId}/roles`, {
+  const response = await getUserRolesApiV1UsersUserIdRolesGet(userId, {
     headers: bearerHeaders(token)
   });
+
+  return response.data as ApiResponse<UserRolePublic>;
 }
 
 export async function updateUserRoles(
@@ -419,34 +465,34 @@ export async function updateUserRoles(
   userId: string,
   roleCodes: string[]
 ): Promise<ApiResponse<UserRolePublic>> {
-  return fetchJson<UserRolePublic>(`/api/v1/users/${userId}/roles`, {
-    method: "PUT",
-    headers: {
-      ...bearerHeaders(token),
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ role_codes: roleCodes })
-  });
+  const response = await updateUserRolesApiV1UsersUserIdRolesPut(
+    userId,
+    { role_codes: roleCodes },
+    {
+      headers: bearerHeaders(token)
+    }
+  );
+
+  return response.data as ApiResponse<UserRolePublic>;
 }
 
 export async function fetchRoles(token: string): Promise<ApiResponse<RolePublic[]>> {
-  return fetchJson<RolePublic[]>("/api/v1/roles", {
+  const response = await getRolesApiV1RolesGet({
     headers: bearerHeaders(token)
   });
+
+  return response.data as ApiResponse<RolePublic[]>;
 }
 
 export async function createRole(
   token: string,
   payload: RoleCreate
 ): Promise<ApiResponse<RolePublic>> {
-  return fetchJson<RolePublic>("/api/v1/roles", {
-    method: "POST",
-    headers: {
-      ...bearerHeaders(token),
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
+  const response = await createRoleApiV1RolesPost(payload, {
+    headers: bearerHeaders(token)
   });
+
+  return response.data as ApiResponse<RolePublic>;
 }
 
 export async function updateRole(
@@ -454,40 +500,36 @@ export async function updateRole(
   roleId: string,
   payload: RoleUpdate
 ): Promise<ApiResponse<RolePublic>> {
-  return fetchJson<RolePublic>(`/api/v1/roles/${roleId}`, {
-    method: "PATCH",
-    headers: {
-      ...bearerHeaders(token),
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
+  const response = await updateRoleApiV1RolesRoleIdPatch(roleId, payload, {
+    headers: bearerHeaders(token)
   });
+
+  return response.data as ApiResponse<RolePublic>;
 }
 
 export async function deleteRole(token: string, roleId: string): Promise<void> {
-  const response = await fetch(`${apiBaseUrl}/api/v1/roles/${roleId}`, {
-    method: "DELETE",
+  await deleteRoleApiV1RolesRoleIdDelete(roleId, {
     headers: bearerHeaders(token)
   });
-
-  if (!response.ok) {
-    throw await parseError(response, "Failed to delete role");
-  }
 }
 
 export async function fetchPermissions(token: string): Promise<ApiResponse<PermissionPublic[]>> {
-  return fetchJson<PermissionPublic[]>("/api/v1/roles/permissions", {
+  const response = await getPermissionsApiV1RolesPermissionsGet({
     headers: bearerHeaders(token)
   });
+
+  return response.data as ApiResponse<PermissionPublic[]>;
 }
 
 export async function fetchRolePermissions(
   token: string,
   roleId: string
 ): Promise<ApiResponse<RolePermissionPublic>> {
-  return fetchJson<RolePermissionPublic>(`/api/v1/roles/${roleId}/permissions`, {
+  const response = await getRolePermissionsApiV1RolesRoleIdPermissionsGet(roleId, {
     headers: bearerHeaders(token)
   });
+
+  return response.data as ApiResponse<RolePermissionPublic>;
 }
 
 export async function updateRolePermissions(
@@ -495,43 +537,45 @@ export async function updateRolePermissions(
   roleId: string,
   permissionCodes: string[]
 ): Promise<ApiResponse<RolePermissionPublic>> {
-  return fetchJson<RolePermissionPublic>(`/api/v1/roles/${roleId}/permissions`, {
-    method: "PUT",
-    headers: {
-      ...bearerHeaders(token),
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ permission_codes: permissionCodes })
-  });
+  const response = await updateRolePermissionsApiV1RolesRoleIdPermissionsPut(
+    roleId,
+    { permission_codes: permissionCodes },
+    {
+      headers: bearerHeaders(token)
+    }
+  );
+
+  return response.data as ApiResponse<RolePermissionPublic>;
 }
 
 export async function fetchDepartments(
   token: string,
   params?: ListParams
 ): Promise<ApiResponse<Page<DepartmentPublic>>> {
-  return fetchJson<Page<DepartmentPublic>>(withListParams("/api/v1/departments", params), {
+  const response = await getDepartmentsApiV1DepartmentsGet(toGeneratedListParams(params), {
     headers: bearerHeaders(token)
   });
+
+  return response.data as ApiResponse<Page<DepartmentPublic>>;
 }
 
 export async function fetchDepartmentTree(token: string): Promise<ApiResponse<DepartmentTreeNode[]>> {
-  return fetchJson<DepartmentTreeNode[]>("/api/v1/departments/tree", {
+  const response = await getDepartmentTreeApiV1DepartmentsTreeGet({
     headers: bearerHeaders(token)
   });
+
+  return response.data as ApiResponse<DepartmentTreeNode[]>;
 }
 
 export async function createDepartment(
   token: string,
   payload: DepartmentCreate
 ): Promise<ApiResponse<DepartmentPublic>> {
-  return fetchJson<DepartmentPublic>("/api/v1/departments", {
-    method: "POST",
-    headers: {
-      ...bearerHeaders(token),
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
+  const response = await createDepartmentApiV1DepartmentsPost(payload, {
+    headers: bearerHeaders(token)
   });
+
+  return response.data as ApiResponse<DepartmentPublic>;
 }
 
 export async function updateDepartment(
@@ -539,49 +583,52 @@ export async function updateDepartment(
   departmentId: string,
   payload: DepartmentUpdate
 ): Promise<ApiResponse<DepartmentPublic>> {
-  return fetchJson<DepartmentPublic>(`/api/v1/departments/${departmentId}`, {
-    method: "PATCH",
-    headers: {
-      ...bearerHeaders(token),
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
-  });
-}
-
-export async function deleteDepartment(token: string, departmentId: string): Promise<void> {
-  const response = await fetch(`${apiBaseUrl}/api/v1/departments/${departmentId}`, {
-    method: "DELETE",
+  const response = await updateDepartmentApiV1DepartmentsDepartmentIdPatch(departmentId, payload, {
     headers: bearerHeaders(token)
   });
 
-  if (!response.ok) {
-    throw await parseError(response, "Failed to delete department");
-  }
+  return response.data as ApiResponse<DepartmentPublic>;
+}
+
+export async function deleteDepartment(token: string, departmentId: string): Promise<void> {
+  await deleteDepartmentApiV1DepartmentsDepartmentIdDelete(departmentId, {
+    headers: bearerHeaders(token)
+  });
 }
 
 export async function fetchOperationLogs(
   token: string,
   params?: ListParams
 ): Promise<ApiResponse<Page<OperationLogPublic>>> {
-  return fetchJson<Page<OperationLogPublic>>(withListParams("/api/v1/audit/operation-logs", params), {
+  const response = await getOperationLogsApiV1AuditOperationLogsGet(toGeneratedOperationLogParams(params), {
     headers: bearerHeaders(token)
   });
+
+  return response.data as ApiResponse<Page<OperationLogPublic>>;
 }
 
 export async function fetchLoginLogs(
   token: string,
   params?: ListParams
 ): Promise<ApiResponse<Page<LoginLogPublic>>> {
-  return fetchJson<Page<LoginLogPublic>>(withListParams("/api/v1/audit/login-logs", params), {
+  const response = await getLoginLogsApiV1AuditLoginLogsGet(toGeneratedLoginLogParams(params), {
     headers: bearerHeaders(token)
   });
+
+  return response.data as ApiResponse<Page<LoginLogPublic>>;
 }
 
 export async function exportOperationLogs(token: string, params?: ListParams): Promise<Blob> {
-  const response = await fetch(`${apiBaseUrl}${withListParams("/api/v1/audit/operation-logs/export", params)}`, {
-    headers: bearerHeaders(token)
-  });
+  const response = await fetch(
+    apiUrl(
+      getExportOperationLogsApiV1AuditOperationLogsExportGetUrl(
+        toGeneratedOperationLogExportParams(params)
+      )
+    ),
+    {
+      headers: bearerHeaders(token)
+    }
+  );
 
   if (!response.ok) {
     throw await parseError(response, "Failed to export operation logs");
@@ -591,9 +638,14 @@ export async function exportOperationLogs(token: string, params?: ListParams): P
 }
 
 export async function exportLoginLogs(token: string, params?: ListParams): Promise<Blob> {
-  const response = await fetch(`${apiBaseUrl}${withListParams("/api/v1/audit/login-logs/export", params)}`, {
-    headers: bearerHeaders(token)
-  });
+  const response = await fetch(
+    apiUrl(
+      getExportLoginLogsApiV1AuditLoginLogsExportGetUrl(toGeneratedLoginLogExportParams(params))
+    ),
+    {
+      headers: bearerHeaders(token)
+    }
+  );
 
   if (!response.ok) {
     throw await parseError(response, "Failed to export login logs");
@@ -603,23 +655,22 @@ export async function exportLoginLogs(token: string, params?: ListParams): Promi
 }
 
 export async function fetchDictionaryTypes(token: string): Promise<ApiResponse<DictionaryTypePublic[]>> {
-  return fetchJson<DictionaryTypePublic[]>("/api/v1/dictionaries/types", {
+  const response = await getDictionaryTypesApiV1DictionariesTypesGet({
     headers: bearerHeaders(token)
   });
+
+  return response.data as ApiResponse<DictionaryTypePublic[]>;
 }
 
 export async function createDictionaryType(
   token: string,
   payload: DictionaryTypeCreate
 ): Promise<ApiResponse<DictionaryTypePublic>> {
-  return fetchJson<DictionaryTypePublic>("/api/v1/dictionaries/types", {
-    method: "POST",
-    headers: {
-      ...bearerHeaders(token),
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
+  const response = await createDictionaryTypeApiV1DictionariesTypesPost(payload, {
+    headers: bearerHeaders(token)
   });
+
+  return response.data as ApiResponse<DictionaryTypePublic>;
 }
 
 export async function updateDictionaryType(
@@ -627,45 +678,36 @@ export async function updateDictionaryType(
   typeId: string,
   payload: DictionaryTypeUpdate
 ): Promise<ApiResponse<DictionaryTypePublic>> {
-  return fetchJson<DictionaryTypePublic>(`/api/v1/dictionaries/types/${typeId}`, {
-    method: "PATCH",
-    headers: {
-      ...bearerHeaders(token),
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
+  const response = await updateDictionaryTypeApiV1DictionariesTypesTypeIdPatch(typeId, payload, {
+    headers: bearerHeaders(token)
   });
+
+  return response.data as ApiResponse<DictionaryTypePublic>;
 }
 
 export async function deleteDictionaryType(token: string, typeId: string): Promise<void> {
-  const response = await fetch(`${apiBaseUrl}/api/v1/dictionaries/types/${typeId}`, {
-    method: "DELETE",
+  await deleteDictionaryTypeApiV1DictionariesTypesTypeIdDelete(typeId, {
     headers: bearerHeaders(token)
   });
-
-  if (!response.ok) {
-    throw await parseError(response, "Failed to delete dictionary type");
-  }
 }
 
 export async function fetchDictionaryItems(token: string): Promise<ApiResponse<DictionaryItemPublic[]>> {
-  return fetchJson<DictionaryItemPublic[]>("/api/v1/dictionaries/items", {
+  const response = await getDictionaryItemsApiV1DictionariesItemsGet({
     headers: bearerHeaders(token)
   });
+
+  return response.data as ApiResponse<DictionaryItemPublic[]>;
 }
 
 export async function createDictionaryItem(
   token: string,
   payload: DictionaryItemCreate
 ): Promise<ApiResponse<DictionaryItemPublic>> {
-  return fetchJson<DictionaryItemPublic>("/api/v1/dictionaries/items", {
-    method: "POST",
-    headers: {
-      ...bearerHeaders(token),
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
+  const response = await createDictionaryItemApiV1DictionariesItemsPost(payload, {
+    headers: bearerHeaders(token)
   });
+
+  return response.data as ApiResponse<DictionaryItemPublic>;
 }
 
 export async function updateDictionaryItem(
@@ -673,66 +715,58 @@ export async function updateDictionaryItem(
   itemId: string,
   payload: DictionaryItemUpdate
 ): Promise<ApiResponse<DictionaryItemPublic>> {
-  return fetchJson<DictionaryItemPublic>(`/api/v1/dictionaries/items/${itemId}`, {
-    method: "PATCH",
-    headers: {
-      ...bearerHeaders(token),
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
-  });
-}
-
-export async function deleteDictionaryItem(token: string, itemId: string): Promise<void> {
-  const response = await fetch(`${apiBaseUrl}/api/v1/dictionaries/items/${itemId}`, {
-    method: "DELETE",
+  const response = await updateDictionaryItemApiV1DictionariesItemsItemIdPatch(itemId, payload, {
     headers: bearerHeaders(token)
   });
 
-  if (!response.ok) {
-    throw await parseError(response, "Failed to delete dictionary item");
-  }
+  return response.data as ApiResponse<DictionaryItemPublic>;
+}
+
+export async function deleteDictionaryItem(token: string, itemId: string): Promise<void> {
+  await deleteDictionaryItemApiV1DictionariesItemsItemIdDelete(itemId, {
+    headers: bearerHeaders(token)
+  });
 }
 
 export async function fetchFileAttachments(
   token: string,
   params?: ListParams
 ): Promise<ApiResponse<Page<FileAttachmentPublic>>> {
-  return fetchJson<Page<FileAttachmentPublic>>(withListParams("/api/v1/files", params), {
+  const response = await getFileAttachmentsApiV1FilesGet(toGeneratedBasicListParams(params), {
     headers: bearerHeaders(token)
   });
+
+  return response.data as ApiResponse<Page<FileAttachmentPublic>>;
 }
 
 export async function createFileAttachment(
   token: string,
   payload: FileAttachmentCreate
 ): Promise<ApiResponse<FileAttachmentPublic>> {
-  return fetchJson<FileAttachmentPublic>("/api/v1/files", {
-    method: "POST",
-    headers: {
-      ...bearerHeaders(token),
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
+  const response = await createFileAttachmentApiV1FilesPost(payload, {
+    headers: bearerHeaders(token)
   });
+
+  return response.data as ApiResponse<FileAttachmentPublic>;
 }
 
 export async function uploadFileAttachment(
   token: string,
   file: File
 ): Promise<ApiResponse<FileAttachmentPublic>> {
-  const formData = new FormData();
-  formData.set("upload", file);
+  // TODO: Adjust OpenAPI/Orval multipart typing so binary upload fields generate as Blob/File.
+  const response = await uploadFileAttachmentApiV1FilesUploadPost(
+    { upload: file as unknown as string },
+    {
+      headers: bearerHeaders(token)
+    }
+  );
 
-  return fetchJson<FileAttachmentPublic>("/api/v1/files/upload", {
-    method: "POST",
-    headers: bearerHeaders(token),
-    body: formData
-  });
+  return response.data as ApiResponse<FileAttachmentPublic>;
 }
 
 export async function downloadFileAttachment(token: string, fileId: string): Promise<Blob> {
-  const response = await fetch(`${apiBaseUrl}/api/v1/files/${fileId}/download`, {
+  const response = await fetch(apiUrl(getDownloadFileAttachmentApiV1FilesFileIdDownloadGetUrl(fileId)), {
     headers: bearerHeaders(token)
   });
 
