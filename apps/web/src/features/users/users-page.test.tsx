@@ -6,15 +6,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { UsersPage } from "@/features/users/users-page";
 import { mockAuthValue, paginatedResponse, renderWithQueryClient, successResponse } from "@/test-utils";
 import {
-  fetchDepartments,
-  fetchRoles,
-  fetchUserRoles,
-  fetchUsers,
   updateUsersStatus,
   type DepartmentPublic,
   type RolePublic,
   type UserManagementItem
 } from "@alune/api-client";
+import {
+  useGetDepartmentsApiV1DepartmentsGet,
+  useGetUserRolesApiV1UsersUserIdRolesGet,
+  useGetRolesApiV1RolesGet,
+  useGetUsersApiV1UsersGet
+} from "@alune/api-client/generated";
 
 vi.mock("@/features/auth/auth-provider", () => ({
   useAuth: () => mockAuthValue
@@ -25,16 +27,19 @@ vi.mock("@alune/api-client", async (importOriginal) => {
   return {
     ...actual,
     createUser: vi.fn(),
-    fetchDepartments: vi.fn(),
-    fetchRoles: vi.fn(),
-    fetchUserRoles: vi.fn(),
-    fetchUsers: vi.fn(),
     updateUser: vi.fn(),
     updateUserPassword: vi.fn(),
     updateUserRoles: vi.fn(),
     updateUsersStatus: vi.fn()
   };
 });
+
+vi.mock("@alune/api-client/generated", () => ({
+  useGetDepartmentsApiV1DepartmentsGet: vi.fn(),
+  useGetUserRolesApiV1UsersUserIdRolesGet: vi.fn(),
+  useGetRolesApiV1RolesGet: vi.fn(),
+  useGetUsersApiV1UsersGet: vi.fn()
+}));
 
 const users: UserManagementItem[] = [
   {
@@ -62,10 +67,22 @@ const departments: DepartmentPublic[] = [];
 
 describe("UsersPage bulk status operations", () => {
   beforeEach(() => {
-    vi.mocked(fetchUsers).mockResolvedValue(paginatedResponse(users));
-    vi.mocked(fetchRoles).mockResolvedValue(successResponse(roles));
-    vi.mocked(fetchDepartments).mockResolvedValue(paginatedResponse(departments, 100));
-    vi.mocked(fetchUserRoles).mockResolvedValue(successResponse({ user_id: "user-1", role_codes: [] }));
+    vi.mocked(useGetUsersApiV1UsersGet).mockReturnValue({
+      data: { status: 200, data: paginatedResponse(users) },
+      isError: false
+    } as ReturnType<typeof useGetUsersApiV1UsersGet>);
+    vi.mocked(useGetRolesApiV1RolesGet).mockReturnValue({
+      data: { status: 200, data: successResponse(roles) },
+      isError: false
+    } as ReturnType<typeof useGetRolesApiV1RolesGet>);
+    vi.mocked(useGetDepartmentsApiV1DepartmentsGet).mockReturnValue({
+      data: { status: 200, data: paginatedResponse(departments, 100) },
+      isError: false
+    } as ReturnType<typeof useGetDepartmentsApiV1DepartmentsGet>);
+    vi.mocked(useGetUserRolesApiV1UsersUserIdRolesGet).mockReturnValue({
+      data: { status: 200, data: successResponse({ user_id: "user-1", role_codes: [] }) },
+      isError: false
+    } as ReturnType<typeof useGetUserRolesApiV1UsersUserIdRolesGet>);
     vi.mocked(updateUsersStatus).mockResolvedValue(successResponse({ updated_count: 2 }));
   });
 

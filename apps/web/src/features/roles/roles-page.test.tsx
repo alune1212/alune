@@ -6,12 +6,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RolesPage } from "@/features/roles/roles-page";
 import { mockAuthValue, renderWithQueryClient, successResponse } from "@/test-utils";
 import {
-  fetchPermissions,
-  fetchRolePermissions,
-  fetchRoles,
   type PermissionPublic,
   type RolePublic
 } from "@alune/api-client";
+import {
+  useGetPermissionsApiV1RolesPermissionsGet,
+  useGetRolePermissionsApiV1RolesRoleIdPermissionsGet,
+  useGetRolesApiV1RolesGet
+} from "@alune/api-client/generated";
 
 vi.mock("@/features/auth/auth-provider", () => ({
   useAuth: () => mockAuthValue
@@ -23,13 +25,16 @@ vi.mock("@alune/api-client", async (importOriginal) => {
     ...actual,
     createRole: vi.fn(),
     deleteRole: vi.fn(),
-    fetchPermissions: vi.fn(),
-    fetchRolePermissions: vi.fn(),
-    fetchRoles: vi.fn(),
     updateRole: vi.fn(),
     updateRolePermissions: vi.fn()
   };
 });
+
+vi.mock("@alune/api-client/generated", () => ({
+  useGetPermissionsApiV1RolesPermissionsGet: vi.fn(),
+  useGetRolePermissionsApiV1RolesRoleIdPermissionsGet: vi.fn(),
+  useGetRolesApiV1RolesGet: vi.fn()
+}));
 
 const roles: RolePublic[] = [
   {
@@ -60,12 +65,24 @@ const permissions: PermissionPublic[] = [
 
 describe("RolesPage permission assignment", () => {
   beforeEach(() => {
-    vi.mocked(fetchRoles).mockResolvedValue(successResponse(roles));
-    vi.mocked(fetchPermissions).mockResolvedValue(successResponse(permissions));
-    vi.mocked(fetchRolePermissions).mockResolvedValue(successResponse({
-      role_id: "role-admin",
-      permission_codes: ["dashboard:view"]
-    }));
+    vi.mocked(useGetRolesApiV1RolesGet).mockReturnValue({
+      data: { status: 200, data: successResponse(roles) },
+      isError: false
+    } as ReturnType<typeof useGetRolesApiV1RolesGet>);
+    vi.mocked(useGetPermissionsApiV1RolesPermissionsGet).mockReturnValue({
+      data: { status: 200, data: successResponse(permissions) },
+      isError: false
+    } as ReturnType<typeof useGetPermissionsApiV1RolesPermissionsGet>);
+    vi.mocked(useGetRolePermissionsApiV1RolesRoleIdPermissionsGet).mockReturnValue({
+      data: {
+        status: 200,
+        data: successResponse({
+          role_id: "role-admin",
+          permission_codes: ["dashboard:view"]
+        })
+      },
+      isError: false
+    } as ReturnType<typeof useGetRolePermissionsApiV1RolesRoleIdPermissionsGet>);
   });
 
   it("groups permissions by type and shows an empty state when search has no matches", async () => {

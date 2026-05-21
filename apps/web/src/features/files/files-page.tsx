@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 
@@ -9,10 +9,10 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/features/auth/auth-provider";
 import {
   downloadFileAttachment,
-  fetchFileAttachments,
   uploadFileAttachment,
   type FileAttachmentPublic
 } from "@alune/api-client";
+import { useGetFileAttachmentsApiV1FilesGet } from "@alune/api-client/generated";
 
 const fileColumns: ColumnDef<FileAttachmentPublic>[] = [
   { accessorKey: "original_filename", header: "Original file" },
@@ -29,11 +29,18 @@ export function FilesPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
-  const filesQuery = useQuery({
-    queryKey: ["internal", "files", search, page],
-    queryFn: () => fetchFileAttachments(auth.token!, { q: search || undefined, page, pageSize: 10 }),
-    enabled: auth.token !== null
-  });
+  const filesQuery = useGetFileAttachmentsApiV1FilesGet(
+    { q: search || undefined, page, page_size: 10 },
+    {
+      query: {
+        queryKey: ["internal", "files", search, page],
+        enabled: auth.token !== null
+      },
+      request: {
+        headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
+      }
+    }
+  );
 
   const uploadMutation = useMutation({
     mutationFn: () => uploadFileAttachment(auth.token!, selectedFile!),
@@ -54,7 +61,7 @@ export function FilesPage() {
     }
   });
 
-  const filesPage = filesQuery.data?.data;
+  const filesPage = filesQuery.data?.status === 200 ? filesQuery.data.data.data : undefined;
   const files = filesPage?.items ?? [];
   const totalPages = filesPage ? Math.max(1, Math.ceil(filesPage.total / filesPage.page_size)) : 1;
   const columns: ColumnDef<FileAttachmentPublic>[] = [

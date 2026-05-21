@@ -4,7 +4,7 @@ Frontend API client package.
 
 The current package contains:
 
-- `src/index.ts`: compatibility layer still used by internal system pages. JSON requests and multipart upload delegate to generated request functions; CSV export and file download keep `Blob` returns while reusing generated URL helpers.
+- `src/index.ts`: compatibility layer still used by mutation-heavy page actions and binary download/export boundaries. JSON requests and multipart upload delegate to generated request functions; CSV export and file download keep `Blob` returns while reusing generated URL helpers.
 - `src/generated/api.ts`: Orval-generated TypeScript types, request functions, and React Query hooks from FastAPI OpenAPI.
 
 Generate the client from the monorepo root:

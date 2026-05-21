@@ -7,11 +7,13 @@ import { DepartmentsPage } from "@/features/departments/departments-page";
 import { mockAuthValue, paginatedResponse, renderWithQueryClient, successResponse } from "@/test-utils";
 import {
   createDepartment,
-  fetchDepartmentTree,
-  fetchDepartments,
   type DepartmentPublic,
   type DepartmentTreeNode
 } from "@alune/api-client";
+import {
+  useGetDepartmentsApiV1DepartmentsGet,
+  useGetDepartmentTreeApiV1DepartmentsTreeGet
+} from "@alune/api-client/generated";
 
 vi.mock("@/features/auth/auth-provider", () => ({
   useAuth: () => mockAuthValue
@@ -23,11 +25,14 @@ vi.mock("@alune/api-client", async (importOriginal) => {
     ...actual,
     createDepartment: vi.fn(),
     deleteDepartment: vi.fn(),
-    fetchDepartmentTree: vi.fn(),
-    fetchDepartments: vi.fn(),
     updateDepartment: vi.fn()
   };
 });
+
+vi.mock("@alune/api-client/generated", () => ({
+  useGetDepartmentsApiV1DepartmentsGet: vi.fn(),
+  useGetDepartmentTreeApiV1DepartmentsTreeGet: vi.fn()
+}));
 
 const departments: DepartmentPublic[] = [
   {
@@ -61,8 +66,14 @@ const departmentTree: DepartmentTreeNode[] = [
 
 describe("DepartmentsPage", () => {
   beforeEach(() => {
-    vi.mocked(fetchDepartments).mockResolvedValue(paginatedResponse(departments));
-    vi.mocked(fetchDepartmentTree).mockResolvedValue(successResponse(departmentTree));
+    vi.mocked(useGetDepartmentsApiV1DepartmentsGet).mockReturnValue({
+      data: { status: 200, data: paginatedResponse(departments) },
+      isError: false
+    } as ReturnType<typeof useGetDepartmentsApiV1DepartmentsGet>);
+    vi.mocked(useGetDepartmentTreeApiV1DepartmentsTreeGet).mockReturnValue({
+      data: { status: 200, data: successResponse(departmentTree) },
+      isError: false
+    } as ReturnType<typeof useGetDepartmentTreeApiV1DepartmentsTreeGet>);
     vi.mocked(createDepartment).mockResolvedValue(successResponse(departments[0]!));
   });
 

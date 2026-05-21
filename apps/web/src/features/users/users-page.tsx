@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 
@@ -9,10 +9,6 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/features/auth/auth-provider";
 import {
   createUser,
-  fetchDepartments,
-  fetchRoles,
-  fetchUserRoles,
-  fetchUsers,
   updateUser,
   updateUserPassword,
   updateUserRoles,
@@ -21,6 +17,12 @@ import {
   type RolePublic,
   type UserManagementItem
 } from "@alune/api-client";
+import {
+  useGetDepartmentsApiV1DepartmentsGet,
+  useGetUserRolesApiV1UsersUserIdRolesGet,
+  useGetRolesApiV1RolesGet,
+  useGetUsersApiV1UsersGet
+} from "@alune/api-client/generated";
 
 type BulkStatusAction = {
   isActive: boolean;
@@ -46,32 +48,51 @@ export function UsersPage() {
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [pendingBulkStatusAction, setPendingBulkStatusAction] = useState<BulkStatusAction | null>(null);
   const [bulkStatusResult, setBulkStatusResult] = useState<string | null>(null);
-  const usersQuery = useQuery({
-    queryKey: ["internal", "users", search, roleFilter, departmentFilter, page],
-    queryFn: () =>
-      fetchUsers(auth.token!, {
-        q: search || undefined,
-        roleCode: roleFilter || undefined,
-        departmentId: departmentFilter || undefined,
-        page,
-        pageSize: 10
-      }),
-    enabled: auth.token !== null
+  const authRequest = useMemo(
+    () => ({
+      headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
+    }),
+    [auth.token]
+  );
+  const usersQuery = useGetUsersApiV1UsersGet(
+    {
+      q: search || undefined,
+      role_code: roleFilter || undefined,
+      department_id: departmentFilter || undefined,
+      page,
+      page_size: 10
+    },
+    {
+      query: {
+        queryKey: ["internal", "users", search, roleFilter, departmentFilter, page],
+        enabled: auth.token !== null
+      },
+      request: authRequest
+    }
+  );
+  const rolesQuery = useGetRolesApiV1RolesGet({
+    query: {
+      queryKey: ["internal", "roles"],
+      enabled: auth.token !== null
+    },
+    request: authRequest
   });
-  const rolesQuery = useQuery({
-    queryKey: ["internal", "roles"],
-    queryFn: () => fetchRoles(auth.token!),
-    enabled: auth.token !== null
-  });
-  const departmentsQuery = useQuery({
-    queryKey: ["internal", "departments", "for-users"],
-    queryFn: () => fetchDepartments(auth.token!, { pageSize: 100 }),
-    enabled: auth.token !== null
-  });
-  const userRolesQuery = useQuery({
-    queryKey: ["internal", "users", selectedUserId, "roles"],
-    queryFn: () => fetchUserRoles(auth.token!, selectedUserId!),
-    enabled: auth.token !== null && selectedUserId !== null
+  const departmentsQuery = useGetDepartmentsApiV1DepartmentsGet(
+    { page_size: 100 },
+    {
+      query: {
+        queryKey: ["internal", "departments", "for-users"],
+        enabled: auth.token !== null
+      },
+      request: authRequest
+    }
+  );
+  const userRolesQuery = useGetUserRolesApiV1UsersUserIdRolesGet(selectedUserId ?? "", {
+    query: {
+      queryKey: ["internal", "users", selectedUserId, "roles"],
+      enabled: auth.token !== null && selectedUserId !== null
+    },
+    request: authRequest
   });
   const createUserMutation = useMutation({
     mutationFn: () =>
@@ -131,13 +152,14 @@ export function UsersPage() {
     }
   });
 
-  const usersPage = usersQuery.data?.data;
+  const usersPage = usersQuery.data?.status === 200 ? usersQuery.data.data.data : undefined;
   const users = usersPage?.items ?? [];
   const totalPages = usersPage ? Math.max(1, Math.ceil(usersPage.total / usersPage.page_size)) : 1;
-  const roles = rolesQuery.data?.data ?? [];
-  const departments = departmentsQuery.data?.data.items ?? [];
+  const roles = rolesQuery.data?.data.data ?? [];
+  const departmentsPage = departmentsQuery.data?.status === 200 ? departmentsQuery.data.data.data : undefined;
+  const departments = departmentsPage?.items ?? [];
   const selectedUser = users.find((user) => user.id === selectedUserId) ?? null;
-  const selectedRoleCodes = userRolesQuery.data?.data.role_codes ?? [];
+  const selectedRoleCodes = userRolesQuery.data?.status === 200 ? userRolesQuery.data.data.data.role_codes : [];
   const selectedUserIdSet = useMemo(() => new Set(selectedUserIds), [selectedUserIds]);
   const userColumns = useMemo<ColumnDef<UserManagementItem>[]>(
     () => [

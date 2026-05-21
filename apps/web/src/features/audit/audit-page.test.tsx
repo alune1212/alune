@@ -7,11 +7,13 @@ import { AuditPage } from "@/features/audit/audit-page";
 import { mockAuthValue, paginatedResponse, renderWithQueryClient } from "@/test-utils";
 import {
   exportOperationLogs,
-  fetchLoginLogs,
-  fetchOperationLogs,
   type LoginLogPublic,
   type OperationLogPublic
 } from "@alune/api-client";
+import {
+  useGetLoginLogsApiV1AuditLoginLogsGet,
+  useGetOperationLogsApiV1AuditOperationLogsGet
+} from "@alune/api-client/generated";
 
 vi.mock("@/features/auth/auth-provider", () => ({
   useAuth: () => mockAuthValue
@@ -21,11 +23,14 @@ vi.mock("@alune/api-client", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@alune/api-client")>();
   return {
     ...actual,
-    exportOperationLogs: vi.fn(),
-    fetchLoginLogs: vi.fn(),
-    fetchOperationLogs: vi.fn()
+    exportOperationLogs: vi.fn()
   };
 });
+
+vi.mock("@alune/api-client/generated", () => ({
+  useGetLoginLogsApiV1AuditLoginLogsGet: vi.fn(),
+  useGetOperationLogsApiV1AuditOperationLogsGet: vi.fn()
+}));
 
 const operationLogs: OperationLogPublic[] = [
   {
@@ -55,8 +60,14 @@ const loginLogs: LoginLogPublic[] = [
 
 describe("AuditPage", () => {
   beforeEach(() => {
-    vi.mocked(fetchOperationLogs).mockResolvedValue(paginatedResponse(operationLogs));
-    vi.mocked(fetchLoginLogs).mockResolvedValue(paginatedResponse(loginLogs));
+    vi.mocked(useGetOperationLogsApiV1AuditOperationLogsGet).mockReturnValue({
+      data: { status: 200, data: paginatedResponse(operationLogs) },
+      isError: false
+    } as ReturnType<typeof useGetOperationLogsApiV1AuditOperationLogsGet>);
+    vi.mocked(useGetLoginLogsApiV1AuditLoginLogsGet).mockReturnValue({
+      data: { status: 200, data: paginatedResponse(loginLogs) },
+      isError: false
+    } as ReturnType<typeof useGetLoginLogsApiV1AuditLoginLogsGet>);
     vi.mocked(exportOperationLogs).mockResolvedValue(new Blob(["csv"], { type: "text/csv" }));
     vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:operation-logs");
     vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});

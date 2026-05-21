@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 
@@ -12,13 +12,15 @@ import {
   createDictionaryType,
   deleteDictionaryItem,
   deleteDictionaryType,
-  fetchDictionaryItems,
-  fetchDictionaryTypes,
   updateDictionaryItem,
   updateDictionaryType,
   type DictionaryItemPublic,
   type DictionaryTypePublic
 } from "@alune/api-client";
+import {
+  useGetDictionaryItemsApiV1DictionariesItemsGet,
+  useGetDictionaryTypesApiV1DictionariesTypesGet
+} from "@alune/api-client/generated";
 
 export function DictionariesPage() {
   const auth = useAuth();
@@ -37,15 +39,25 @@ export function DictionariesPage() {
   const [editValue, setEditValue] = useState("");
   const [editSortOrder, setEditSortOrder] = useState("0");
 
-  const typesQuery = useQuery({
-    queryKey: ["internal", "dictionaries", "types"],
-    queryFn: () => fetchDictionaryTypes(auth.token!),
-    enabled: auth.token !== null
+  const authRequest = useMemo(
+    () => ({
+      headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
+    }),
+    [auth.token]
+  );
+  const typesQuery = useGetDictionaryTypesApiV1DictionariesTypesGet({
+    query: {
+      queryKey: ["internal", "dictionaries", "types"],
+      enabled: auth.token !== null
+    },
+    request: authRequest
   });
-  const itemsQuery = useQuery({
-    queryKey: ["internal", "dictionaries", "items"],
-    queryFn: () => fetchDictionaryItems(auth.token!),
-    enabled: auth.token !== null
+  const itemsQuery = useGetDictionaryItemsApiV1DictionariesItemsGet({
+    query: {
+      queryKey: ["internal", "dictionaries", "items"],
+      enabled: auth.token !== null
+    },
+    request: authRequest
   });
 
   const createTypeMutation = useMutation({
@@ -97,7 +109,9 @@ export function DictionariesPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "dictionaries"] })
   });
 
-  const selectedItem = itemsQuery.data?.data.find((item) => item.id === selectedItemId) ?? null;
+  const dictionaryTypes = typesQuery.data?.data.data ?? [];
+  const dictionaryItems = itemsQuery.data?.data.data ?? [];
+  const selectedItem = dictionaryItems.find((item) => item.id === selectedItemId) ?? null;
 
   const startEditType = useCallback((type: DictionaryTypePublic) => {
     setSelectedTypeId(type.id);
@@ -202,7 +216,7 @@ export function DictionariesPage() {
       <Card>
         <CardHeader>
           <CardTitle>Types</CardTitle>
-          <CardDescription>{typesQuery.data?.data.length ?? 0} types</CardDescription>
+          <CardDescription>{dictionaryTypes.length} types</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
@@ -221,7 +235,7 @@ export function DictionariesPage() {
               Save type
             </Button>
           </div>
-          <DataTable columns={typeColumns} data={typesQuery.data?.data ?? []} emptyLabel="No types found." />
+          <DataTable columns={typeColumns} data={dictionaryTypes} emptyLabel="No types found." />
         </CardContent>
       </Card>
 
@@ -247,7 +261,7 @@ export function DictionariesPage() {
       <Card>
         <CardHeader>
           <CardTitle>Items</CardTitle>
-          <CardDescription>{itemsQuery.data?.data.length ?? 0} items</CardDescription>
+          <CardDescription>{dictionaryItems.length} items</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
@@ -271,7 +285,7 @@ export function DictionariesPage() {
               Save item
             </Button>
           </div>
-          <DataTable columns={itemColumns} data={itemsQuery.data?.data ?? []} emptyLabel="No items found." />
+          <DataTable columns={itemColumns} data={dictionaryItems} emptyLabel="No items found." />
         </CardContent>
       </Card>
     </div>

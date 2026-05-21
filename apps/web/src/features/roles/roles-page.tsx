@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 
@@ -10,14 +10,16 @@ import { useAuth } from "@/features/auth/auth-provider";
 import {
   createRole,
   deleteRole,
-  fetchPermissions,
-  fetchRolePermissions,
-  fetchRoles,
   updateRole,
   updateRolePermissions,
   type PermissionPublic,
   type RolePublic
 } from "@alune/api-client";
+import {
+  useGetPermissionsApiV1RolesPermissionsGet,
+  useGetRolePermissionsApiV1RolesRoleIdPermissionsGet,
+  useGetRolesApiV1RolesGet
+} from "@alune/api-client/generated";
 
 export function RolesPage() {
   const auth = useAuth();
@@ -32,26 +34,38 @@ export function RolesPage() {
   const [editRoleName, setEditRoleName] = useState("");
   const [editRoleDescription, setEditRoleDescription] = useState("");
   const [permissionSearch, setPermissionSearch] = useState("");
-  const rolesQuery = useQuery({
-    queryKey: ["internal", "roles"],
-    queryFn: () => fetchRoles(auth.token!),
-    enabled: auth.token !== null
+  const authRequest = useMemo(
+    () => ({
+      headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
+    }),
+    [auth.token]
+  );
+  const rolesQuery = useGetRolesApiV1RolesGet({
+    query: {
+      queryKey: ["internal", "roles"],
+      enabled: auth.token !== null
+    },
+    request: authRequest
   });
-  const permissionsQuery = useQuery({
-    queryKey: ["internal", "permissions"],
-    queryFn: () => fetchPermissions(auth.token!),
-    enabled: auth.token !== null
+  const permissionsQuery = useGetPermissionsApiV1RolesPermissionsGet({
+    query: {
+      queryKey: ["internal", "permissions"],
+      enabled: auth.token !== null
+    },
+    request: authRequest
   });
-  const rolePermissionsQuery = useQuery({
-    queryKey: ["internal", "roles", selectedRoleId, "permissions"],
-    queryFn: () => fetchRolePermissions(auth.token!, selectedRoleId!),
-    enabled: auth.token !== null && selectedRoleId !== null
+  const rolePermissionsQuery = useGetRolePermissionsApiV1RolesRoleIdPermissionsGet(selectedRoleId ?? "", {
+    query: {
+      queryKey: ["internal", "roles", selectedRoleId, "permissions"],
+      enabled: auth.token !== null && selectedRoleId !== null
+    },
+    request: authRequest
   });
-  const roles = useMemo(() => rolesQuery.data?.data ?? [], [rolesQuery.data?.data]);
-  const permissions = useMemo(() => permissionsQuery.data?.data ?? [], [permissionsQuery.data?.data]);
+  const roles = useMemo(() => rolesQuery.data?.data.data ?? [], [rolesQuery.data?.data.data]);
+  const permissions = useMemo(() => permissionsQuery.data?.data.data ?? [], [permissionsQuery.data?.data.data]);
   const fetchedPermissionCodes = useMemo(
-    () => rolePermissionsQuery.data?.data.permission_codes ?? [],
-    [rolePermissionsQuery.data?.data.permission_codes]
+    () => (rolePermissionsQuery.data?.status === 200 ? rolePermissionsQuery.data.data.data.permission_codes : []),
+    [rolePermissionsQuery.data]
   );
   const selectedPermissionCodes = useMemo(() => {
     if (selectedRoleId === null) {

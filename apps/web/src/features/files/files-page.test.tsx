@@ -6,10 +6,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { FilesPage } from "@/features/files/files-page";
 import { mockAuthValue, paginatedResponse, renderWithQueryClient, successResponse } from "@/test-utils";
 import {
-  fetchFileAttachments,
   uploadFileAttachment,
   type FileAttachmentPublic
 } from "@alune/api-client";
+import { useGetFileAttachmentsApiV1FilesGet } from "@alune/api-client/generated";
 
 vi.mock("@/features/auth/auth-provider", () => ({
   useAuth: () => mockAuthValue
@@ -20,10 +20,13 @@ vi.mock("@alune/api-client", async (importOriginal) => {
   return {
     ...actual,
     downloadFileAttachment: vi.fn(),
-    fetchFileAttachments: vi.fn(),
     uploadFileAttachment: vi.fn()
   };
 });
+
+vi.mock("@alune/api-client/generated", () => ({
+  useGetFileAttachmentsApiV1FilesGet: vi.fn()
+}));
 
 const files: FileAttachmentPublic[] = [
   {
@@ -40,7 +43,10 @@ const files: FileAttachmentPublic[] = [
 
 describe("FilesPage", () => {
   beforeEach(() => {
-    vi.mocked(fetchFileAttachments).mockResolvedValue(paginatedResponse(files));
+    vi.mocked(useGetFileAttachmentsApiV1FilesGet).mockReturnValue({
+      data: { status: 200, data: paginatedResponse(files) },
+      isError: false
+    } as ReturnType<typeof useGetFileAttachmentsApiV1FilesGet>);
     vi.mocked(uploadFileAttachment).mockResolvedValue(successResponse(files[0]!));
   });
 

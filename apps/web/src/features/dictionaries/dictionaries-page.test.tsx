@@ -7,11 +7,13 @@ import { DictionariesPage } from "@/features/dictionaries/dictionaries-page";
 import { mockAuthValue, renderWithQueryClient, successResponse } from "@/test-utils";
 import {
   createDictionaryType,
-  fetchDictionaryItems,
-  fetchDictionaryTypes,
   type DictionaryItemPublic,
   type DictionaryTypePublic
 } from "@alune/api-client";
+import {
+  useGetDictionaryItemsApiV1DictionariesItemsGet,
+  useGetDictionaryTypesApiV1DictionariesTypesGet
+} from "@alune/api-client/generated";
 
 vi.mock("@/features/auth/auth-provider", () => ({
   useAuth: () => mockAuthValue
@@ -25,12 +27,15 @@ vi.mock("@alune/api-client", async (importOriginal) => {
     createDictionaryType: vi.fn(),
     deleteDictionaryItem: vi.fn(),
     deleteDictionaryType: vi.fn(),
-    fetchDictionaryItems: vi.fn(),
-    fetchDictionaryTypes: vi.fn(),
     updateDictionaryItem: vi.fn(),
     updateDictionaryType: vi.fn()
   };
 });
+
+vi.mock("@alune/api-client/generated", () => ({
+  useGetDictionaryItemsApiV1DictionariesItemsGet: vi.fn(),
+  useGetDictionaryTypesApiV1DictionariesTypesGet: vi.fn()
+}));
 
 const dictionaryTypes: DictionaryTypePublic[] = [
   {
@@ -55,8 +60,14 @@ const dictionaryItems: DictionaryItemPublic[] = [
 
 describe("DictionariesPage", () => {
   beforeEach(() => {
-    vi.mocked(fetchDictionaryTypes).mockResolvedValue(successResponse(dictionaryTypes));
-    vi.mocked(fetchDictionaryItems).mockResolvedValue(successResponse(dictionaryItems));
+    vi.mocked(useGetDictionaryTypesApiV1DictionariesTypesGet).mockReturnValue({
+      data: { status: 200, data: successResponse(dictionaryTypes) },
+      isError: false
+    } as ReturnType<typeof useGetDictionaryTypesApiV1DictionariesTypesGet>);
+    vi.mocked(useGetDictionaryItemsApiV1DictionariesItemsGet).mockReturnValue({
+      data: { status: 200, data: successResponse(dictionaryItems) },
+      isError: false
+    } as ReturnType<typeof useGetDictionaryItemsApiV1DictionariesItemsGet>);
     vi.mocked(createDictionaryType).mockResolvedValue(successResponse(dictionaryTypes[0]!));
   });
 

@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 
@@ -10,12 +10,14 @@ import { useAuth } from "@/features/auth/auth-provider";
 import {
   createDepartment,
   deleteDepartment,
-  fetchDepartmentTree,
-  fetchDepartments,
   updateDepartment,
-  type DepartmentTreeNode,
   type DepartmentPublic
 } from "@alune/api-client";
+import {
+  type DepartmentTreeNode,
+  useGetDepartmentsApiV1DepartmentsGet,
+  useGetDepartmentTreeApiV1DepartmentsTreeGet
+} from "@alune/api-client/generated";
 
 function DepartmentTree({ nodes, depth = 0 }: { nodes: DepartmentTreeNode[]; depth?: number }) {
   if (nodes.length === 0) {
@@ -33,7 +35,9 @@ function DepartmentTree({ nodes, depth = 0 }: { nodes: DepartmentTreeNode[]; dep
             <span className="font-medium text-slate-950">{node.name}</span>
             <span className="text-slate-500">{node.code}</span>
           </div>
-          {node.children.length > 0 ? <DepartmentTree nodes={node.children} depth={depth + 1} /> : null}
+          {(node.children ?? []).length > 0 ? (
+            <DepartmentTree nodes={node.children ?? []} depth={depth + 1} />
+          ) : null}
         </div>
       ))}
     </div>
@@ -48,15 +52,28 @@ export function DepartmentsPage() {
   const [description, setDescription] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const departmentsQuery = useQuery({
-    queryKey: ["internal", "departments", search, page],
-    queryFn: () => fetchDepartments(auth.token!, { q: search || undefined, page, pageSize: 10 }),
-    enabled: auth.token !== null
-  });
-  const departmentTreeQuery = useQuery({
-    queryKey: ["internal", "departments", "tree"],
-    queryFn: () => fetchDepartmentTree(auth.token!),
-    enabled: auth.token !== null
+  const authRequest = useMemo(
+    () => ({
+      headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
+    }),
+    [auth.token]
+  );
+  const departmentsQuery = useGetDepartmentsApiV1DepartmentsGet(
+    { q: search || undefined, page, page_size: 10 },
+    {
+      query: {
+        queryKey: ["internal", "departments", search, page],
+        enabled: auth.token !== null
+      },
+      request: authRequest
+    }
+  );
+  const departmentTreeQuery = useGetDepartmentTreeApiV1DepartmentsTreeGet({
+    query: {
+      queryKey: ["internal", "departments", "tree"],
+      enabled: auth.token !== null
+    },
+    request: authRequest
   });
   const createMutation = useMutation({
     mutationFn: () =>
@@ -82,12 +99,12 @@ export function DepartmentsPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "departments"] })
   });
 
-  const departmentsPage = departmentsQuery.data?.data;
+  const departmentsPage = departmentsQuery.data?.status === 200 ? departmentsQuery.data.data.data : undefined;
   const departments = departmentsPage?.items ?? [];
   const totalPages = departmentsPage
     ? Math.max(1, Math.ceil(departmentsPage.total / departmentsPage.page_size))
     : 1;
-  const departmentTree = departmentTreeQuery.data?.data ?? [];
+  const departmentTree = departmentTreeQuery.data?.data.data ?? [];
   const departmentColumns = useMemo<ColumnDef<DepartmentPublic>[]>(
     () => [
       {

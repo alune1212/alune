@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 
@@ -10,11 +9,18 @@ import { useAuth } from "@/features/auth/auth-provider";
 import {
   exportLoginLogs,
   exportOperationLogs,
-  fetchLoginLogs,
-  fetchOperationLogs,
   type LoginLogPublic,
   type OperationLogPublic
 } from "@alune/api-client";
+import {
+  useGetLoginLogsApiV1AuditLoginLogsGet,
+  useGetOperationLogsApiV1AuditOperationLogsGet,
+  type GetLoginLogsApiV1AuditLoginLogsGetParams,
+  type GetOperationLogsApiV1AuditOperationLogsGetParams
+} from "@alune/api-client/generated";
+
+type OperationStatus = NonNullable<GetOperationLogsApiV1AuditOperationLogsGetParams["status"]>;
+type LoginStatus = NonNullable<GetLoginLogsApiV1AuditLoginLogsGetParams["status"]>;
 
 const operationColumns: ColumnDef<OperationLogPublic>[] = [
   { accessorKey: "action", header: "Action" },
@@ -31,6 +37,14 @@ const loginColumns: ColumnDef<LoginLogPublic>[] = [
   { accessorKey: "message", header: "Message", cell: ({ row }) => row.original.message ?? "-" }
 ];
 
+function toOperationStatus(value: string): OperationStatus | undefined {
+  return value === "success" || value === "failure" || value === "error" ? value : undefined;
+}
+
+function toLoginStatus(value: string): LoginStatus | undefined {
+  return value === "success" || value === "failure" ? value : undefined;
+}
+
 export function AuditPage() {
   const auth = useAuth();
   const [operationSearch, setOperationSearch] = useState("");
@@ -43,55 +57,66 @@ export function AuditPage() {
   const [loginStartedAt, setLoginStartedAt] = useState("");
   const [loginEndedAt, setLoginEndedAt] = useState("");
   const [loginPage, setLoginPage] = useState(1);
-  const operationLogsQuery = useQuery({
-    queryKey: [
-      "internal",
-      "audit",
-      "operation-logs",
-      operationSearch,
-      operationStatus,
-      operationStartedAt,
-      operationEndedAt,
-      operationPage
-    ],
-    queryFn: () =>
-      fetchOperationLogs(auth.token!, {
-        q: operationSearch || undefined,
-        status: operationStatus || undefined,
-        startedAt: operationStartedAt || undefined,
-        endedAt: operationEndedAt || undefined,
-        page: operationPage,
-        pageSize: 10
-      }),
-    enabled: auth.token !== null
-  });
-  const loginLogsQuery = useQuery({
-    queryKey: [
-      "internal",
-      "audit",
-      "login-logs",
-      loginSearch,
-      loginStatus,
-      loginStartedAt,
-      loginEndedAt,
-      loginPage
-    ],
-    queryFn: () =>
-      fetchLoginLogs(auth.token!, {
-        q: loginSearch || undefined,
-        status: loginStatus || undefined,
-        startedAt: loginStartedAt || undefined,
-        endedAt: loginEndedAt || undefined,
-        page: loginPage,
-        pageSize: 10
-      }),
-    enabled: auth.token !== null
-  });
-  const operationLogsPage = operationLogsQuery.data?.data;
+  const authRequest = {
+    headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
+  };
+  const operationLogsQuery = useGetOperationLogsApiV1AuditOperationLogsGet(
+    {
+      q: operationSearch || undefined,
+      status: toOperationStatus(operationStatus),
+      started_at: operationStartedAt || undefined,
+      ended_at: operationEndedAt || undefined,
+      page: operationPage,
+      page_size: 10
+    },
+    {
+      query: {
+        queryKey: [
+          "internal",
+          "audit",
+          "operation-logs",
+          operationSearch,
+          operationStatus,
+          operationStartedAt,
+          operationEndedAt,
+          operationPage
+        ],
+        enabled: auth.token !== null
+      },
+      request: authRequest
+    }
+  );
+  const loginLogsQuery = useGetLoginLogsApiV1AuditLoginLogsGet(
+    {
+      q: loginSearch || undefined,
+      status: toLoginStatus(loginStatus),
+      started_at: loginStartedAt || undefined,
+      ended_at: loginEndedAt || undefined,
+      page: loginPage,
+      page_size: 10
+    },
+    {
+      query: {
+        queryKey: [
+          "internal",
+          "audit",
+          "login-logs",
+          loginSearch,
+          loginStatus,
+          loginStartedAt,
+          loginEndedAt,
+          loginPage
+        ],
+        enabled: auth.token !== null
+      },
+      request: authRequest
+    }
+  );
+  const operationLogsPage = operationLogsQuery.data?.status === 200 ? operationLogsQuery.data.data.data : undefined;
   const operationTotalPages = operationLogsPage
     ? Math.max(1, Math.ceil(operationLogsPage.total / operationLogsPage.page_size))
     : 1;
-  const loginLogsPage = loginLogsQuery.data?.data;
+  const loginLogsPage = loginLogsQuery.data?.status === 200 ? loginLogsQuery.data.data.data : undefined;
   const loginTotalPages = loginLogsPage ? Math.max(1, Math.ceil(loginLogsPage.total / loginLogsPage.page_size)) : 1;
 
   async function downloadCsv(kind: "operation" | "login") {

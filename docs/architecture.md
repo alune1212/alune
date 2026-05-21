@@ -1,6 +1,6 @@
 # Architecture
 
-`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6G-L MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, internal system pages for users, roles, departments, audit logs, dictionaries, and file attachments backed by local storage or MinIO with optional ClamAV scanning, plus Orval API client generation from FastAPI OpenAPI and generated-client migration for compatibility calls and low-risk frontend entry points.
+`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6G-M MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, internal system pages for users, roles, departments, audit logs, dictionaries, and file attachments backed by local storage or MinIO with optional ClamAV scanning, plus Orval API client generation from FastAPI OpenAPI and generated-client migration for compatibility calls, low-risk frontend entry points, and internal-system read queries.
 
 ## Monorepo Layout
 
@@ -65,7 +65,7 @@ The app uses:
 - Frontend interaction tests cover user batch status, role permission search, dictionary type creation, department tree/create flow, audit export filters, and file upload.
 - Navigation permission filtering in `src/config/navigation.ts`.
 
-The dashboard health check and auth entry points now use Orval-generated React Query hooks from `@alune/api-client/generated`. Internal system pages still call the `@alune/api-client` compatibility layer while call sites are migrated incrementally.
+The dashboard health check, auth entry points, and internal-system read queries now use Orval-generated React Query hooks from `@alune/api-client/generated`. Mutation-heavy page actions still call the `@alune/api-client` compatibility layer while write call sites are migrated incrementally.
 
 Stage 6G-E adds a reproducible generation path:
 
@@ -74,7 +74,7 @@ Stage 6G-E adds a reproducible generation path:
 - `packages/api-client/orval.config.ts` reads that local schema and writes `packages/api-client/src/generated/api.ts`.
 - `packages/api-client/src/runtime-config.ts` stores the API base URL; `apps/web/src/app/main.tsx` initializes it from `VITE_API_BASE_URL`.
 - `packages/api-client/src/orval-fetch.ts` is the generated client's custom fetcher. It uses the runtime API base URL and returns Orval's `{ data, status, headers }` response shape.
-- `packages/api-client/src/index.ts` remains a compatibility layer while frontend call sites are migrated incrementally. JSON compatibility functions and multipart upload delegate to generated requests; CSV export and file download still return `Blob`, but now reuse generated URL helpers for paths and supported filters.
+- `packages/api-client/src/index.ts` remains a compatibility layer for write actions and binary download/export boundaries while frontend call sites are migrated incrementally. JSON compatibility functions and multipart upload delegate to generated requests; CSV export and file download still return `Blob`, but now reuse generated URL helpers for paths and supported filters.
 
 ## Runtime Data Flow
 
