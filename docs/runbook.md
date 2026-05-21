@@ -251,6 +251,26 @@ If you want Playwright to start the Vite dev server itself, keep the API running
 E2E_START_WEB_SERVER=true E2E_API_BASE_URL=http://localhost:8000 E2E_ADMIN_USERNAME=e2e_admin E2E_ADMIN_PASSWORD=change-this-password pnpm --filter @alune/web e2e
 ```
 
+## GitHub Actions CI
+
+The workflow lives at `.github/workflows/ci.yml`.
+
+Default push/PR quality gate:
+
+- installs pnpm, Node.js 24, Python 3.14, and uv;
+- runs `pnpm install --frozen-lockfile` and `uv sync --frozen`;
+- runs `pnpm api-client:generate`;
+- fails if `packages/api-client/openapi/openapi.json` or `packages/api-client/src/generated/api.ts` changes after generation;
+- runs `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`;
+- validates `docker compose config` and `docker compose --profile app config`.
+
+Manual Playwright smoke job:
+
+1. Open the CI workflow in GitHub Actions.
+2. Use **Run workflow**.
+3. Enable `run_playwright_smoke`.
+4. The job starts PostgreSQL/Redis, runs migrations, seeds `e2e_admin`, starts the API, and runs the web Playwright smoke suite.
+
 ## Troubleshooting
 
 ### PostgreSQL 18 Restart Loop

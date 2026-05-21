@@ -1,0 +1,169 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      run_playwright_smoke:
+        description: Run Playwright smoke tests against local CI services
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  UV_CACHE_DIR: .uv-cache
+
+jobs:
+  quality:
+    name: Quality Gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10.26.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: apps/api/uv.lock
+
+      - name: Install Node dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install API dependencies
+        working-directory: apps/api
+        run: uv sync --frozen
+
+      - name: Generate API client
+        run: pnpm api-client:generate
+
+      - name: Check generated API client is committed
+        run: git diff --exit-code -- packages/api-client/openapi/openapi.json packages/api-client/src/generated/api.ts
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+      - name: Validate Docker Compose
+        run: |
+          docker compose config
+          docker compose --profile app config
+
+  playwright-smoke:
+    name: Playwright Smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: github.event_name == 'workflow_dispatch' && inputs.run_playwright_smoke
+
+    env:
+      API_CORS_ORIGINS: http://localhost:5173
+      DATABASE_URL: postgresql+asyncpg://app:app@localhost:5432/company_admin
+      E2E_ADMIN_PASSWORD: change-this-password
+      E2E_ADMIN_USERNAME: e2e_admin
+      E2E_API_BASE_URL: http://localhost:8000
+      E2E_BASE_URL: http://localhost:5173
+      E2E_START_WEB_SERVER: "true"
+      FIRST_SUPERUSER_EMAIL: e2e_admin@example.com
+      FIRST_SUPERUSER_PASSWORD: change-this-password
+      FIRST_SUPERUSER_USERNAME: e2e_admin
+      JWT_SECRET_KEY: ci-only-secret
+      REDIS_URL: redis://localhost:6379/0
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10.26.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: apps/api/uv.lock
+
+      - name: Install Node dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install API dependencies
+        working-directory: apps/api
+        run: uv sync --frozen
+
+      - name: Install Playwright browsers
+        run: pnpm --filter @alune/web exec playwright install --with-deps chromium
+
+      - name: Start dependencies
+        run: docker compose up -d postgres redis
+
+      - name: Run migrations
+        run: pnpm db:upgrade
+
+      - name: Seed e2e administrator
+        run: pnpm db:seed
+
+      - name: Start API
+        working-directory: apps/api
+        run: |
+          uv run fastapi run app/main.py --host 0.0.0.0 --port 8000 > api.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://localhost:8000/api/v1/health >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat api.log
+          exit 1
+
+      - name: Run Playwright smoke tests
+        run: pnpm --filter @alune/web e2e

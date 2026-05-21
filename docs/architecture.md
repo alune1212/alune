@@ -1,6 +1,6 @@
 # Architecture
 
-`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6G-P MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, internal system pages for users, roles, departments, audit logs, dictionaries, and file attachments backed by local storage or MinIO with optional ClamAV scanning, plus Orval API client generation from FastAPI OpenAPI, generated-client migration for frontend reads/writes, a narrow compatibility client for binary and CSV boundaries, and Playwright smoke tests for login/navigation.
+`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6G-Q MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, internal system pages for users, roles, departments, audit logs, dictionaries, and file attachments backed by local storage or MinIO with optional ClamAV scanning, plus Orval API client generation from FastAPI OpenAPI, generated-client migration for frontend reads/writes, a narrow compatibility client for binary and CSV boundaries, Playwright smoke tests for login/navigation, and GitHub Actions CI quality gates.
 
 ## Monorepo Layout
 
@@ -76,6 +76,13 @@ Stage 6G-E adds a reproducible generation path:
 - `packages/api-client/src/runtime-config.ts` stores the API base URL; `apps/web/src/app/main.tsx` initializes it from `VITE_API_BASE_URL`.
 - `packages/api-client/src/orval-fetch.ts` is the generated client's custom fetcher. It uses the runtime API base URL and returns Orval's `{ data, status, headers }` response shape.
 - `packages/api-client/src/index.ts` remains a narrow compatibility layer for runtime configuration, audit CSV export, file upload, and file download. It no longer exports the migrated JSON read/write helpers; frontend code should import generated hooks and types from `@alune/api-client/generated` for normal API access.
+
+## CI
+
+GitHub Actions workflow: `.github/workflows/ci.yml`.
+
+- `quality` runs on push and pull request. It sets up Node.js 24, pnpm 10.26.1, Python 3.14, and uv, then verifies API client generation drift, lint, typecheck, tests, build, and Docker Compose config.
+- `playwright-smoke` is manual through `workflow_dispatch` with `run_playwright_smoke=true`. It starts PostgreSQL/Redis, applies migrations, seeds `e2e_admin`, starts the API, and runs `apps/web/e2e/admin-smoke.spec.ts`.
 
 ## Runtime Data Flow
 
