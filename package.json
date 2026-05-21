@@ -22,7 +22,8 @@
     "lint": "turbo run lint",
     "format": "turbo run format",
     "typecheck": "turbo run typecheck",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "e2e": "pnpm --filter @alune/web e2e"
   },
   "devDependencies": {
     "prettier": "^3.6.2",

@@ -1,7 +1,7 @@
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { fileURLToPath, URL } from "node:url";
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
@@ -11,6 +11,7 @@ export default defineConfig({
     }
   },
   test: {
+    exclude: [...configDefaults.exclude, "e2e/**"],
     restoreMocks: true,
     environment: "jsdom",
     environmentOptions: {

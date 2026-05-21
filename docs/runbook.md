@@ -205,6 +205,38 @@ On this Mac as of 2026-05-19, `alune-platform` uses Playwright `1.60.0` with:
 
 In constrained Codex sandbox sessions, launching Chromium may fail with a macOS Mach port permission error. Run Playwright browser checks outside the sandbox when that happens.
 
+## Playwright Smoke Tests
+
+The stage 6G-P smoke suite lives in `apps/web/e2e/admin-smoke.spec.ts` and covers:
+
+- protected internal routes redirecting to `/login` when unauthenticated;
+- successful login with a seeded administrator;
+- navigation through Dashboard, Users, Roles, Departments, Audit, Dictionaries, and Files.
+
+Prepare a dedicated local e2e administrator:
+
+```bash
+FIRST_SUPERUSER_USERNAME=e2e_admin FIRST_SUPERUSER_EMAIL=e2e_admin@example.com FIRST_SUPERUSER_PASSWORD=change-this-password pnpm db:seed
+```
+
+Run against local dev servers:
+
+```bash
+E2E_BASE_URL=http://localhost:5173 E2E_ADMIN_USERNAME=e2e_admin E2E_ADMIN_PASSWORD=change-this-password pnpm --filter @alune/web e2e
+```
+
+Run against the Docker app profile when Web/API are mapped to `15173/18000`:
+
+```bash
+E2E_BASE_URL=http://localhost:15173 E2E_ADMIN_USERNAME=e2e_admin E2E_ADMIN_PASSWORD=change-this-password pnpm --filter @alune/web e2e
+```
+
+If you want Playwright to start the Vite dev server itself, keep the API running and use:
+
+```bash
+E2E_START_WEB_SERVER=true E2E_API_BASE_URL=http://localhost:8000 E2E_ADMIN_USERNAME=e2e_admin E2E_ADMIN_PASSWORD=change-this-password pnpm --filter @alune/web e2e
+```
+
 ## Troubleshooting
 
 ### PostgreSQL 18 Restart Loop

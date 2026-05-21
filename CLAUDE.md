@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## 项目概述
 
-alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础和阶段 6G-O 内部系统底座交互、存储、上传扫描、前端测试、Orval API client 生成、内部系统读写 generated hooks 迁移与 API client 兼容层收缩。
+alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础和阶段 6G-P 内部系统底座交互、存储、上传扫描、前端测试、Orval API client 生成、内部系统读写 generated hooks 迁移、API client 兼容层收缩与 Playwright 登录/导航冒烟测试。
 
 ## Quick Start
 
@@ -71,6 +71,7 @@ cd apps/web
 pnpm dev         # 启动开发服务器 (http://localhost:5173)
 pnpm build       # TypeScript 编译 + Vite 构建
 pnpm test        # 运行 Vitest 测试
+pnpm e2e         # 运行 Playwright 冒烟测试，需要先启动 API/Web 并传入 e2e 管理员环境变量
 pnpm typecheck   # TypeScript 类型检查
 pnpm lint        # ESLint
 pnpm exec playwright --version  # 检查 Playwright CLI
@@ -183,6 +184,7 @@ alune-platform/
 - **后端**: pytest + pytest-asyncio，测试在 `app/tests/`
 - **前端**: Vitest + Testing Library，测试文件 `*.test.ts` / `*.test.tsx`
 - **前端交互覆盖**: 用户批量状态、角色权限搜索、字典类型创建、部门树和创建、审计导出过滤、文件上传
+- **Playwright 冒烟覆盖**: `apps/web/e2e/admin-smoke.spec.ts` 覆盖未登录跳转、管理员登录和内部系统导航；常用命令为 `E2E_BASE_URL=http://localhost:5173 E2E_ADMIN_USERNAME=e2e_admin E2E_ADMIN_PASSWORD=change-this-password pnpm --filter @alune/web e2e`
 - **API 测试**: 使用 httpx AsyncClient + ASGITransport
 - **浏览器测试**: Playwright `1.60.0` 已安装 Chromium `1223` 和 `chromium_headless_shell-1223`。如果 Codex 沙箱内启动 Chromium 出现 macOS Mach port 权限错误，改到沙箱外执行浏览器检查。
 
@@ -196,4 +198,4 @@ alune-platform/
 
 ## 当前阶段边界
 
-已完成阶段 0、1、2、3、4、5、6A、6B、6C、6D、6E、阶段 6F、阶段 6G-A、阶段 6G-B、阶段 6G-C、阶段 6G-D、阶段 6G-E、阶段 6G-F、阶段 6G-G、阶段 6G-H、阶段 6G-I、阶段 6G-J、阶段 6G-K、阶段 6G-L、阶段 6G-M、阶段 6G-N 和阶段 6G-O 的最小 MVP。不包含：复杂组织架构、审批、报表和公司业务模块。下一阶段建议：补一组 Playwright 冒烟测试覆盖登录和内部系统导航。
+已完成阶段 0、1、2、3、4、5、6A、6B、6C、6D、6E、阶段 6F、阶段 6G-A、阶段 6G-B、阶段 6G-C、阶段 6G-D、阶段 6G-E、阶段 6G-F、阶段 6G-G、阶段 6G-H、阶段 6G-I、阶段 6G-J、阶段 6G-K、阶段 6G-L、阶段 6G-M、阶段 6G-N、阶段 6G-O 和阶段 6G-P 的最小 MVP。不包含：复杂组织架构、审批、报表和公司业务模块。下一阶段建议：添加 GitHub Actions CI，串联 lint/typecheck/test/build/api-client 生成，并评估是否在 CI 中跑 Playwright smoke。

@@ -1,6 +1,6 @@
 # alune-platform
 
-公司内部管理系统 MVP。当前阶段包含最小可运行 monorepo、FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地登录、权限基础，以及阶段 6G-O 的内部系统底座交互、存储、上传扫描、前端测试、Orval API client 生成、内部系统读写 generated hooks 迁移和 API client 兼容层收缩。
+公司内部管理系统 MVP。当前阶段包含最小可运行 monorepo、FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地登录、权限基础，以及阶段 6G-P 的内部系统底座交互、存储、上传扫描、前端测试、Orval API client 生成、内部系统读写 generated hooks 迁移、API client 兼容层收缩和 Playwright 登录/导航冒烟测试。
 
 ## 技术栈
 
@@ -177,6 +177,19 @@ pnpm test
 pnpm exec playwright --version
 ```
 
+Playwright 冒烟测试需要先启动 API/Web，并准备一个有完整菜单权限的本地管理员：
+
+```bash
+FIRST_SUPERUSER_USERNAME=e2e_admin FIRST_SUPERUSER_EMAIL=e2e_admin@example.com FIRST_SUPERUSER_PASSWORD=change-this-password pnpm db:seed
+E2E_BASE_URL=http://localhost:5173 E2E_ADMIN_USERNAME=e2e_admin E2E_ADMIN_PASSWORD=change-this-password pnpm --filter @alune/web e2e
+```
+
+如果使用完整 Docker app profile 且端口映射为 `15173/18000`：
+
+```bash
+E2E_BASE_URL=http://localhost:15173 E2E_ADMIN_USERNAME=e2e_admin E2E_ADMIN_PASSWORD=change-this-password pnpm --filter @alune/web e2e
+```
+
 ## 访问地址
 
 - 前端：http://localhost:5173
@@ -186,7 +199,7 @@ pnpm exec playwright --version
 
 ## 当前阶段边界
 
-已完成阶段 0、阶段 1、阶段 2、阶段 3、阶段 4、阶段 5、阶段 6A、阶段 6B、阶段 6C、阶段 6D、阶段 6E、阶段 6F、阶段 6G-A、阶段 6G-B、阶段 6G-C、阶段 6G-D、阶段 6G-E、阶段 6G-F、阶段 6G-G、阶段 6G-H、阶段 6G-I、阶段 6G-J、阶段 6G-K、阶段 6G-L、阶段 6G-M、阶段 6G-N 和阶段 6G-O 的内部系统底座 MVP。当前包含登录 MVP、权限基础、用户创建/启停/批量启停确认与结果反馈/资料编辑/部门分配/密码重置、用户角色分配、角色增删改和权限配置搜索分组及空状态、部门创建/启停/删除规则、部门树、登录/操作日志筛选分页/日期过滤/CSV 导出、字典类型维护、字典项维护、文件附件本地和 MinIO 上传下载、上传策略、文件存储后端抽象、ClamAV 上传扫描、用户/角色/字典/部门/审计/文件页面的前端交互测试、基于 FastAPI OpenAPI 的 Orval API client 生成、multipart binary 类型规范化、dashboard/auth 前端入口对 generated hooks 的迁移、内部系统只读页面对 generated hooks 的迁移、用户/角色/部门/字典 JSON 写操作对 generated mutation hooks 的迁移，以及 `packages/api-client` 兼容层收缩到配置、CSV 导出、文件上传和文件下载边界。不包含审批、报表和公司业务模块。
+已完成阶段 0、阶段 1、阶段 2、阶段 3、阶段 4、阶段 5、阶段 6A、阶段 6B、阶段 6C、阶段 6D、阶段 6E、阶段 6F、阶段 6G-A、阶段 6G-B、阶段 6G-C、阶段 6G-D、阶段 6G-E、阶段 6G-F、阶段 6G-G、阶段 6G-H、阶段 6G-I、阶段 6G-J、阶段 6G-K、阶段 6G-L、阶段 6G-M、阶段 6G-N、阶段 6G-O 和阶段 6G-P 的内部系统底座 MVP。当前包含登录 MVP、权限基础、用户创建/启停/批量启停确认与结果反馈/资料编辑/部门分配/密码重置、用户角色分配、角色增删改和权限配置搜索分组及空状态、部门创建/启停/删除规则、部门树、登录/操作日志筛选分页/日期过滤/CSV 导出、字典类型维护、字典项维护、文件附件本地和 MinIO 上传下载、上传策略、文件存储后端抽象、ClamAV 上传扫描、用户/角色/字典/部门/审计/文件页面的前端交互测试、基于 FastAPI OpenAPI 的 Orval API client 生成、multipart binary 类型规范化、dashboard/auth 前端入口对 generated hooks 的迁移、内部系统只读页面对 generated hooks 的迁移、用户/角色/部门/字典 JSON 写操作对 generated mutation hooks 的迁移、`packages/api-client` 兼容层收缩到配置、CSV 导出、文件上传和文件下载边界，以及 Playwright 覆盖登录和内部系统导航的冒烟测试。不包含审批、报表和公司业务模块。
 
 ## 当前数据库
 

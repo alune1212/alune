@@ -14,7 +14,7 @@ Project guidance for Codex and other AI agents working in this repository.
 - Alembic migration baseline with the `system_info` table.
 - Login MVP with `users`, password hashing, JWT login, `/auth/me`, frontend login, and a protected dashboard.
 - Permission baseline with roles, permissions, user-role links, role-permission links, backend permission dependency, and frontend menu filtering.
-- Stage 6G-O internal system foundation with user create/enable/disable/batch-status confirmation and result feedback/edit/password reset, user role assignment, user role/department filters, role create/update/delete guards, searchable grouped role permission assignment with empty-state feedback, department tree/update/delete rules, audit log filtering/pagination/date range/CSV export, dictionary type/item maintenance guards, local and MinIO file upload/download, upload policy checks, file storage backend factory, ClamAV upload scanner adapter, frontend interaction tests, Orval API client generation from FastAPI OpenAPI, generated-client migration for frontend reads/writes, multipart binary type normalization, and a narrowed root API client compatibility layer for runtime configuration, CSV export, file upload, and file download.
+- Stage 6G-P internal system foundation with user create/enable/disable/batch-status confirmation and result feedback/edit/password reset, user role assignment, user role/department filters, role create/update/delete guards, searchable grouped role permission assignment with empty-state feedback, department tree/update/delete rules, audit log filtering/pagination/date range/CSV export, dictionary type/item maintenance guards, local and MinIO file upload/download, upload policy checks, file storage backend factory, ClamAV upload scanner adapter, frontend interaction tests, Orval API client generation from FastAPI OpenAPI, generated-client migration for frontend reads/writes, multipart binary type normalization, a narrowed root API client compatibility layer for runtime configuration, CSV export, file upload, and file download, plus Playwright smoke coverage for login and internal-system navigation.
 
 Do not add approval flows, reports, payroll, or company-specific business modules unless the user explicitly asks for that phase.
 
@@ -37,6 +37,7 @@ UV_CACHE_DIR=.uv-cache pnpm test
 UV_CACHE_DIR=.uv-cache pnpm api-client:generate
 pnpm --filter @alune/api-client typecheck
 pnpm --filter @alune/api-client test
+pnpm --filter @alune/web e2e --list
 pnpm build
 docker compose config
 docker compose --profile app config
@@ -51,6 +52,7 @@ pnpm docker:logs
 pnpm docker:down
 pnpm db:upgrade
 FIRST_SUPERUSER_PASSWORD=change-this-password pnpm db:seed
+E2E_BASE_URL=http://localhost:5173 E2E_ADMIN_USERNAME=e2e_admin E2E_ADMIN_PASSWORD=change-this-password pnpm --filter @alune/web e2e
 ```
 
 If ports 8000 or 5173 are already occupied:

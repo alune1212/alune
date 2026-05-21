@@ -1,6 +1,6 @@
 # Architecture
 
-`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6G-O MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, internal system pages for users, roles, departments, audit logs, dictionaries, and file attachments backed by local storage or MinIO with optional ClamAV scanning, plus Orval API client generation from FastAPI OpenAPI, generated-client migration for frontend reads/writes, and a narrow compatibility client for binary and CSV boundaries.
+`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6G-P MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, internal system pages for users, roles, departments, audit logs, dictionaries, and file attachments backed by local storage or MinIO with optional ClamAV scanning, plus Orval API client generation from FastAPI OpenAPI, generated-client migration for frontend reads/writes, a narrow compatibility client for binary and CSV boundaries, and Playwright smoke tests for login/navigation.
 
 ## Monorepo Layout
 
@@ -63,6 +63,7 @@ The app uses:
 - Login page and auth provider in `src/features/auth/`.
 - Users, roles, departments, audit, dictionaries, and files pages in `src/features/`; users include role/department filters plus confirmed batch status controls with result feedback, roles include guarded create/edit/delete controls plus searchable grouped permissions with empty-state feedback, audit includes date filters and CSV export, and dictionaries include type/item maintenance controls.
 - Frontend interaction tests cover user batch status, role permission search, dictionary type creation, department tree/create flow, audit export filters, and file upload.
+- Playwright smoke tests in `apps/web/e2e/` cover protected-route redirect, seeded-admin login, and internal-system navigation.
 - Navigation permission filtering in `src/config/navigation.ts`.
 
 The dashboard health check, auth entry points, internal-system read queries, and user/role/department/dictionary JSON write actions now use Orval-generated React Query hooks from `@alune/api-client/generated`. The `@alune/api-client` root export is now intentionally narrow: runtime configuration, audit CSV export, file upload, file download, and the few types needed by those compatibility boundaries.
