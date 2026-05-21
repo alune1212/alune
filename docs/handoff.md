@@ -66,10 +66,13 @@ E2E_BASE_URL=http://localhost:15173 E2E_ADMIN_USERNAME=e2e_admin E2E_ADMIN_PASSW
 
 ## Current Services
 
-- Frontend: http://localhost:5173
-- API docs: http://localhost:8000/docs
-- API health: http://localhost:8000/api/v1/health
-- DB health: http://localhost:8000/api/v1/health/db
+- Default frontend: http://localhost:5173
+- Default API docs: http://localhost:8000/docs
+- Default API health: http://localhost:8000/api/v1/health
+- Default DB health: http://localhost:8000/api/v1/health/db
+- Alternate Docker app profile frontend: http://localhost:15173
+- Alternate Docker app profile API docs: http://localhost:18000/docs
+- Alternate Docker app profile API health: http://localhost:18000/api/v1/health
 - PostgreSQL: localhost:5432
 - Redis: localhost:6379
 - MinIO API, when profile is enabled: http://localhost:9000
@@ -80,7 +83,9 @@ E2E_BASE_URL=http://localhost:15173 E2E_ADMIN_USERNAME=e2e_admin E2E_ADMIN_PASSW
 
 - Full Docker app profile can be started with `docker compose --profile app up --build`.
 - Local MinIO can be started with `docker compose --profile minio up -d minio minio-init`; use `FILE_STORAGE_BACKEND=minio` for API uploads against MinIO.
+- `minio-init` is a one-shot bucket initializer. `Exited (0)` is expected and the container can be removed after completion; Compose recreates it on the next `minio-init` run.
 - Local ClamAV can be started with `docker compose --profile clamav up -d clamav`; use `UPLOAD_SCANNER_ENABLED=true` to scan uploads through ClamAV.
+- The API root `/` intentionally returns `{"detail":"Not Found"}`. Use `/docs`, `/api/v1/health`, or `/api/v1/health/db` for browser/API checks.
 - Playwright Chromium for this project is installed for Playwright `1.60.0` under `/Users/alune/Library/Caches/ms-playwright/chromium-1223`.
 - Codex sandbox may block Chromium launch with a macOS Mach port permission error; browser smoke tests should be run outside the sandbox when that happens.
 - The Playwright smoke suite expects a seeded administrator. For isolated local verification, seed `e2e_admin` with `FIRST_SUPERUSER_USERNAME=e2e_admin FIRST_SUPERUSER_EMAIL=e2e_admin@example.com FIRST_SUPERUSER_PASSWORD=change-this-password pnpm db:seed`, then pass `E2E_ADMIN_USERNAME` and `E2E_ADMIN_PASSWORD`.

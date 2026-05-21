@@ -29,6 +29,8 @@ pnpm dev
 API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker compose --profile app up --build
 ```
 
+替代端口下访问：前端 http://localhost:15173 | 后端 http://localhost:18000/docs。后端根路径 `/` 没有页面，直接打开 API 根地址返回 `{"detail":"Not Found"}` 属于正常行为。
+
 ## 常用命令
 
 ### 根目录（统一调度）
@@ -142,6 +144,7 @@ alune-platform/
 - **minio-init**: 本地 Docker MinIO bucket 初始化（profile: minio）
 - **clamav**: ClamAV/clamd 上传扫描服务，端口 3310（profile: clamav）
 - PostgreSQL 18 volume 必须挂载到 `/var/lib/postgresql`，不要改回 `/var/lib/postgresql/data`
+- `minio-init` 是一次性初始化容器，`Exited (0)` 表示 bucket 初始化完成；删除该停止容器不会影响 MinIO 服务或数据卷，下次启动 `minio-init` 会重新创建。
 
 ## 环境变量
 

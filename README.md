@@ -111,6 +111,13 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 - API：http://localhost:8000
 - Web：http://localhost:5173
 
+如果使用上面的替代端口命令，访问地址变为：
+
+- API：http://localhost:18000
+- Web：http://localhost:15173
+
+后端根路径 `/` 没有定义页面，浏览器直接打开 API 根地址会返回 `{"detail":"Not Found"}`。这是正常行为；查看接口文档请打开 `/docs`，健康检查请打开 `/api/v1/health`。
+
 停止 Docker 服务：
 
 ```bash
@@ -196,6 +203,13 @@ E2E_BASE_URL=http://localhost:15173 E2E_ADMIN_USERNAME=e2e_admin E2E_ADMIN_PASSW
 - 后端 Swagger：http://localhost:8000/docs
 - Health：http://localhost:8000/api/v1/health
 - DB Health：http://localhost:8000/api/v1/health/db
+
+替代端口运行 Docker app profile 时：
+
+- 前端：http://localhost:15173
+- 后端 Swagger：http://localhost:18000/docs
+- Health：http://localhost:18000/api/v1/health
+- DB Health：http://localhost:18000/api/v1/health/db
 
 ## 当前阶段边界
 

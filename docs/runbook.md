@@ -125,6 +125,20 @@ If host ports are busy:
 API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker compose --profile app up --build
 ```
 
+With the default mapping, open:
+
+- Web: `http://localhost:5173`
+- API docs: `http://localhost:8000/docs`
+- API health: `http://localhost:8000/api/v1/health`
+
+With the alternate mapping above, open:
+
+- Web: `http://localhost:15173`
+- API docs: `http://localhost:18000/docs`
+- API health: `http://localhost:18000/api/v1/health`
+
+The API root path `/` is intentionally not routed. Opening `http://localhost:8000` or `http://localhost:18000` directly returns `{"detail":"Not Found"}`; use `/docs` or `/api/v1/health` for browser checks.
+
 ## Smoke Tests
 
 ```bash
@@ -331,6 +345,7 @@ MINIO_SECURE=false
 ```
 
 The `minio-init` service creates the configured bucket for local Docker runs.
+It is a one-shot initialization container. After it exits with code `0`, it can be removed with `docker rm alune-platform-minio-init` without affecting the running `minio` service or the `minio_data` volume; Compose recreates it when the `minio-init` service is started again.
 
 For local Docker testing with ClamAV:
 
