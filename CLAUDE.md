@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## 项目概述
 
-alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础和阶段 6G-N 内部系统底座交互、存储、上传扫描、前端测试、Orval API client 生成与内部系统读写 generated hooks 迁移加固。
+alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础和阶段 6G-O 内部系统底座交互、存储、上传扫描、前端测试、Orval API client 生成、内部系统读写 generated hooks 迁移与 API client 兼容层收缩。
 
 ## Quick Start
 
@@ -196,4 +196,4 @@ alune-platform/
 
 ## 当前阶段边界
 
-已完成阶段 0、1、2、3、4、5、6A、6B、6C、6D、6E、阶段 6F、阶段 6G-A、阶段 6G-B、阶段 6G-C、阶段 6G-D、阶段 6G-E、阶段 6G-F、阶段 6G-G、阶段 6G-H、阶段 6G-I、阶段 6G-J、阶段 6G-K、阶段 6G-L、阶段 6G-M 和阶段 6G-N 的最小 MVP。不包含：复杂组织架构、审批、报表和公司业务模块。下一阶段建议：收缩二进制上传/下载和 CSV 导出边界的兼容层，并删除不再使用的 JSON 兼容 helper。
+已完成阶段 0、1、2、3、4、5、6A、6B、6C、6D、6E、阶段 6F、阶段 6G-A、阶段 6G-B、阶段 6G-C、阶段 6G-D、阶段 6G-E、阶段 6G-F、阶段 6G-G、阶段 6G-H、阶段 6G-I、阶段 6G-J、阶段 6G-K、阶段 6G-L、阶段 6G-M、阶段 6G-N 和阶段 6G-O 的最小 MVP。不包含：复杂组织架构、审批、报表和公司业务模块。下一阶段建议：补一组 Playwright 冒烟测试覆盖登录和内部系统导航。

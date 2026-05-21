@@ -33,6 +33,7 @@
 - Added stage 6G-L generated hook migration: OpenAPI export normalizes multipart binary fields so Orval emits `Blob` upload bodies, and dashboard health/auth frontend entry points now use generated React Query hooks directly.
 - Added stage 6G-M internal-system read hook migration: users, roles, departments, dictionaries, audit logs, and file attachment pages now use Orval-generated React Query hooks for read queries while keeping write actions on the compatibility layer.
 - Added stage 6G-N internal-system JSON write hook migration: user, role, department, and dictionary page mutations now use Orval-generated mutation hooks; binary upload/download and CSV export remain on the compatibility layer.
+- Added stage 6G-O API client compatibility shrink: removed migrated JSON helper exports from `packages/api-client`, leaving runtime configuration, audit CSV export, file upload, file download, and boundary types.
 - Verified Docker dependency services with PostgreSQL and Redis healthy.
 - Verified `/api/v1/health/db` returns 200 when the API can reach Docker PostgreSQL.
 
@@ -89,6 +90,6 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 
 Next stage should continue hardening the internal system foundation:
 
-- Continue shrinking the compatibility client around binary upload/download and CSV export boundaries, then remove unused compatibility JSON helpers.
+- Add a small Playwright smoke suite for login and internal-system navigation before starting new business modules.
 
 Do not start approval flows, payroll, reports, or company-specific business modules before the internal system foundation is in place.

@@ -1,6 +1,6 @@
 # Architecture
 
-`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6G-N MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, internal system pages for users, roles, departments, audit logs, dictionaries, and file attachments backed by local storage or MinIO with optional ClamAV scanning, plus Orval API client generation from FastAPI OpenAPI and generated-client migration for compatibility calls, low-risk frontend entry points, internal-system read queries, and internal-system JSON write actions.
+`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6G-O MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, internal system pages for users, roles, departments, audit logs, dictionaries, and file attachments backed by local storage or MinIO with optional ClamAV scanning, plus Orval API client generation from FastAPI OpenAPI, generated-client migration for frontend reads/writes, and a narrow compatibility client for binary and CSV boundaries.
 
 ## Monorepo Layout
 
@@ -65,7 +65,7 @@ The app uses:
 - Frontend interaction tests cover user batch status, role permission search, dictionary type creation, department tree/create flow, audit export filters, and file upload.
 - Navigation permission filtering in `src/config/navigation.ts`.
 
-The dashboard health check, auth entry points, internal-system read queries, and user/role/department/dictionary JSON write actions now use Orval-generated React Query hooks from `@alune/api-client/generated`. Binary upload/download and CSV export boundaries still call the `@alune/api-client` compatibility layer while those call sites are migrated incrementally.
+The dashboard health check, auth entry points, internal-system read queries, and user/role/department/dictionary JSON write actions now use Orval-generated React Query hooks from `@alune/api-client/generated`. The `@alune/api-client` root export is now intentionally narrow: runtime configuration, audit CSV export, file upload, file download, and the few types needed by those compatibility boundaries.
 
 Stage 6G-E adds a reproducible generation path:
 
@@ -74,26 +74,27 @@ Stage 6G-E adds a reproducible generation path:
 - `packages/api-client/orval.config.ts` reads that local schema and writes `packages/api-client/src/generated/api.ts`.
 - `packages/api-client/src/runtime-config.ts` stores the API base URL; `apps/web/src/app/main.tsx` initializes it from `VITE_API_BASE_URL`.
 - `packages/api-client/src/orval-fetch.ts` is the generated client's custom fetcher. It uses the runtime API base URL and returns Orval's `{ data, status, headers }` response shape.
-- `packages/api-client/src/index.ts` remains a compatibility layer for binary upload/download and CSV export boundaries while frontend call sites are migrated incrementally. JSON compatibility functions and multipart upload delegate to generated requests; CSV export and file download still return `Blob`, but now reuse generated URL helpers for paths and supported filters.
+- `packages/api-client/src/index.ts` remains a narrow compatibility layer for runtime configuration, audit CSV export, file upload, and file download. It no longer exports the migrated JSON read/write helpers; frontend code should import generated hooks and types from `@alune/api-client/generated` for normal API access.
 
 ## Runtime Data Flow
 
 ```mermaid
 flowchart LR
   Browser["Browser"] --> Web["Vite dev server or Nginx static web"]
-  Web --> HealthClient["@alune/api-client fetchHealthStatus"]
-  Web --> AuthClient["@alune/api-client loginWithPassword / fetchCurrentUser"]
-  Web --> InternalClient["@alune/api-client users / roles / departments"]
-  Web --> FileClient["@alune/api-client file upload / download"]
-  HealthClient --> API["FastAPI /api/v1/health"]
-  AuthClient --> Login["/api/v1/auth/login"]
-  AuthClient --> Me["/api/v1/auth/me"]
-  InternalClient --> Users["/api/v1/users"]
-  InternalClient --> Roles["/api/v1/roles"]
-  InternalClient --> Departments["/api/v1/departments"]
-  InternalClient --> Audit["/api/v1/audit"]
-  InternalClient --> Dictionaries["/api/v1/dictionaries"]
-  FileClient --> Files["/api/v1/files"]
+  Web --> GeneratedClient["@alune/api-client/generated hooks"]
+  Web --> BinaryClient["@alune/api-client CSV / file binary helpers"]
+  Web --> RuntimeConfig["@alune/api-client configureApiClient"]
+  GeneratedClient --> API["FastAPI /api/v1/health"]
+  GeneratedClient --> Login["/api/v1/auth/login"]
+  GeneratedClient --> Me["/api/v1/auth/me"]
+  GeneratedClient --> Users["/api/v1/users"]
+  GeneratedClient --> Roles["/api/v1/roles"]
+  GeneratedClient --> Departments["/api/v1/departments"]
+  GeneratedClient --> Audit["/api/v1/audit"]
+  GeneratedClient --> Dictionaries["/api/v1/dictionaries"]
+  GeneratedClient --> Files["/api/v1/files"]
+  BinaryClient --> Audit
+  BinaryClient --> Files
   API --> DBCheck["/api/v1/health/db"]
   DBCheck --> Postgres["PostgreSQL 18"]
   Login --> Postgres

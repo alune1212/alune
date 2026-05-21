@@ -4,7 +4,7 @@ Frontend API client package.
 
 The current package contains:
 
-- `src/index.ts`: compatibility layer still used by binary upload/download and CSV export boundaries. JSON requests and multipart upload delegate to generated request functions; CSV export and file download keep `Blob` returns while reusing generated URL helpers.
+- `src/index.ts`: narrow compatibility layer for runtime configuration, audit CSV export, file upload, file download, and the types needed by those boundaries. Normal JSON reads and writes should use `@alune/api-client/generated` directly.
 - `src/generated/api.ts`: Orval-generated TypeScript types, request functions, and React Query hooks from FastAPI OpenAPI.
 
 Generate the client from the monorepo root:
