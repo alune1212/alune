@@ -271,12 +271,12 @@ export function UsersPage() {
   );
 
   function toggleRole(role: RolePublic) {
-    const nextRoleCodes = selectedRoleCodes.includes(role.code)
-      ? selectedRoleCodes.filter((code) => code !== role.code)
-      : [...selectedRoleCodes, role.code];
     if (selectedUserId === null) {
       return;
     }
+    const nextRoleCodes = selectedRoleCodes.includes(role.code)
+      ? selectedRoleCodes.filter((code) => code !== role.code)
+      : [...selectedRoleCodes, role.code];
     updateRolesMutation.mutate({
       userId: selectedUserId,
       data: { role_codes: nextRoleCodes }
