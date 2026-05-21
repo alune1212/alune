@@ -1,5 +1,5 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCallback, useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 
 import { DataTable } from "@/components/data/data-table";
@@ -8,15 +8,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/features/auth/auth-provider";
 import {
-  createDepartment,
-  deleteDepartment,
-  updateDepartment,
-  type DepartmentPublic
-} from "@alune/api-client";
-import {
+  useCreateDepartmentApiV1DepartmentsPost,
+  useDeleteDepartmentApiV1DepartmentsDepartmentIdDelete,
+  type DepartmentPublic,
   type DepartmentTreeNode,
   useGetDepartmentsApiV1DepartmentsGet,
-  useGetDepartmentTreeApiV1DepartmentsTreeGet
+  useGetDepartmentTreeApiV1DepartmentsTreeGet,
+  useUpdateDepartmentApiV1DepartmentsDepartmentIdPatch
 } from "@alune/api-client/generated";
 
 function DepartmentTree({ nodes, depth = 0 }: { nodes: DepartmentTreeNode[]; depth?: number }) {
@@ -75,29 +73,46 @@ export function DepartmentsPage() {
     },
     request: authRequest
   });
-  const createMutation = useMutation({
-    mutationFn: () =>
-      createDepartment(auth.token!, {
+  const createMutation = useCreateDepartmentApiV1DepartmentsPost({
+    mutation: {
+      onSuccess: () => {
+        setCode("");
+        setName("");
+        setDescription("");
+        queryClient.invalidateQueries({ queryKey: ["internal", "departments"] });
+      }
+    },
+    request: authRequest
+  });
+  const toggleMutation = useUpdateDepartmentApiV1DepartmentsDepartmentIdPatch({
+    mutation: {
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "departments"] })
+    },
+    request: authRequest
+  });
+  const deleteMutation = useDeleteDepartmentApiV1DepartmentsDepartmentIdDelete({
+    mutation: {
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "departments"] })
+    },
+    request: authRequest
+  });
+
+  function submitCreateDepartment() {
+    createMutation.mutate({
+      data: {
         code,
         name,
         description: description || null
-      }),
-    onSuccess: () => {
-      setCode("");
-      setName("");
-      setDescription("");
-      queryClient.invalidateQueries({ queryKey: ["internal", "departments"] });
-    }
-  });
-  const toggleMutation = useMutation({
-    mutationFn: (department: DepartmentPublic) =>
-      updateDepartment(auth.token!, department.id, { is_active: !department.is_active }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "departments"] })
-  });
-  const deleteMutation = useMutation({
-    mutationFn: (department: DepartmentPublic) => deleteDepartment(auth.token!, department.id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "departments"] })
-  });
+      }
+    });
+  }
+
+  const toggleDepartment = useCallback((department: DepartmentPublic) => {
+    toggleMutation.mutate({
+      departmentId: department.id,
+      data: { is_active: !department.is_active }
+    });
+  }, [toggleMutation]);
 
   const departmentsPage = departmentsQuery.data?.status === 200 ? departmentsQuery.data.data.data : undefined;
   const departments = departmentsPage?.items ?? [];
@@ -140,17 +155,17 @@ export function DepartmentsPage() {
         header: "Actions",
         cell: ({ row }) => (
           <div className="flex gap-2">
-            <Button type="button" variant="outline" onClick={() => toggleMutation.mutate(row.original)}>
+            <Button type="button" variant="outline" onClick={() => toggleDepartment(row.original)}>
               {row.original.is_active ? "Disable" : "Enable"}
             </Button>
-            <Button type="button" variant="outline" onClick={() => deleteMutation.mutate(row.original)}>
+            <Button type="button" variant="outline" onClick={() => deleteMutation.mutate({ departmentId: row.original.id })}>
               Delete
             </Button>
           </div>
         )
       }
     ],
-    [deleteMutation, toggleMutation]
+    [deleteMutation, toggleDepartment]
   );
 
   return (
@@ -173,7 +188,7 @@ export function DepartmentsPage() {
             onChange={(event) => setDescription(event.target.value)}
             placeholder="Description"
           />
-          <Button type="button" onClick={() => createMutation.mutate()} disabled={!code || !name}>
+          <Button type="button" onClick={submitCreateDepartment} disabled={!code || !name}>
             Create
           </Button>
         </CardContent>

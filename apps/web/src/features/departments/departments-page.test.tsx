@@ -6,32 +6,27 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DepartmentsPage } from "@/features/departments/departments-page";
 import { mockAuthValue, paginatedResponse, renderWithQueryClient, successResponse } from "@/test-utils";
 import {
-  createDepartment,
   type DepartmentPublic,
   type DepartmentTreeNode
-} from "@alune/api-client";
+} from "@alune/api-client/generated";
 import {
+  useCreateDepartmentApiV1DepartmentsPost,
+  useDeleteDepartmentApiV1DepartmentsDepartmentIdDelete,
   useGetDepartmentsApiV1DepartmentsGet,
-  useGetDepartmentTreeApiV1DepartmentsTreeGet
+  useGetDepartmentTreeApiV1DepartmentsTreeGet,
+  useUpdateDepartmentApiV1DepartmentsDepartmentIdPatch
 } from "@alune/api-client/generated";
 
 vi.mock("@/features/auth/auth-provider", () => ({
   useAuth: () => mockAuthValue
 }));
 
-vi.mock("@alune/api-client", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@alune/api-client")>();
-  return {
-    ...actual,
-    createDepartment: vi.fn(),
-    deleteDepartment: vi.fn(),
-    updateDepartment: vi.fn()
-  };
-});
-
 vi.mock("@alune/api-client/generated", () => ({
+  useCreateDepartmentApiV1DepartmentsPost: vi.fn(),
+  useDeleteDepartmentApiV1DepartmentsDepartmentIdDelete: vi.fn(),
   useGetDepartmentsApiV1DepartmentsGet: vi.fn(),
-  useGetDepartmentTreeApiV1DepartmentsTreeGet: vi.fn()
+  useGetDepartmentTreeApiV1DepartmentsTreeGet: vi.fn(),
+  useUpdateDepartmentApiV1DepartmentsDepartmentIdPatch: vi.fn()
 }));
 
 const departments: DepartmentPublic[] = [
@@ -63,18 +58,31 @@ const departmentTree: DepartmentTreeNode[] = [
     ]
   }
 ];
+const createDepartmentMutate = vi.fn();
 
 describe("DepartmentsPage", () => {
   beforeEach(() => {
+    createDepartmentMutate.mockReset();
     vi.mocked(useGetDepartmentsApiV1DepartmentsGet).mockReturnValue({
       data: { status: 200, data: paginatedResponse(departments) },
       isError: false
-    } as ReturnType<typeof useGetDepartmentsApiV1DepartmentsGet>);
+    } as unknown as ReturnType<typeof useGetDepartmentsApiV1DepartmentsGet>);
     vi.mocked(useGetDepartmentTreeApiV1DepartmentsTreeGet).mockReturnValue({
       data: { status: 200, data: successResponse(departmentTree) },
       isError: false
-    } as ReturnType<typeof useGetDepartmentTreeApiV1DepartmentsTreeGet>);
-    vi.mocked(createDepartment).mockResolvedValue(successResponse(departments[0]!));
+    } as unknown as ReturnType<typeof useGetDepartmentTreeApiV1DepartmentsTreeGet>);
+    vi.mocked(useCreateDepartmentApiV1DepartmentsPost).mockReturnValue({
+      mutate: createDepartmentMutate,
+      isPending: false
+    } as unknown as ReturnType<typeof useCreateDepartmentApiV1DepartmentsPost>);
+    vi.mocked(useDeleteDepartmentApiV1DepartmentsDepartmentIdDelete).mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false
+    } as unknown as ReturnType<typeof useDeleteDepartmentApiV1DepartmentsDepartmentIdDelete>);
+    vi.mocked(useUpdateDepartmentApiV1DepartmentsDepartmentIdPatch).mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false
+    } as unknown as ReturnType<typeof useUpdateDepartmentApiV1DepartmentsDepartmentIdPatch>);
   });
 
   it("shows the department tree and creates a department", async () => {
@@ -91,10 +99,12 @@ describe("DepartmentsPage", () => {
     await user.click(screen.getByRole("button", { name: "Create" }));
 
     await waitFor(() => {
-      expect(createDepartment).toHaveBeenCalledWith("test-token", {
-        code: "FIN",
-        name: "Finance",
-        description: "Finance team"
+      expect(createDepartmentMutate).toHaveBeenCalledWith({
+        data: {
+          code: "FIN",
+          name: "Finance",
+          description: "Finance team"
+        }
       });
     });
   });

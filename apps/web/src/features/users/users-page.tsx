@@ -1,5 +1,5 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCallback, useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 
 import { DataTable } from "@/components/data/data-table";
@@ -8,20 +8,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/features/auth/auth-provider";
 import {
-  createUser,
-  updateUser,
-  updateUserPassword,
-  updateUserRoles,
-  updateUsersStatus,
   type DepartmentPublic,
   type RolePublic,
   type UserManagementItem
-} from "@alune/api-client";
+} from "@alune/api-client/generated";
 import {
+  useCreateUserApiV1UsersPost,
   useGetDepartmentsApiV1DepartmentsGet,
   useGetUserRolesApiV1UsersUserIdRolesGet,
   useGetRolesApiV1RolesGet,
-  useGetUsersApiV1UsersGet
+  useGetUsersApiV1UsersGet,
+  useUpdateUserApiV1UsersUserIdPatch,
+  useUpdateUserPasswordApiV1UsersUserIdPasswordPatch,
+  useUpdateUserRolesApiV1UsersUserIdRolesPut,
+  useUpdateUsersStatusApiV1UsersBulkStatusPatch
 } from "@alune/api-client/generated";
 
 type BulkStatusAction = {
@@ -94,63 +94,107 @@ export function UsersPage() {
     },
     request: authRequest
   });
-  const createUserMutation = useMutation({
-    mutationFn: () =>
-      createUser(auth.token!, {
+  const createUserMutation = useCreateUserApiV1UsersPost({
+    mutation: {
+      onSuccess: () => {
+        setUsername("");
+        setEmail("");
+        setFullName("");
+        setPassword("");
+        queryClient.invalidateQueries({ queryKey: ["internal", "users"] });
+      }
+    },
+    request: authRequest
+  });
+  const updateUserMutation = useUpdateUserApiV1UsersUserIdPatch({
+    mutation: {
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "users"] })
+    },
+    request: authRequest
+  });
+  const bulkStatusMutation = useUpdateUsersStatusApiV1UsersBulkStatusPatch({
+    mutation: {
+      onSuccess: (response) => {
+        if (response.status !== 200) {
+          return;
+        }
+        setSelectedUserIds([]);
+        setPendingBulkStatusAction(null);
+        setBulkStatusResult(`Updated ${response.data.data.updated_count} users.`);
+        queryClient.invalidateQueries({ queryKey: ["internal", "users"] });
+      }
+    },
+    request: authRequest
+  });
+  const resetPasswordMutation = useUpdateUserPasswordApiV1UsersUserIdPasswordPatch({
+    mutation: {
+      onSuccess: () => {
+        setResetPassword("");
+        queryClient.invalidateQueries({ queryKey: ["internal", "users"] });
+      }
+    },
+    request: authRequest
+  });
+  const updateRolesMutation = useUpdateUserRolesApiV1UsersUserIdRolesPut({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["internal", "users", selectedUserId, "roles"] });
+        queryClient.invalidateQueries({ queryKey: ["current-user"] });
+      }
+    },
+    request: authRequest
+  });
+
+  function submitCreateUser() {
+    createUserMutation.mutate({
+      data: {
         username,
         email,
         full_name: fullName || null,
         password
-      }),
-    onSuccess: () => {
-      setUsername("");
-      setEmail("");
-      setFullName("");
-      setPassword("");
-      queryClient.invalidateQueries({ queryKey: ["internal", "users"] });
-    }
-  });
-  const updateUserMutation = useMutation({
-    mutationFn: (user: UserManagementItem) =>
-      updateUser(auth.token!, user.id, { is_active: !user.is_active }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "users"] })
-  });
-  const bulkStatusMutation = useMutation({
-    mutationFn: (action: BulkStatusAction) =>
-      updateUsersStatus(auth.token!, {
+      }
+    });
+  }
+
+  const toggleUserStatus = useCallback((user: UserManagementItem) => {
+    updateUserMutation.mutate({
+      userId: user.id,
+      data: { is_active: !user.is_active }
+    });
+  }, [updateUserMutation]);
+
+  function confirmBulkStatusChange(action: BulkStatusAction) {
+    bulkStatusMutation.mutate({
+      data: {
         user_ids: action.userIds,
         is_active: action.isActive
-      }),
-    onSuccess: (response) => {
-      setSelectedUserIds([]);
-      setPendingBulkStatusAction(null);
-      setBulkStatusResult(`Updated ${response.data.updated_count} users.`);
-      queryClient.invalidateQueries({ queryKey: ["internal", "users"] });
+      }
+    });
+  }
+
+  function saveSelectedUser() {
+    if (selectedUserId === null) {
+      return;
     }
-  });
-  const saveUserMutation = useMutation({
-    mutationFn: () =>
-      updateUser(auth.token!, selectedUserId!, {
+    updateUserMutation.mutate({
+      userId: selectedUserId,
+      data: {
         email: editEmail,
         full_name: editFullName || null,
         department_id: editDepartmentId || null
-      }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "users"] })
-  });
-  const resetPasswordMutation = useMutation({
-    mutationFn: () => updateUserPassword(auth.token!, selectedUserId!, { password: resetPassword }),
-    onSuccess: () => {
-      setResetPassword("");
-      queryClient.invalidateQueries({ queryKey: ["internal", "users"] });
+      }
+    });
+  }
+
+  function submitPasswordReset() {
+    if (selectedUserId === null) {
+      return;
     }
-  });
-  const updateRolesMutation = useMutation({
-    mutationFn: (roleCodes: string[]) => updateUserRoles(auth.token!, selectedUserId!, roleCodes),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["internal", "users", selectedUserId, "roles"] });
-      queryClient.invalidateQueries({ queryKey: ["current-user"] });
-    }
-  });
+    resetPasswordMutation.mutate({
+      userId: selectedUserId,
+      data: { password: resetPassword }
+    });
+  }
 
   const usersPage = usersQuery.data?.status === 200 ? usersQuery.data.data.data : undefined;
   const users = usersPage?.items ?? [];
@@ -210,7 +254,7 @@ export function UsersPage() {
         header: "Actions",
         cell: ({ row }) => (
           <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" onClick={() => updateUserMutation.mutate(row.original)}>
+            <Button type="button" variant="outline" onClick={() => toggleUserStatus(row.original)}>
               {row.original.is_active ? "Disable" : "Enable"}
             </Button>
             <Button type="button" variant="outline" onClick={() => setSelectedUserId(row.original.id)}>
@@ -223,14 +267,20 @@ export function UsersPage() {
         )
       }
     ],
-    [selectedUserIdSet, updateUserMutation]
+    [selectedUserIdSet, toggleUserStatus]
   );
 
   function toggleRole(role: RolePublic) {
     const nextRoleCodes = selectedRoleCodes.includes(role.code)
       ? selectedRoleCodes.filter((code) => code !== role.code)
       : [...selectedRoleCodes, role.code];
-    updateRolesMutation.mutate(nextRoleCodes);
+    if (selectedUserId === null) {
+      return;
+    }
+    updateRolesMutation.mutate({
+      userId: selectedUserId,
+      data: { role_codes: nextRoleCodes }
+    });
   }
 
   function startEdit(user: UserManagementItem) {
@@ -293,7 +343,7 @@ export function UsersPage() {
           />
           <Button
             type="button"
-            onClick={() => createUserMutation.mutate()}
+            onClick={submitCreateUser}
             disabled={!username || !email || password.length < 8}
           >
             Create
@@ -323,8 +373,8 @@ export function UsersPage() {
             />
             <Button
               type="button"
-              onClick={() => saveUserMutation.mutate()}
-              disabled={!selectedUserId || !editEmail || saveUserMutation.isPending}
+              onClick={saveSelectedUser}
+              disabled={!selectedUserId || !editEmail || updateUserMutation.isPending}
             >
               Save
             </Button>
@@ -355,7 +405,7 @@ export function UsersPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => resetPasswordMutation.mutate()}
+              onClick={submitPasswordReset}
               disabled={!selectedUserId || resetPassword.length < 8 || resetPasswordMutation.isPending}
             >
               Reset password
@@ -492,7 +542,7 @@ export function UsersPage() {
                     type="button"
                     variant={pendingBulkStatusAction.isActive ? "default" : "destructive"}
                     disabled={bulkStatusMutation.isPending}
-                    onClick={() => bulkStatusMutation.mutate(pendingBulkStatusAction)}
+                    onClick={() => confirmBulkStatusChange(pendingBulkStatusAction)}
                   >
                     {pendingBulkStatusAction.isActive ? "Confirm enable" : "Confirm disable"}
                   </Button>

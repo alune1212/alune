@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 
@@ -8,17 +8,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/features/auth/auth-provider";
 import {
-  createRole,
-  deleteRole,
-  updateRole,
-  updateRolePermissions,
-  type PermissionPublic,
-  type RolePublic
-} from "@alune/api-client";
-import {
+  useCreateRoleApiV1RolesPost,
+  useDeleteRoleApiV1RolesRoleIdDelete,
   useGetPermissionsApiV1RolesPermissionsGet,
   useGetRolePermissionsApiV1RolesRoleIdPermissionsGet,
-  useGetRolesApiV1RolesGet
+  useGetRolesApiV1RolesGet,
+  useUpdateRoleApiV1RolesRoleIdPatch,
+  useUpdateRolePermissionsApiV1RolesRoleIdPermissionsPut,
+  type PermissionPublic,
+  type RolePublic
 } from "@alune/api-client/generated";
 
 export function RolesPage() {
@@ -95,38 +93,36 @@ export function RolesPage() {
       return groups;
     }, {});
   }, [permissionSearch, permissions]);
-  const updatePermissionsMutation = useMutation({
-    mutationFn: () => updateRolePermissions(auth.token!, selectedRoleId!, [...selectedPermissionCodes]),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["internal", "roles"] });
-    }
+  const updatePermissionsMutation = useUpdateRolePermissionsApiV1RolesRoleIdPermissionsPut({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["internal", "roles"] });
+      }
+    },
+    request: authRequest
   });
-  const createRoleMutation = useMutation({
-    mutationFn: () =>
-      createRole(auth.token!, {
-        code: roleCode,
-        name: roleName,
-        description: roleDescription || null
-      }),
-    onSuccess: () => {
-      setRoleCode("");
-      setRoleName("");
-      setRoleDescription("");
-      queryClient.invalidateQueries({ queryKey: ["internal", "roles"] });
-    }
+  const createRoleMutation = useCreateRoleApiV1RolesPost({
+    mutation: {
+      onSuccess: () => {
+        setRoleCode("");
+        setRoleName("");
+        setRoleDescription("");
+        queryClient.invalidateQueries({ queryKey: ["internal", "roles"] });
+      }
+    },
+    request: authRequest
   });
-  const updateRoleMutation = useMutation({
-    mutationFn: () =>
-      updateRole(auth.token!, editRoleId!, {
-        code: editRoleCode,
-        name: editRoleName,
-        description: editRoleDescription || null
-      }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "roles"] })
+  const updateRoleMutation = useUpdateRoleApiV1RolesRoleIdPatch({
+    mutation: {
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "roles"] })
+    },
+    request: authRequest
   });
-  const deleteRoleMutation = useMutation({
-    mutationFn: (role: RolePublic) => deleteRole(auth.token!, role.id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "roles"] })
+  const deleteRoleMutation = useDeleteRoleApiV1RolesRoleIdDelete({
+    mutation: {
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "roles"] })
+    },
+    request: authRequest
   });
 
   const roleColumnsWithActions = useMemo<ColumnDef<RolePublic>[]>(
@@ -171,7 +167,7 @@ export function RolesPage() {
               type="button"
               variant="outline"
               disabled={row.original.is_system}
-              onClick={() => deleteRoleMutation.mutate(row.original)}
+              onClick={() => deleteRoleMutation.mutate({ roleId: row.original.id })}
             >
               Delete
             </Button>
@@ -205,6 +201,40 @@ export function RolesPage() {
     setEditRoleDescription(role.description ?? "");
   }
 
+  function submitCreateRole() {
+    createRoleMutation.mutate({
+      data: {
+        code: roleCode,
+        name: roleName,
+        description: roleDescription || null
+      }
+    });
+  }
+
+  function submitUpdateRole() {
+    if (editRoleId === null) {
+      return;
+    }
+    updateRoleMutation.mutate({
+      roleId: editRoleId,
+      data: {
+        code: editRoleCode,
+        name: editRoleName,
+        description: editRoleDescription || null
+      }
+    });
+  }
+
+  function saveRolePermissions() {
+    if (selectedRoleId === null) {
+      return;
+    }
+    updatePermissionsMutation.mutate({
+      roleId: selectedRoleId,
+      data: { permission_codes: [...selectedPermissionCodes] }
+    });
+  }
+
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
       <section>
@@ -225,7 +255,7 @@ export function RolesPage() {
             onChange={(event) => setRoleDescription(event.target.value)}
             placeholder="Description"
           />
-          <Button type="button" disabled={!roleCode || !roleName} onClick={() => createRoleMutation.mutate()}>
+          <Button type="button" disabled={!roleCode || !roleName} onClick={submitCreateRole}>
             Create
           </Button>
         </CardContent>
@@ -247,7 +277,7 @@ export function RolesPage() {
           <Button
             type="button"
             disabled={!editRoleId || !editRoleCode || !editRoleName}
-            onClick={() => updateRoleMutation.mutate()}
+            onClick={submitUpdateRole}
           >
             Save
           </Button>
@@ -315,7 +345,7 @@ export function RolesPage() {
                   </div>
                 </section>
               ))}
-              <Button type="button" onClick={() => updatePermissionsMutation.mutate()}>
+              <Button type="button" onClick={saveRolePermissions}>
                 Save permissions
               </Button>
             </>

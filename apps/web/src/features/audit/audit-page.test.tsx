@@ -63,11 +63,11 @@ describe("AuditPage", () => {
     vi.mocked(useGetOperationLogsApiV1AuditOperationLogsGet).mockReturnValue({
       data: { status: 200, data: paginatedResponse(operationLogs) },
       isError: false
-    } as ReturnType<typeof useGetOperationLogsApiV1AuditOperationLogsGet>);
+    } as unknown as ReturnType<typeof useGetOperationLogsApiV1AuditOperationLogsGet>);
     vi.mocked(useGetLoginLogsApiV1AuditLoginLogsGet).mockReturnValue({
       data: { status: 200, data: paginatedResponse(loginLogs) },
       isError: false
-    } as ReturnType<typeof useGetLoginLogsApiV1AuditLoginLogsGet>);
+    } as unknown as ReturnType<typeof useGetLoginLogsApiV1AuditLoginLogsGet>);
     vi.mocked(exportOperationLogs).mockResolvedValue(new Blob(["csv"], { type: "text/csv" }));
     vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:operation-logs");
     vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});

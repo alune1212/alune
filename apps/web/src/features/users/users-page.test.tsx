@@ -6,39 +6,34 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { UsersPage } from "@/features/users/users-page";
 import { mockAuthValue, paginatedResponse, renderWithQueryClient, successResponse } from "@/test-utils";
 import {
-  updateUsersStatus,
-  type DepartmentPublic,
-  type RolePublic,
-  type UserManagementItem
-} from "@alune/api-client";
-import {
+  useCreateUserApiV1UsersPost,
   useGetDepartmentsApiV1DepartmentsGet,
   useGetUserRolesApiV1UsersUserIdRolesGet,
   useGetRolesApiV1RolesGet,
-  useGetUsersApiV1UsersGet
+  useGetUsersApiV1UsersGet,
+  useUpdateUserApiV1UsersUserIdPatch,
+  useUpdateUserPasswordApiV1UsersUserIdPasswordPatch,
+  useUpdateUserRolesApiV1UsersUserIdRolesPut,
+  useUpdateUsersStatusApiV1UsersBulkStatusPatch,
+  type DepartmentPublic,
+  type RolePublic,
+  type UserManagementItem
 } from "@alune/api-client/generated";
 
 vi.mock("@/features/auth/auth-provider", () => ({
   useAuth: () => mockAuthValue
 }));
 
-vi.mock("@alune/api-client", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@alune/api-client")>();
-  return {
-    ...actual,
-    createUser: vi.fn(),
-    updateUser: vi.fn(),
-    updateUserPassword: vi.fn(),
-    updateUserRoles: vi.fn(),
-    updateUsersStatus: vi.fn()
-  };
-});
-
 vi.mock("@alune/api-client/generated", () => ({
+  useCreateUserApiV1UsersPost: vi.fn(),
   useGetDepartmentsApiV1DepartmentsGet: vi.fn(),
   useGetUserRolesApiV1UsersUserIdRolesGet: vi.fn(),
   useGetRolesApiV1RolesGet: vi.fn(),
-  useGetUsersApiV1UsersGet: vi.fn()
+  useGetUsersApiV1UsersGet: vi.fn(),
+  useUpdateUserApiV1UsersUserIdPatch: vi.fn(),
+  useUpdateUserPasswordApiV1UsersUserIdPasswordPatch: vi.fn(),
+  useUpdateUserRolesApiV1UsersUserIdRolesPut: vi.fn(),
+  useUpdateUsersStatusApiV1UsersBulkStatusPatch: vi.fn()
 }));
 
 const users: UserManagementItem[] = [
@@ -64,26 +59,60 @@ const users: UserManagementItem[] = [
 
 const roles: RolePublic[] = [];
 const departments: DepartmentPublic[] = [];
+const updateUsersStatusMutate = vi.fn();
 
 describe("UsersPage bulk status operations", () => {
   beforeEach(() => {
+    updateUsersStatusMutate.mockReset();
     vi.mocked(useGetUsersApiV1UsersGet).mockReturnValue({
       data: { status: 200, data: paginatedResponse(users) },
       isError: false
-    } as ReturnType<typeof useGetUsersApiV1UsersGet>);
+    } as unknown as ReturnType<typeof useGetUsersApiV1UsersGet>);
     vi.mocked(useGetRolesApiV1RolesGet).mockReturnValue({
       data: { status: 200, data: successResponse(roles) },
       isError: false
-    } as ReturnType<typeof useGetRolesApiV1RolesGet>);
+    } as unknown as ReturnType<typeof useGetRolesApiV1RolesGet>);
     vi.mocked(useGetDepartmentsApiV1DepartmentsGet).mockReturnValue({
       data: { status: 200, data: paginatedResponse(departments, 100) },
       isError: false
-    } as ReturnType<typeof useGetDepartmentsApiV1DepartmentsGet>);
+    } as unknown as ReturnType<typeof useGetDepartmentsApiV1DepartmentsGet>);
     vi.mocked(useGetUserRolesApiV1UsersUserIdRolesGet).mockReturnValue({
       data: { status: 200, data: successResponse({ user_id: "user-1", role_codes: [] }) },
       isError: false
-    } as ReturnType<typeof useGetUserRolesApiV1UsersUserIdRolesGet>);
-    vi.mocked(updateUsersStatus).mockResolvedValue(successResponse({ updated_count: 2 }));
+    } as unknown as ReturnType<typeof useGetUserRolesApiV1UsersUserIdRolesGet>);
+    vi.mocked(useCreateUserApiV1UsersPost).mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false
+    } as unknown as ReturnType<typeof useCreateUserApiV1UsersPost>);
+    vi.mocked(useUpdateUserApiV1UsersUserIdPatch).mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false
+    } as unknown as ReturnType<typeof useUpdateUserApiV1UsersUserIdPatch>);
+    vi.mocked(useUpdateUserPasswordApiV1UsersUserIdPasswordPatch).mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false
+    } as unknown as ReturnType<typeof useUpdateUserPasswordApiV1UsersUserIdPasswordPatch>);
+    vi.mocked(useUpdateUserRolesApiV1UsersUserIdRolesPut).mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false
+    } as unknown as ReturnType<typeof useUpdateUserRolesApiV1UsersUserIdRolesPut>);
+    vi.mocked(useUpdateUsersStatusApiV1UsersBulkStatusPatch).mockImplementation((options) => {
+      updateUsersStatusMutate.mockImplementation((variables) => {
+        const onSuccess = options?.mutation?.onSuccess as
+          | ((data: unknown, variables: unknown, onMutateResult: unknown, context: unknown) => void)
+          | undefined;
+        onSuccess?.(
+          { status: 200, data: successResponse({ updated_count: 2 }), headers: new Headers() },
+          variables,
+          undefined,
+          {}
+        );
+      });
+      return {
+        mutate: updateUsersStatusMutate,
+        isPending: false
+      } as unknown as ReturnType<typeof useUpdateUsersStatusApiV1UsersBulkStatusPatch>;
+    });
   });
 
   it("requires confirmation before disabling selected users and shows the result", async () => {
@@ -95,15 +124,17 @@ describe("UsersPage bulk status operations", () => {
     await user.click(screen.getByRole("button", { name: "Select page" }));
     await user.click(screen.getByRole("button", { name: "Disable selected" }));
 
-    expect(updateUsersStatus).not.toHaveBeenCalled();
+    expect(updateUsersStatusMutate).not.toHaveBeenCalled();
     expect(screen.getByRole("dialog", { name: "Confirm bulk status change" })).toBeInTheDocument();
     expect(screen.getByText("Disable 2 selected users?")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Confirm disable" }));
 
-    expect(updateUsersStatus).toHaveBeenCalledWith("test-token", {
-      user_ids: ["user-1", "user-2"],
-      is_active: false
+    expect(updateUsersStatusMutate).toHaveBeenCalledWith({
+      data: {
+        user_ids: ["user-1", "user-2"],
+        is_active: false
+      }
     });
     expect(await screen.findByText("Updated 2 users.")).toBeInTheDocument();
     expect(screen.getByText("0 selected")).toBeInTheDocument();

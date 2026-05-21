@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 
@@ -8,18 +8,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/features/auth/auth-provider";
 import {
-  createDictionaryItem,
-  createDictionaryType,
-  deleteDictionaryItem,
-  deleteDictionaryType,
-  updateDictionaryItem,
-  updateDictionaryType,
+  useCreateDictionaryItemApiV1DictionariesItemsPost,
+  useCreateDictionaryTypeApiV1DictionariesTypesPost,
+  useDeleteDictionaryItemApiV1DictionariesItemsItemIdDelete,
+  useDeleteDictionaryTypeApiV1DictionariesTypesTypeIdDelete,
+  useGetDictionaryItemsApiV1DictionariesItemsGet,
+  useGetDictionaryTypesApiV1DictionariesTypesGet,
+  useUpdateDictionaryItemApiV1DictionariesItemsItemIdPatch,
+  useUpdateDictionaryTypeApiV1DictionariesTypesTypeIdPatch,
   type DictionaryItemPublic,
   type DictionaryTypePublic
-} from "@alune/api-client";
-import {
-  useGetDictionaryItemsApiV1DictionariesItemsGet,
-  useGetDictionaryTypesApiV1DictionariesTypesGet
 } from "@alune/api-client/generated";
 
 export function DictionariesPage() {
@@ -60,58 +58,97 @@ export function DictionariesPage() {
     request: authRequest
   });
 
-  const createTypeMutation = useMutation({
-    mutationFn: () => createDictionaryType(auth.token!, { code: typeCode, name: typeName }),
-    onSuccess: () => {
-      setTypeCode("");
-      setTypeName("");
-      queryClient.invalidateQueries({ queryKey: ["internal", "dictionaries"] });
-    }
+  const createTypeMutation = useCreateDictionaryTypeApiV1DictionariesTypesPost({
+    mutation: {
+      onSuccess: () => {
+        setTypeCode("");
+        setTypeName("");
+        queryClient.invalidateQueries({ queryKey: ["internal", "dictionaries"] });
+      }
+    },
+    request: authRequest
   });
-  const createItemMutation = useMutation({
-    mutationFn: () =>
-      createDictionaryItem(auth.token!, { type_id: itemTypeId, label: itemLabel, value: itemValue }),
-    onSuccess: () => {
-      setItemLabel("");
-      setItemValue("");
-      queryClient.invalidateQueries({ queryKey: ["internal", "dictionaries"] });
-    }
+  const createItemMutation = useCreateDictionaryItemApiV1DictionariesItemsPost({
+    mutation: {
+      onSuccess: () => {
+        setItemLabel("");
+        setItemValue("");
+        queryClient.invalidateQueries({ queryKey: ["internal", "dictionaries"] });
+      }
+    },
+    request: authRequest
   });
-  const updateTypeMutation = useMutation({
-    mutationFn: () =>
-      updateDictionaryType(auth.token!, selectedTypeId!, {
-        code: editTypeCode,
-        name: editTypeName,
-        description: editTypeDescription || null
-      }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "dictionaries"] })
+  const updateTypeMutation = useUpdateDictionaryTypeApiV1DictionariesTypesTypeIdPatch({
+    mutation: {
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "dictionaries"] })
+    },
+    request: authRequest
   });
-  const deleteTypeMutation = useMutation({
-    mutationFn: (type: DictionaryTypePublic) => deleteDictionaryType(auth.token!, type.id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "dictionaries"] })
+  const deleteTypeMutation = useDeleteDictionaryTypeApiV1DictionariesTypesTypeIdDelete({
+    mutation: {
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "dictionaries"] })
+    },
+    request: authRequest
   });
-  const updateItemMutation = useMutation({
-    mutationFn: () =>
-      updateDictionaryItem(auth.token!, selectedItemId!, {
-        label: editLabel,
-        value: editValue,
-        sort_order: Number(editSortOrder)
-      }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "dictionaries"] })
+  const updateItemMutation = useUpdateDictionaryItemApiV1DictionariesItemsItemIdPatch({
+    mutation: {
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "dictionaries"] })
+    },
+    request: authRequest
   });
-  const toggleItemMutation = useMutation({
-    mutationFn: (item: DictionaryItemPublic) =>
-      updateDictionaryItem(auth.token!, item.id, { is_active: !item.is_active }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "dictionaries"] })
-  });
-  const deleteItemMutation = useMutation({
-    mutationFn: (item: DictionaryItemPublic) => deleteDictionaryItem(auth.token!, item.id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "dictionaries"] })
+  const deleteItemMutation = useDeleteDictionaryItemApiV1DictionariesItemsItemIdDelete({
+    mutation: {
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "dictionaries"] })
+    },
+    request: authRequest
   });
 
   const dictionaryTypes = typesQuery.data?.data.data ?? [];
   const dictionaryItems = itemsQuery.data?.data.data ?? [];
   const selectedItem = dictionaryItems.find((item) => item.id === selectedItemId) ?? null;
+
+  function submitCreateType() {
+    createTypeMutation.mutate({ data: { code: typeCode, name: typeName } });
+  }
+
+  function submitCreateItem() {
+    createItemMutation.mutate({ data: { type_id: itemTypeId, label: itemLabel, value: itemValue } });
+  }
+
+  function submitUpdateType() {
+    if (selectedTypeId === null) {
+      return;
+    }
+    updateTypeMutation.mutate({
+      typeId: selectedTypeId,
+      data: {
+        code: editTypeCode,
+        name: editTypeName,
+        description: editTypeDescription || null
+      }
+    });
+  }
+
+  function submitUpdateItem() {
+    if (selectedItemId === null) {
+      return;
+    }
+    updateItemMutation.mutate({
+      itemId: selectedItemId,
+      data: {
+        label: editLabel,
+        value: editValue,
+        sort_order: Number(editSortOrder)
+      }
+    });
+  }
+
+  const toggleItem = useCallback((item: DictionaryItemPublic) => {
+    updateItemMutation.mutate({
+      itemId: item.id,
+      data: { is_active: !item.is_active }
+    });
+  }, [updateItemMutation]);
 
   const startEditType = useCallback((type: DictionaryTypePublic) => {
     setSelectedTypeId(type.id);
@@ -149,7 +186,7 @@ export function DictionariesPage() {
               type="button"
               variant="outline"
               disabled={row.original.is_system}
-              onClick={() => deleteTypeMutation.mutate(row.original)}
+              onClick={() => deleteTypeMutation.mutate({ typeId: row.original.id })}
             >
               Delete
             </Button>
@@ -179,17 +216,17 @@ export function DictionariesPage() {
             <Button type="button" variant="outline" onClick={() => startEditItem(row.original)}>
               Edit
             </Button>
-            <Button type="button" variant="outline" onClick={() => toggleItemMutation.mutate(row.original)}>
+            <Button type="button" variant="outline" onClick={() => toggleItem(row.original)}>
               {row.original.is_active ? "Disable" : "Enable"}
             </Button>
-            <Button type="button" variant="outline" onClick={() => deleteItemMutation.mutate(row.original)}>
+            <Button type="button" variant="outline" onClick={() => deleteItemMutation.mutate({ itemId: row.original.id })}>
               Delete
             </Button>
           </div>
         )
       }
     ],
-    [startEditItem, toggleItemMutation, deleteItemMutation]
+    [startEditItem, toggleItem, deleteItemMutation]
   );
 
   return (
@@ -207,7 +244,7 @@ export function DictionariesPage() {
         <CardContent className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
           <Input value={typeCode} onChange={(event) => setTypeCode(event.target.value)} placeholder="Code" />
           <Input value={typeName} onChange={(event) => setTypeName(event.target.value)} placeholder="Name" />
-          <Button type="button" onClick={() => createTypeMutation.mutate()} disabled={!typeCode || !typeName}>
+          <Button type="button" onClick={submitCreateType} disabled={!typeCode || !typeName}>
             Create
           </Button>
         </CardContent>
@@ -229,7 +266,7 @@ export function DictionariesPage() {
             />
             <Button
               type="button"
-              onClick={() => updateTypeMutation.mutate()}
+              onClick={submitUpdateType}
               disabled={!selectedTypeId || !editTypeCode || !editTypeName || updateTypeMutation.isPending}
             >
               Save type
@@ -250,7 +287,7 @@ export function DictionariesPage() {
           <Input value={itemValue} onChange={(event) => setItemValue(event.target.value)} placeholder="Value" />
           <Button
             type="button"
-            onClick={() => createItemMutation.mutate()}
+            onClick={submitCreateItem}
             disabled={!itemTypeId || !itemLabel || !itemValue}
           >
             Create
@@ -279,7 +316,7 @@ export function DictionariesPage() {
             />
             <Button
               type="button"
-              onClick={() => updateItemMutation.mutate()}
+              onClick={submitUpdateItem}
               disabled={!selectedItemId || !editLabel || !editValue || updateItemMutation.isPending}
             >
               Save item

@@ -6,34 +6,29 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RolesPage } from "@/features/roles/roles-page";
 import { mockAuthValue, renderWithQueryClient, successResponse } from "@/test-utils";
 import {
-  type PermissionPublic,
-  type RolePublic
-} from "@alune/api-client";
-import {
+  useCreateRoleApiV1RolesPost,
+  useDeleteRoleApiV1RolesRoleIdDelete,
   useGetPermissionsApiV1RolesPermissionsGet,
   useGetRolePermissionsApiV1RolesRoleIdPermissionsGet,
-  useGetRolesApiV1RolesGet
+  useGetRolesApiV1RolesGet,
+  useUpdateRoleApiV1RolesRoleIdPatch,
+  useUpdateRolePermissionsApiV1RolesRoleIdPermissionsPut,
+  type PermissionPublic,
+  type RolePublic
 } from "@alune/api-client/generated";
 
 vi.mock("@/features/auth/auth-provider", () => ({
   useAuth: () => mockAuthValue
 }));
 
-vi.mock("@alune/api-client", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@alune/api-client")>();
-  return {
-    ...actual,
-    createRole: vi.fn(),
-    deleteRole: vi.fn(),
-    updateRole: vi.fn(),
-    updateRolePermissions: vi.fn()
-  };
-});
-
 vi.mock("@alune/api-client/generated", () => ({
+  useCreateRoleApiV1RolesPost: vi.fn(),
+  useDeleteRoleApiV1RolesRoleIdDelete: vi.fn(),
   useGetPermissionsApiV1RolesPermissionsGet: vi.fn(),
   useGetRolePermissionsApiV1RolesRoleIdPermissionsGet: vi.fn(),
-  useGetRolesApiV1RolesGet: vi.fn()
+  useGetRolesApiV1RolesGet: vi.fn(),
+  useUpdateRoleApiV1RolesRoleIdPatch: vi.fn(),
+  useUpdateRolePermissionsApiV1RolesRoleIdPermissionsPut: vi.fn()
 }));
 
 const roles: RolePublic[] = [
@@ -68,11 +63,11 @@ describe("RolesPage permission assignment", () => {
     vi.mocked(useGetRolesApiV1RolesGet).mockReturnValue({
       data: { status: 200, data: successResponse(roles) },
       isError: false
-    } as ReturnType<typeof useGetRolesApiV1RolesGet>);
+    } as unknown as ReturnType<typeof useGetRolesApiV1RolesGet>);
     vi.mocked(useGetPermissionsApiV1RolesPermissionsGet).mockReturnValue({
       data: { status: 200, data: successResponse(permissions) },
       isError: false
-    } as ReturnType<typeof useGetPermissionsApiV1RolesPermissionsGet>);
+    } as unknown as ReturnType<typeof useGetPermissionsApiV1RolesPermissionsGet>);
     vi.mocked(useGetRolePermissionsApiV1RolesRoleIdPermissionsGet).mockReturnValue({
       data: {
         status: 200,
@@ -82,7 +77,23 @@ describe("RolesPage permission assignment", () => {
         })
       },
       isError: false
-    } as ReturnType<typeof useGetRolePermissionsApiV1RolesRoleIdPermissionsGet>);
+    } as unknown as ReturnType<typeof useGetRolePermissionsApiV1RolesRoleIdPermissionsGet>);
+    vi.mocked(useCreateRoleApiV1RolesPost).mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false
+    } as unknown as ReturnType<typeof useCreateRoleApiV1RolesPost>);
+    vi.mocked(useDeleteRoleApiV1RolesRoleIdDelete).mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false
+    } as unknown as ReturnType<typeof useDeleteRoleApiV1RolesRoleIdDelete>);
+    vi.mocked(useUpdateRoleApiV1RolesRoleIdPatch).mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false
+    } as unknown as ReturnType<typeof useUpdateRoleApiV1RolesRoleIdPatch>);
+    vi.mocked(useUpdateRolePermissionsApiV1RolesRoleIdPermissionsPut).mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false
+    } as unknown as ReturnType<typeof useUpdateRolePermissionsApiV1RolesRoleIdPermissionsPut>);
   });
 
   it("groups permissions by type and shows an empty state when search has no matches", async () => {

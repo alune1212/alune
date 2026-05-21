@@ -46,7 +46,7 @@ describe("FilesPage", () => {
     vi.mocked(useGetFileAttachmentsApiV1FilesGet).mockReturnValue({
       data: { status: 200, data: paginatedResponse(files) },
       isError: false
-    } as ReturnType<typeof useGetFileAttachmentsApiV1FilesGet>);
+    } as unknown as ReturnType<typeof useGetFileAttachmentsApiV1FilesGet>);
     vi.mocked(uploadFileAttachment).mockResolvedValue(successResponse(files[0]!));
   });
 

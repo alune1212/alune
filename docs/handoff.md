@@ -32,6 +32,7 @@
 - Added stage 6G-K binary/multipart migration boundary: file upload now delegates to the generated multipart request; CSV export and file download keep `Blob` compatibility while reusing generated URL helpers.
 - Added stage 6G-L generated hook migration: OpenAPI export normalizes multipart binary fields so Orval emits `Blob` upload bodies, and dashboard health/auth frontend entry points now use generated React Query hooks directly.
 - Added stage 6G-M internal-system read hook migration: users, roles, departments, dictionaries, audit logs, and file attachment pages now use Orval-generated React Query hooks for read queries while keeping write actions on the compatibility layer.
+- Added stage 6G-N internal-system JSON write hook migration: user, role, department, and dictionary page mutations now use Orval-generated mutation hooks; binary upload/download and CSV export remain on the compatibility layer.
 - Verified Docker dependency services with PostgreSQL and Redis healthy.
 - Verified `/api/v1/health/db` returns 200 when the API can reach Docker PostgreSQL.
 
@@ -88,6 +89,6 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 
 Next stage should continue hardening the internal system foundation:
 
-- Continue migrating mutation-heavy internal system page actions from compatibility functions to `@alune/api-client/generated`, starting with JSON writes before binary download/export boundaries.
+- Continue shrinking the compatibility client around binary upload/download and CSV export boundaries, then remove unused compatibility JSON helpers.
 
 Do not start approval flows, payroll, reports, or company-specific business modules before the internal system foundation is in place.

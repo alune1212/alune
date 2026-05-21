@@ -6,35 +6,31 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DictionariesPage } from "@/features/dictionaries/dictionaries-page";
 import { mockAuthValue, renderWithQueryClient, successResponse } from "@/test-utils";
 import {
-  createDictionaryType,
+  useCreateDictionaryItemApiV1DictionariesItemsPost,
+  useCreateDictionaryTypeApiV1DictionariesTypesPost,
+  useDeleteDictionaryItemApiV1DictionariesItemsItemIdDelete,
+  useDeleteDictionaryTypeApiV1DictionariesTypesTypeIdDelete,
+  useGetDictionaryItemsApiV1DictionariesItemsGet,
+  useGetDictionaryTypesApiV1DictionariesTypesGet,
+  useUpdateDictionaryItemApiV1DictionariesItemsItemIdPatch,
+  useUpdateDictionaryTypeApiV1DictionariesTypesTypeIdPatch,
   type DictionaryItemPublic,
   type DictionaryTypePublic
-} from "@alune/api-client";
-import {
-  useGetDictionaryItemsApiV1DictionariesItemsGet,
-  useGetDictionaryTypesApiV1DictionariesTypesGet
 } from "@alune/api-client/generated";
 
 vi.mock("@/features/auth/auth-provider", () => ({
   useAuth: () => mockAuthValue
 }));
 
-vi.mock("@alune/api-client", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@alune/api-client")>();
-  return {
-    ...actual,
-    createDictionaryItem: vi.fn(),
-    createDictionaryType: vi.fn(),
-    deleteDictionaryItem: vi.fn(),
-    deleteDictionaryType: vi.fn(),
-    updateDictionaryItem: vi.fn(),
-    updateDictionaryType: vi.fn()
-  };
-});
-
 vi.mock("@alune/api-client/generated", () => ({
+  useCreateDictionaryItemApiV1DictionariesItemsPost: vi.fn(),
+  useCreateDictionaryTypeApiV1DictionariesTypesPost: vi.fn(),
+  useDeleteDictionaryItemApiV1DictionariesItemsItemIdDelete: vi.fn(),
+  useDeleteDictionaryTypeApiV1DictionariesTypesTypeIdDelete: vi.fn(),
   useGetDictionaryItemsApiV1DictionariesItemsGet: vi.fn(),
-  useGetDictionaryTypesApiV1DictionariesTypesGet: vi.fn()
+  useGetDictionaryTypesApiV1DictionariesTypesGet: vi.fn(),
+  useUpdateDictionaryItemApiV1DictionariesItemsItemIdPatch: vi.fn(),
+  useUpdateDictionaryTypeApiV1DictionariesTypesTypeIdPatch: vi.fn()
 }));
 
 const dictionaryTypes: DictionaryTypePublic[] = [
@@ -57,18 +53,43 @@ const dictionaryItems: DictionaryItemPublic[] = [
     is_active: true
   }
 ];
+const createDictionaryTypeMutate = vi.fn();
 
 describe("DictionariesPage", () => {
   beforeEach(() => {
+    createDictionaryTypeMutate.mockReset();
     vi.mocked(useGetDictionaryTypesApiV1DictionariesTypesGet).mockReturnValue({
       data: { status: 200, data: successResponse(dictionaryTypes) },
       isError: false
-    } as ReturnType<typeof useGetDictionaryTypesApiV1DictionariesTypesGet>);
+    } as unknown as ReturnType<typeof useGetDictionaryTypesApiV1DictionariesTypesGet>);
     vi.mocked(useGetDictionaryItemsApiV1DictionariesItemsGet).mockReturnValue({
       data: { status: 200, data: successResponse(dictionaryItems) },
       isError: false
-    } as ReturnType<typeof useGetDictionaryItemsApiV1DictionariesItemsGet>);
-    vi.mocked(createDictionaryType).mockResolvedValue(successResponse(dictionaryTypes[0]!));
+    } as unknown as ReturnType<typeof useGetDictionaryItemsApiV1DictionariesItemsGet>);
+    vi.mocked(useCreateDictionaryTypeApiV1DictionariesTypesPost).mockReturnValue({
+      mutate: createDictionaryTypeMutate,
+      isPending: false
+    } as unknown as ReturnType<typeof useCreateDictionaryTypeApiV1DictionariesTypesPost>);
+    vi.mocked(useCreateDictionaryItemApiV1DictionariesItemsPost).mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false
+    } as unknown as ReturnType<typeof useCreateDictionaryItemApiV1DictionariesItemsPost>);
+    vi.mocked(useDeleteDictionaryItemApiV1DictionariesItemsItemIdDelete).mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false
+    } as unknown as ReturnType<typeof useDeleteDictionaryItemApiV1DictionariesItemsItemIdDelete>);
+    vi.mocked(useDeleteDictionaryTypeApiV1DictionariesTypesTypeIdDelete).mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false
+    } as unknown as ReturnType<typeof useDeleteDictionaryTypeApiV1DictionariesTypesTypeIdDelete>);
+    vi.mocked(useUpdateDictionaryItemApiV1DictionariesItemsItemIdPatch).mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false
+    } as unknown as ReturnType<typeof useUpdateDictionaryItemApiV1DictionariesItemsItemIdPatch>);
+    vi.mocked(useUpdateDictionaryTypeApiV1DictionariesTypesTypeIdPatch).mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false
+    } as unknown as ReturnType<typeof useUpdateDictionaryTypeApiV1DictionariesTypesTypeIdPatch>);
   });
 
   it("creates a dictionary type with the entered code and name", async () => {
@@ -82,9 +103,11 @@ describe("DictionariesPage", () => {
     await user.click(screen.getAllByRole("button", { name: "Create" })[0]!);
 
     await waitFor(() => {
-      expect(createDictionaryType).toHaveBeenCalledWith("test-token", {
-        code: "contract_type",
-        name: "Contract type"
+      expect(createDictionaryTypeMutate).toHaveBeenCalledWith({
+        data: {
+          code: "contract_type",
+          name: "Contract type"
+        }
       });
     });
   });
