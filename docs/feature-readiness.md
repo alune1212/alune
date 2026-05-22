@@ -2,9 +2,9 @@
 
 Last reviewed: 2026-05-22
 
-Current stage: 6G-U
+Current stage: 6G-V
 
-Decision: the security audit gate from stage 6G-T is now resolved by stage 6G-U. The internal system foundation is structurally ready for a small first business module, but stage 6G-V should still document the first feature implementation checklist before stage 7A starts.
+Decision: the security audit gate from stage 6G-T is resolved, and stage 6G-V now provides the business module implementation checklist. The internal system foundation is ready to start a small first business module after that module has a written scope brief.
 
 ## Scope
 
@@ -27,6 +27,7 @@ This document is a pre-feature readiness check. It does not introduce approval f
 | CI                              | Ready                          | GitHub Actions quality job checks API client drift, lint, typecheck, test, build, and Docker Compose config.                                                                       | Add security audit to CI only after the current npm audit finding is resolved or explicitly accepted.                                   |
 | Dependency updates              | Ready                          | Dependabot watches npm/pnpm, uv, Docker, Docker Compose, and GitHub Actions.                                                                                                       | Review dependency PRs before starting a large business module.                                                                          |
 | Security audit                  | Ready                          | Python audit reports no known vulnerabilities; npm audit reports no known vulnerabilities after the stage 6G-U `lodash` override.                                                  | Re-run npm and Python audit before the first business module PR.                                                                        |
+| Module implementation checklist | Ready                          | Stage 6G-V adds `docs/feature-module-checklist.md` with scope, backend, migration, permission, audit, API client, frontend, test, documentation, and verification gates.           | Use the checklist before coding the first business module.                                                                              |
 | Production hardening            | Not a feature blocker          | Local defaults still include development secrets and local Docker-oriented settings.                                                                                               | Before deployment, add production env validation and deployment-specific secret handling.                                               |
 
 ## Code Shape Observations
@@ -41,12 +42,12 @@ This document is a pre-feature readiness check. It does not introduce approval f
 Start stage 7 business feature development only after all of these are true:
 
 1. The npm audit `lodash` finding remains resolved in the current lockfile.
-2. The first business module has a narrow written scope, including entities, permissions, audit events, routes, pages, and tests.
+2. The first business module has a narrow written scope following `docs/feature-module-checklist.md`.
 3. The module's API contract will be generated through Orval before frontend integration.
 4. The module's schema changes are represented by Alembic migrations.
 5. The module has a minimum verification plan: backend tests, frontend interaction tests, and a smoke check for the main user path.
 
 ## Recommended Next Stages
 
-1. Stage 6G-V: write a feature module implementation checklist covering backend module layout, permissions, audit logs, migrations, generated API client usage, frontend page structure, and tests.
-2. Stage 7A: start the first business module only after the checklist is complete and the audits still pass.
+1. Stage 7A: choose the first small business module and write its scope brief before implementation.
+2. Keep approval flows, payroll, reports, and broad workflow engines out until a narrow module needs them.

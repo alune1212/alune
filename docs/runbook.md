@@ -309,7 +309,7 @@ The Python audit script exports the backend uv lockfile to a temporary requireme
 
 ## Feature Readiness Gate
 
-Before starting a company-specific business module, read `docs/feature-readiness.md` and confirm the feature entry criteria are still true. Stage 6G-U resolves the previous npm audit `lodash` finding with a pnpm override. Re-run npm and Python audits before the first business module PR.
+Before starting a company-specific business module, read `docs/feature-readiness.md` and `docs/feature-module-checklist.md`. Stage 6G-U resolves the previous npm audit `lodash` finding with a pnpm override, and stage 6G-V defines the required scope, backend, migration, permission, audit, API client, frontend, test, documentation, and verification gates. Re-run npm and Python audits before the first business module PR.
 
 ## Troubleshooting
 
