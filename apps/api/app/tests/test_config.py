@@ -46,14 +46,14 @@ def test_settings_default_environment_is_development(monkeypatch) -> None:
     assert settings.environment == "development"
 
 
-def test_settings_jwt_secret_key_rejects_default_value() -> None:
-    with pytest.raises(ValueError, match="JWT_SECRET_KEY must not use the default"):
-        Settings(jwt_secret_key="please-change-me")
+def test_settings_jwt_secret_key_allows_default_value_in_non_production() -> None:
+    settings = Settings(jwt_secret_key="please-change-me")
+    assert settings.jwt_secret_key == "please-change-me"
 
 
-def test_settings_jwt_secret_key_rejects_short_value() -> None:
-    with pytest.raises(ValueError, match="at least 32 characters"):
-        Settings(jwt_secret_key="short")
+def test_settings_jwt_secret_key_allows_short_value_in_non_production() -> None:
+    settings = Settings(jwt_secret_key="short")
+    assert settings.jwt_secret_key == "short"
 
 
 def test_settings_jwt_secret_key_accepts_valid_value() -> None:

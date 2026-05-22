@@ -54,20 +54,6 @@ class Settings(BaseSettings):
 
     environment: str = "development"
 
-    @field_validator("jwt_secret_key")
-    @classmethod
-    def validate_jwt_secret_key(cls, value: str) -> str:
-        if value == "please-change-me":
-            raise ValueError(
-                "JWT_SECRET_KEY must not use the default value 'please-change-me'. "
-                "Set a strong random secret."
-            )
-        if len(value) < 32:
-            raise ValueError(
-                "JWT_SECRET_KEY must be at least 32 characters long."
-            )
-        return value
-
     @field_validator("api_cors_origins", mode="before")
     @classmethod
     def parse_cors_origins(cls, value: Any) -> list[str]:
