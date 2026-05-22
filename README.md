@@ -1,6 +1,6 @@
 # alune-platform
 
-公司内部管理系统 MVP。当前阶段包含最小可运行 monorepo、FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地登录、权限基础，以及阶段 6G-R 的内部系统底座交互、存储、上传扫描、前端测试、Orval API client 生成、内部系统读写 generated hooks 迁移、API client 兼容层收缩、Playwright 登录/导航冒烟测试、GitHub Actions CI 和 Dependabot 依赖更新可见性。
+公司内部管理系统 MVP。当前阶段包含最小可运行 monorepo、FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地登录、权限基础，以及阶段 6G-S 的内部系统底座交互、存储、上传扫描、前端测试、Orval API client 生成、内部系统读写 generated hooks 迁移、API client 兼容层收缩、Playwright 登录/导航冒烟测试、GitHub Actions CI、Dependabot 依赖更新可见性和轻量安全审计基线。
 
 ## 技术栈
 
@@ -39,6 +39,7 @@ alune-platform/
 
 - [Architecture](docs/architecture.md) - 当前架构、数据流和 API surface。
 - [Runbook](docs/runbook.md) - 本地启动、Docker、冒烟检查和排障。
+- [Security](docs/security.md) - 依赖安全审计基线和当前边界。
 - [Handoff](docs/handoff.md) - 当前完成状态、已验证命令和下一阶段建议。
 
 ## 本地启动
@@ -213,7 +214,19 @@ E2E_BASE_URL=http://localhost:15173 E2E_ADMIN_USERNAME=e2e_admin E2E_ADMIN_PASSW
 
 ## 当前阶段边界
 
-已完成阶段 0、阶段 1、阶段 2、阶段 3、阶段 4、阶段 5、阶段 6A、阶段 6B、阶段 6C、阶段 6D、阶段 6E、阶段 6F、阶段 6G-A、阶段 6G-B、阶段 6G-C、阶段 6G-D、阶段 6G-E、阶段 6G-F、阶段 6G-G、阶段 6G-H、阶段 6G-I、阶段 6G-J、阶段 6G-K、阶段 6G-L、阶段 6G-M、阶段 6G-N、阶段 6G-O、阶段 6G-P、阶段 6G-Q 和阶段 6G-R 的内部系统底座 MVP。当前包含登录 MVP、权限基础、用户创建/启停/批量启停确认与结果反馈/资料编辑/部门分配/密码重置、用户角色分配、角色增删改和权限配置搜索分组及空状态、部门创建/启停/删除规则、部门树、登录/操作日志筛选分页/日期过滤/CSV 导出、字典类型维护、字典项维护、文件附件本地和 MinIO 上传下载、上传策略、文件存储后端抽象、ClamAV 上传扫描、用户/角色/字典/部门/审计/文件页面的前端交互测试、基于 FastAPI OpenAPI 的 Orval API client 生成、multipart binary 类型规范化、dashboard/auth 前端入口对 generated hooks 的迁移、内部系统只读页面对 generated hooks 的迁移、用户/角色/部门/字典 JSON 写操作对 generated mutation hooks 的迁移、`packages/api-client` 兼容层收缩到配置、CSV 导出、文件上传和文件下载边界、Playwright 覆盖登录和内部系统导航的冒烟测试、GitHub Actions CI 质量门，以及 Dependabot 对 npm/uv/Docker/Docker Compose/GitHub Actions 的每周依赖更新提醒。不包含审批、报表和公司业务模块。
+已完成阶段 0、阶段 1、阶段 2、阶段 3、阶段 4、阶段 5、阶段 6A、阶段 6B、阶段 6C、阶段 6D、阶段 6E、阶段 6F、阶段 6G-A、阶段 6G-B、阶段 6G-C、阶段 6G-D、阶段 6G-E、阶段 6G-F、阶段 6G-G、阶段 6G-H、阶段 6G-I、阶段 6G-J、阶段 6G-K、阶段 6G-L、阶段 6G-M、阶段 6G-N、阶段 6G-O、阶段 6G-P、阶段 6G-Q、阶段 6G-R 和阶段 6G-S 的内部系统底座 MVP。当前包含登录 MVP、权限基础、用户创建/启停/批量启停确认与结果反馈/资料编辑/部门分配/密码重置、用户角色分配、角色增删改和权限配置搜索分组及空状态、部门创建/启停/删除规则、部门树、登录/操作日志筛选分页/日期过滤/CSV 导出、字典类型维护、字典项维护、文件附件本地和 MinIO 上传下载、上传策略、文件存储后端抽象、ClamAV 上传扫描、用户/角色/字典/部门/审计/文件页面的前端交互测试、基于 FastAPI OpenAPI 的 Orval API client 生成、multipart binary 类型规范化、dashboard/auth 前端入口对 generated hooks 的迁移、内部系统只读页面对 generated hooks 的迁移、用户/角色/部门/字典 JSON 写操作对 generated mutation hooks 的迁移、`packages/api-client` 兼容层收缩到配置、CSV 导出、文件上传和文件下载边界、Playwright 覆盖登录和内部系统导航的冒烟测试、GitHub Actions CI 质量门、Dependabot 对 npm/uv/Docker/Docker Compose/GitHub Actions 的每周依赖更新提醒，以及 npm/Python 依赖安全审计基线。不包含审批、报表和公司业务模块。
+
+## Security Audit
+
+轻量安全审计基线目前是手动命令，不在默认 CI 中阻塞构建：
+
+```bash
+pnpm security:audit
+pnpm security:audit:npm
+pnpm security:audit:python
+```
+
+Python 审计通过 `scripts/security-audit-python.sh` 将 `apps/api/uv.lock` 导出为临时 requirements 文件，再用 `uvx pip-audit` 扫描。更多说明见 [Security](docs/security.md)。
 
 ## CI
 
@@ -250,44 +263,44 @@ Dependabot 配置位于 `.github/dependabot.yml`，每周一上午按 `Asia/Shan
 
 ## 当前 API
 
-| Method | Path | 说明 |
-| --- | --- | --- |
-| GET | `/api/v1/health` | API 存活检查 |
-| GET | `/api/v1/health/db` | PostgreSQL 连接检查；数据库不可用时返回 503 |
-| POST | `/api/v1/auth/login` | OAuth2 password 登录，返回 JWT access token |
-| GET | `/api/v1/auth/me` | 根据 Bearer token 返回当前用户和权限码 |
-| GET | `/api/v1/users` | 用户分页列表，支持 `q`/`department_id`/`role_code`/`page`/`page_size`，需 `action:users:read` |
-| POST | `/api/v1/users` | 创建用户，需 `action:users:create` |
-| PATCH | `/api/v1/users/bulk-status` | 批量启用/禁用用户，需 `action:users:update` |
-| PATCH | `/api/v1/users/{user_id}` | 更新/启停用户，需 `action:users:update` |
-| PATCH | `/api/v1/users/{user_id}/password` | 重置用户密码，需 `action:users:update` |
-| GET | `/api/v1/users/{user_id}/roles` | 用户角色码，需 `action:users:read` |
-| PUT | `/api/v1/users/{user_id}/roles` | 更新用户角色，需 `action:users:update_roles` |
-| GET | `/api/v1/roles` | 角色列表，需 `action:roles:read` |
-| POST | `/api/v1/roles` | 创建角色，需 `action:roles:create` |
-| GET | `/api/v1/roles/permissions` | 权限列表，需 `action:roles:read` |
-| GET | `/api/v1/roles/{role_id}/permissions` | 角色权限码，需 `action:roles:read` |
-| PATCH | `/api/v1/roles/{role_id}` | 更新非系统角色，需 `action:roles:update` |
-| DELETE | `/api/v1/roles/{role_id}` | 删除未分配用户的非系统角色，需 `action:roles:delete` |
-| PUT | `/api/v1/roles/{role_id}/permissions` | 更新角色权限，需 `action:roles:update_permissions` |
-| GET | `/api/v1/departments` | 部门分页列表，支持 `q`/`page`/`page_size`，需 `action:departments:read` |
-| GET | `/api/v1/departments/tree` | 部门树，需 `action:departments:read` |
-| POST | `/api/v1/departments` | 创建部门，需 `action:departments:create` |
-| PATCH | `/api/v1/departments/{department_id}` | 更新/启停部门，需 `action:departments:update` |
-| DELETE | `/api/v1/departments/{department_id}` | 删除无子部门且无用户的部门，需 `action:departments:delete` |
-| GET | `/api/v1/audit/operation-logs` | 操作日志分页筛选，支持 `q`/`status`/`started_at`/`ended_at`/`page`/`page_size`，需 `action:audit:read` |
-| GET | `/api/v1/audit/operation-logs/export` | 导出操作日志 CSV，支持 `q`/`status`/`started_at`/`ended_at`，需 `action:audit:read` |
-| GET | `/api/v1/audit/login-logs` | 登录日志分页筛选，支持 `q`/`status`/`started_at`/`ended_at`/`page`/`page_size`，需 `action:audit:read` |
-| GET | `/api/v1/audit/login-logs/export` | 导出登录日志 CSV，支持 `q`/`status`/`started_at`/`ended_at`，需 `action:audit:read` |
-| GET | `/api/v1/dictionaries/types` | 字典类型列表，需 `action:dictionaries:read` |
-| POST | `/api/v1/dictionaries/types` | 创建字典类型，需 `action:dictionaries:create` |
-| PATCH | `/api/v1/dictionaries/types/{type_id}` | 更新非系统字典类型，需 `action:dictionaries:update` |
-| DELETE | `/api/v1/dictionaries/types/{type_id}` | 删除无字典项的非系统字典类型，需 `action:dictionaries:update` |
-| GET | `/api/v1/dictionaries/items` | 字典项列表，需 `action:dictionaries:read` |
-| POST | `/api/v1/dictionaries/items` | 创建字典项，需 `action:dictionaries:create` |
-| PATCH | `/api/v1/dictionaries/items/{item_id}` | 更新/启停字典项，需 `action:dictionaries:update` |
-| DELETE | `/api/v1/dictionaries/items/{item_id}` | 删除字典项，需 `action:dictionaries:update` |
-| GET | `/api/v1/files` | 文件分页列表，支持 `q`/`page`/`page_size`，需 `action:files:read` |
-| POST | `/api/v1/files` | 创建文件元数据，需 `action:files:create` |
-| POST | `/api/v1/files/upload` | 上传文件内容并创建元数据，需 `action:files:create` |
-| GET | `/api/v1/files/{file_id}/download` | 下载文件内容，需 `action:files:read` |
+| Method | Path                                   | 说明                                                                                                   |
+| ------ | -------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| GET    | `/api/v1/health`                       | API 存活检查                                                                                           |
+| GET    | `/api/v1/health/db`                    | PostgreSQL 连接检查；数据库不可用时返回 503                                                            |
+| POST   | `/api/v1/auth/login`                   | OAuth2 password 登录，返回 JWT access token                                                            |
+| GET    | `/api/v1/auth/me`                      | 根据 Bearer token 返回当前用户和权限码                                                                 |
+| GET    | `/api/v1/users`                        | 用户分页列表，支持 `q`/`department_id`/`role_code`/`page`/`page_size`，需 `action:users:read`          |
+| POST   | `/api/v1/users`                        | 创建用户，需 `action:users:create`                                                                     |
+| PATCH  | `/api/v1/users/bulk-status`            | 批量启用/禁用用户，需 `action:users:update`                                                            |
+| PATCH  | `/api/v1/users/{user_id}`              | 更新/启停用户，需 `action:users:update`                                                                |
+| PATCH  | `/api/v1/users/{user_id}/password`     | 重置用户密码，需 `action:users:update`                                                                 |
+| GET    | `/api/v1/users/{user_id}/roles`        | 用户角色码，需 `action:users:read`                                                                     |
+| PUT    | `/api/v1/users/{user_id}/roles`        | 更新用户角色，需 `action:users:update_roles`                                                           |
+| GET    | `/api/v1/roles`                        | 角色列表，需 `action:roles:read`                                                                       |
+| POST   | `/api/v1/roles`                        | 创建角色，需 `action:roles:create`                                                                     |
+| GET    | `/api/v1/roles/permissions`            | 权限列表，需 `action:roles:read`                                                                       |
+| GET    | `/api/v1/roles/{role_id}/permissions`  | 角色权限码，需 `action:roles:read`                                                                     |
+| PATCH  | `/api/v1/roles/{role_id}`              | 更新非系统角色，需 `action:roles:update`                                                               |
+| DELETE | `/api/v1/roles/{role_id}`              | 删除未分配用户的非系统角色，需 `action:roles:delete`                                                   |
+| PUT    | `/api/v1/roles/{role_id}/permissions`  | 更新角色权限，需 `action:roles:update_permissions`                                                     |
+| GET    | `/api/v1/departments`                  | 部门分页列表，支持 `q`/`page`/`page_size`，需 `action:departments:read`                                |
+| GET    | `/api/v1/departments/tree`             | 部门树，需 `action:departments:read`                                                                   |
+| POST   | `/api/v1/departments`                  | 创建部门，需 `action:departments:create`                                                               |
+| PATCH  | `/api/v1/departments/{department_id}`  | 更新/启停部门，需 `action:departments:update`                                                          |
+| DELETE | `/api/v1/departments/{department_id}`  | 删除无子部门且无用户的部门，需 `action:departments:delete`                                             |
+| GET    | `/api/v1/audit/operation-logs`         | 操作日志分页筛选，支持 `q`/`status`/`started_at`/`ended_at`/`page`/`page_size`，需 `action:audit:read` |
+| GET    | `/api/v1/audit/operation-logs/export`  | 导出操作日志 CSV，支持 `q`/`status`/`started_at`/`ended_at`，需 `action:audit:read`                    |
+| GET    | `/api/v1/audit/login-logs`             | 登录日志分页筛选，支持 `q`/`status`/`started_at`/`ended_at`/`page`/`page_size`，需 `action:audit:read` |
+| GET    | `/api/v1/audit/login-logs/export`      | 导出登录日志 CSV，支持 `q`/`status`/`started_at`/`ended_at`，需 `action:audit:read`                    |
+| GET    | `/api/v1/dictionaries/types`           | 字典类型列表，需 `action:dictionaries:read`                                                            |
+| POST   | `/api/v1/dictionaries/types`           | 创建字典类型，需 `action:dictionaries:create`                                                          |
+| PATCH  | `/api/v1/dictionaries/types/{type_id}` | 更新非系统字典类型，需 `action:dictionaries:update`                                                    |
+| DELETE | `/api/v1/dictionaries/types/{type_id}` | 删除无字典项的非系统字典类型，需 `action:dictionaries:update`                                          |
+| GET    | `/api/v1/dictionaries/items`           | 字典项列表，需 `action:dictionaries:read`                                                              |
+| POST   | `/api/v1/dictionaries/items`           | 创建字典项，需 `action:dictionaries:create`                                                            |
+| PATCH  | `/api/v1/dictionaries/items/{item_id}` | 更新/启停字典项，需 `action:dictionaries:update`                                                       |
+| DELETE | `/api/v1/dictionaries/items/{item_id}` | 删除字典项，需 `action:dictionaries:update`                                                            |
+| GET    | `/api/v1/files`                        | 文件分页列表，支持 `q`/`page`/`page_size`，需 `action:files:read`                                      |
+| POST   | `/api/v1/files`                        | 创建文件元数据，需 `action:files:create`                                                               |
+| POST   | `/api/v1/files/upload`                 | 上传文件内容并创建元数据，需 `action:files:create`                                                     |
+| GET    | `/api/v1/files/{file_id}/download`     | 下载文件内容，需 `action:files:read`                                                                   |

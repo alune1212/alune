@@ -23,7 +23,10 @@
     "format": "turbo run format",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "e2e": "pnpm --filter @alune/web e2e"
+    "e2e": "pnpm --filter @alune/web e2e",
+    "security:audit": "pnpm run security:audit:npm && pnpm run security:audit:python",
+    "security:audit:npm": "pnpm audit --audit-level moderate",
+    "security:audit:python": "sh scripts/security-audit-python.sh"
   },
   "devDependencies": {
     "prettier": "^3.6.2",

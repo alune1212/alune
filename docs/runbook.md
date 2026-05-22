@@ -162,7 +162,12 @@ curl -s "http://localhost:8000/api/v1/audit/login-logs/export" -H "Authorization
 Expected DB health success:
 
 ```json
-{"success":true,"data":{"status":"ok","database":"postgresql"},"message":"OK","error":null}
+{
+  "success": true,
+  "data": { "status": "ok", "database": "postgresql" },
+  "message": "OK",
+  "error": null
+}
 ```
 
 ## Quality Gates
@@ -284,6 +289,23 @@ It checks for dependency updates weekly on Monday morning in `Asia/Shanghai`:
 - `github-actions` at `/` for workflow actions.
 
 Each ecosystem has a broad `groups` entry so routine version updates are batched by ecosystem instead of creating one pull request per dependency.
+
+## Security Audit
+
+Run the manual dependency audit baseline from the repository root:
+
+```bash
+pnpm security:audit
+```
+
+Run audits independently when triaging failures:
+
+```bash
+pnpm security:audit:npm
+UV_CACHE_DIR=.uv-cache pnpm security:audit:python
+```
+
+The Python audit script exports the backend uv lockfile to a temporary requirements file before invoking `uvx pip-audit`. The security audit baseline is not part of the default GitHub Actions `quality` job yet.
 
 ## Troubleshooting
 

@@ -1,6 +1,6 @@
 # Architecture
 
-`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6G-R MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, internal system pages for users, roles, departments, audit logs, dictionaries, and file attachments backed by local storage or MinIO with optional ClamAV scanning, plus Orval API client generation from FastAPI OpenAPI, generated-client migration for frontend reads/writes, a narrow compatibility client for binary and CSV boundaries, Playwright smoke tests for login/navigation, GitHub Actions CI quality gates, and Dependabot dependency update visibility.
+`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6G-S MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, internal system pages for users, roles, departments, audit logs, dictionaries, and file attachments backed by local storage or MinIO with optional ClamAV scanning, plus Orval API client generation from FastAPI OpenAPI, generated-client migration for frontend reads/writes, a narrow compatibility client for binary and CSV boundaries, Playwright smoke tests for login/navigation, GitHub Actions CI quality gates, Dependabot dependency update visibility, and a lightweight manual dependency security audit baseline.
 
 ## Monorepo Layout
 
@@ -96,6 +96,16 @@ Dependabot configuration: `.github/dependabot.yml`.
 
 Each ecosystem runs weekly on Monday morning in `Asia/Shanghai` and groups all updates for that ecosystem into a single pull request.
 
+## Security Audit
+
+Manual dependency audit entrypoints:
+
+- `pnpm security:audit` runs both Node.js and Python dependency audits.
+- `pnpm security:audit:npm` runs `pnpm audit --audit-level moderate`.
+- `pnpm security:audit:python` runs `scripts/security-audit-python.sh`, which exports the backend uv lockfile to a temporary requirements file and scans it with `uvx pip-audit`.
+
+These commands are intentionally not part of the default CI job yet.
+
 ## Runtime Data Flow
 
 ```mermaid
@@ -151,63 +161,63 @@ The `api` service stores uploaded file binaries under `/app/uploads`, backed by 
 
 The FastAPI root path `/` is intentionally not part of the API surface. Use `/docs`, `/openapi.json`, or the versioned `/api/v1/...` routes below.
 
-| Method | Path | Purpose |
-| --- | --- | --- |
-| GET | `/api/v1/health` | Confirm API process is alive. |
-| GET | `/api/v1/health/db` | Run `SELECT 1` through SQLAlchemy AsyncSession. Returns 503 if PostgreSQL is unavailable. |
-| POST | `/api/v1/auth/login` | OAuth2 password login. Returns a JWT access token. |
-| GET | `/api/v1/auth/me` | Returns the current active user and permission codes from a Bearer token. |
-| GET | `/api/v1/users` | Returns paginated user records for administrators. Supports `q`, `department_id`, and `role_code`. |
-| POST | `/api/v1/users` | Creates a user account. |
-| PATCH | `/api/v1/users/bulk-status` | Enables or disables multiple users and records one audit log entry. |
-| PATCH | `/api/v1/users/{user_id}` | Updates user account state. |
-| PATCH | `/api/v1/users/{user_id}/password` | Resets a user password. |
-| GET | `/api/v1/users/{user_id}/roles` | Returns role codes assigned to one user. |
-| PUT | `/api/v1/users/{user_id}/roles` | Replaces role codes assigned to one user. |
-| GET | `/api/v1/roles` | Returns role records for administrators. |
-| POST | `/api/v1/roles` | Creates non-system role records. |
-| GET | `/api/v1/roles/permissions` | Returns all permission records. |
-| GET | `/api/v1/roles/{role_id}/permissions` | Returns permission codes assigned to one role. |
-| PATCH | `/api/v1/roles/{role_id}` | Updates non-system roles. |
-| DELETE | `/api/v1/roles/{role_id}` | Deletes non-system roles only when no users are assigned. |
-| PUT | `/api/v1/roles/{role_id}/permissions` | Replaces permission codes assigned to one role. |
-| GET | `/api/v1/departments` | Returns paginated department records for administrators. |
-| GET | `/api/v1/departments/tree` | Returns a nested department tree. |
-| POST | `/api/v1/departments` | Creates a department record. |
-| PATCH | `/api/v1/departments/{department_id}` | Updates department fields. |
-| DELETE | `/api/v1/departments/{department_id}` | Deletes departments only when no children or users are assigned. |
-| GET | `/api/v1/audit/operation-logs` | Returns paginated/filterable operation logs with optional date range. |
-| GET | `/api/v1/audit/operation-logs/export` | Exports operation logs as CSV with `q`, `status`, `started_at`, and `ended_at` filters. |
-| GET | `/api/v1/audit/login-logs` | Returns paginated/filterable login logs with optional date range. |
-| GET | `/api/v1/audit/login-logs/export` | Exports login logs as CSV with `q`, `status`, `started_at`, and `ended_at` filters. |
-| GET | `/api/v1/dictionaries/types` | Returns dictionary types. |
-| POST | `/api/v1/dictionaries/types` | Creates a dictionary type. |
-| PATCH | `/api/v1/dictionaries/types/{type_id}` | Updates non-system dictionary types. |
-| DELETE | `/api/v1/dictionaries/types/{type_id}` | Deletes non-system dictionary types only when no items exist. |
-| GET | `/api/v1/dictionaries/items` | Returns dictionary items. |
-| POST | `/api/v1/dictionaries/items` | Creates a dictionary item. |
-| PATCH | `/api/v1/dictionaries/items/{item_id}` | Updates or enables/disables a dictionary item. |
-| DELETE | `/api/v1/dictionaries/items/{item_id}` | Deletes a dictionary item. |
-| GET | `/api/v1/files` | Returns paginated file attachment metadata. |
-| POST | `/api/v1/files` | Creates file attachment metadata. |
-| POST | `/api/v1/files/upload` | Uploads local file content and creates attachment metadata. |
-| GET | `/api/v1/files/{file_id}/download` | Downloads stored file content. |
+| Method | Path                                   | Purpose                                                                                            |
+| ------ | -------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| GET    | `/api/v1/health`                       | Confirm API process is alive.                                                                      |
+| GET    | `/api/v1/health/db`                    | Run `SELECT 1` through SQLAlchemy AsyncSession. Returns 503 if PostgreSQL is unavailable.          |
+| POST   | `/api/v1/auth/login`                   | OAuth2 password login. Returns a JWT access token.                                                 |
+| GET    | `/api/v1/auth/me`                      | Returns the current active user and permission codes from a Bearer token.                          |
+| GET    | `/api/v1/users`                        | Returns paginated user records for administrators. Supports `q`, `department_id`, and `role_code`. |
+| POST   | `/api/v1/users`                        | Creates a user account.                                                                            |
+| PATCH  | `/api/v1/users/bulk-status`            | Enables or disables multiple users and records one audit log entry.                                |
+| PATCH  | `/api/v1/users/{user_id}`              | Updates user account state.                                                                        |
+| PATCH  | `/api/v1/users/{user_id}/password`     | Resets a user password.                                                                            |
+| GET    | `/api/v1/users/{user_id}/roles`        | Returns role codes assigned to one user.                                                           |
+| PUT    | `/api/v1/users/{user_id}/roles`        | Replaces role codes assigned to one user.                                                          |
+| GET    | `/api/v1/roles`                        | Returns role records for administrators.                                                           |
+| POST   | `/api/v1/roles`                        | Creates non-system role records.                                                                   |
+| GET    | `/api/v1/roles/permissions`            | Returns all permission records.                                                                    |
+| GET    | `/api/v1/roles/{role_id}/permissions`  | Returns permission codes assigned to one role.                                                     |
+| PATCH  | `/api/v1/roles/{role_id}`              | Updates non-system roles.                                                                          |
+| DELETE | `/api/v1/roles/{role_id}`              | Deletes non-system roles only when no users are assigned.                                          |
+| PUT    | `/api/v1/roles/{role_id}/permissions`  | Replaces permission codes assigned to one role.                                                    |
+| GET    | `/api/v1/departments`                  | Returns paginated department records for administrators.                                           |
+| GET    | `/api/v1/departments/tree`             | Returns a nested department tree.                                                                  |
+| POST   | `/api/v1/departments`                  | Creates a department record.                                                                       |
+| PATCH  | `/api/v1/departments/{department_id}`  | Updates department fields.                                                                         |
+| DELETE | `/api/v1/departments/{department_id}`  | Deletes departments only when no children or users are assigned.                                   |
+| GET    | `/api/v1/audit/operation-logs`         | Returns paginated/filterable operation logs with optional date range.                              |
+| GET    | `/api/v1/audit/operation-logs/export`  | Exports operation logs as CSV with `q`, `status`, `started_at`, and `ended_at` filters.            |
+| GET    | `/api/v1/audit/login-logs`             | Returns paginated/filterable login logs with optional date range.                                  |
+| GET    | `/api/v1/audit/login-logs/export`      | Exports login logs as CSV with `q`, `status`, `started_at`, and `ended_at` filters.                |
+| GET    | `/api/v1/dictionaries/types`           | Returns dictionary types.                                                                          |
+| POST   | `/api/v1/dictionaries/types`           | Creates a dictionary type.                                                                         |
+| PATCH  | `/api/v1/dictionaries/types/{type_id}` | Updates non-system dictionary types.                                                               |
+| DELETE | `/api/v1/dictionaries/types/{type_id}` | Deletes non-system dictionary types only when no items exist.                                      |
+| GET    | `/api/v1/dictionaries/items`           | Returns dictionary items.                                                                          |
+| POST   | `/api/v1/dictionaries/items`           | Creates a dictionary item.                                                                         |
+| PATCH  | `/api/v1/dictionaries/items/{item_id}` | Updates or enables/disables a dictionary item.                                                     |
+| DELETE | `/api/v1/dictionaries/items/{item_id}` | Deletes a dictionary item.                                                                         |
+| GET    | `/api/v1/files`                        | Returns paginated file attachment metadata.                                                        |
+| POST   | `/api/v1/files`                        | Creates file attachment metadata.                                                                  |
+| POST   | `/api/v1/files/upload`                 | Uploads local file content and creates attachment metadata.                                        |
+| GET    | `/api/v1/files/{file_id}/download`     | Downloads stored file content.                                                                     |
 
 ## Current Database Schema
 
-| Table | Purpose |
-| --- | --- |
-| `system_info` | Minimal baseline table for system metadata and migration verification. |
-| `users` | Login MVP user account table with password hash and active/superuser flags. |
-| `roles` | RBAC role definitions. |
-| `permissions` | Menu and action permission definitions. |
-| `user_roles` | User-to-role assignments. |
-| `role_permissions` | Role-to-permission assignments. |
-| `departments` | Department hierarchy and user assignment target. |
-| `operation_logs` | Operation log foundation. |
-| `login_logs` | Login log foundation. |
-| `dictionary_types` / `dictionary_items` | Dictionary management foundation. |
-| `file_attachments` | File attachment metadata foundation. |
+| Table                                   | Purpose                                                                     |
+| --------------------------------------- | --------------------------------------------------------------------------- |
+| `system_info`                           | Minimal baseline table for system metadata and migration verification.      |
+| `users`                                 | Login MVP user account table with password hash and active/superuser flags. |
+| `roles`                                 | RBAC role definitions.                                                      |
+| `permissions`                           | Menu and action permission definitions.                                     |
+| `user_roles`                            | User-to-role assignments.                                                   |
+| `role_permissions`                      | Role-to-permission assignments.                                             |
+| `departments`                           | Department hierarchy and user assignment target.                            |
+| `operation_logs`                        | Operation log foundation.                                                   |
+| `login_logs`                            | Login log foundation.                                                       |
+| `dictionary_types` / `dictionary_items` | Dictionary management foundation.                                           |
+| `file_attachments`                      | File attachment metadata foundation.                                        |
 
 ## Not Implemented Yet
 
