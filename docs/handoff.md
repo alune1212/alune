@@ -39,6 +39,7 @@
 - Added stage 6G-R Dependabot dependency visibility: weekly grouped update checks for npm/pnpm, uv, Dockerfiles, Docker Compose, and GitHub Actions.
 - Added stage 6G-S lightweight security audit baseline: root npm/Python audit scripts, Python pip-audit wrapper, and `docs/security.md`.
 - Added stage 6G-T feature development readiness check: `docs/feature-readiness.md` now records the pre-feature decision, readiness checklist, blockers, and entry criteria.
+- Added stage 6G-U security audit remediation: pnpm override pins transitive `lodash` to `4.18.1`, clearing the npm audit finding from the Orval development dependency chain.
 - Verified Docker dependency services with PostgreSQL and Redis healthy.
 - Verified `/api/v1/health/db` returns 200 when the API can reach Docker PostgreSQL.
 
@@ -101,8 +102,8 @@ rg -n "TODO|FIXME|create_all|print\\(" apps packages scripts --glob '!packages/a
 - GitHub Actions CI is defined in `.github/workflows/ci.yml`. The default `quality` job runs on push/PR; the Playwright smoke job is manual through `workflow_dispatch` with `run_playwright_smoke=true`.
 - Dependabot is defined in `.github/dependabot.yml` and checks npm/pnpm, uv, Docker, Docker Compose, and GitHub Actions weekly with per-ecosystem grouping.
 - Lightweight dependency audits are available through `pnpm security:audit`, `pnpm security:audit:npm`, and `pnpm security:audit:python`. These are manual for now and are not part of the default CI quality job.
-- Stage 6G-T audit output: npm audit currently reports one high and one moderate `lodash` advisory through the dev-time Orval dependency chain; Python `pip-audit` reports no known vulnerabilities.
-- Stage 6G-T readiness output: do not enter business feature development until the npm audit `lodash` finding is remediated or explicitly accepted. See `docs/feature-readiness.md`.
+- Stage 6G-U audit output: npm audit and Python `pip-audit` both report no known vulnerabilities.
+- Stage 6G-U readiness output: the previous security audit gate is resolved. Before stage 7A, document the first business module checklist in stage 6G-V. See `docs/feature-readiness.md`.
 - If local dev servers already occupy 8000 or 5173, use:
 
 ```bash
@@ -113,7 +114,6 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 
 Next stage should continue pre-feature hardening:
 
-- Stage 6G-U: review and remediate or explicitly accept the npm audit `lodash` finding in the Orval dependency chain.
 - Stage 6G-V: document the first business module implementation checklist before starting stage 7A.
 
 Do not start approval flows, payroll, reports, or company-specific business modules before the internal system foundation is in place.

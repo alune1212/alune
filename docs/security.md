@@ -33,13 +33,13 @@ The Python audit script exports the `apps/api/uv.lock` dependency graph to a tem
 
 ## Current Findings
 
-As of stage 6G-T:
+As of stage 6G-U:
 
-- `pnpm security:audit:npm` reports one high and one moderate `lodash` advisory through the dev-time API client generation dependency chain `orval > @orval/core > @ibm-cloud/openapi-ruleset > @stoplight/spectral-functions > lodash`.
+- `pnpm security:audit:npm` reports no known vulnerabilities.
 - `pnpm security:audit:python` reports no known vulnerabilities.
+
+Stage 6G-U remediated the previous `lodash` advisories by adding a pnpm override for `lodash@4.18.1`, which updates the dev-time API client generation dependency chain `orval > @orval/core > @ibm-cloud/openapi-ruleset > @stoplight/spectral-functions > lodash`.
 
 ## Next Security Step
 
-Review the npm finding, then decide whether to remediate through an upstream dependency upgrade, a package override, or a documented temporary acceptance.
-
-This is also the current feature-development gate from stage 6G-T. Do not start the first business module until this finding has either a committed fix or a committed temporary acceptance note with rationale and review date.
+Keep `pnpm security:audit:npm` and `pnpm security:audit:python` passing before the first business module PR. When Orval or the Stoplight dependency chain releases a native fix, prefer removing the override if the audit remains clean.

@@ -2,9 +2,9 @@
 
 Last reviewed: 2026-05-22
 
-Current stage: 6G-T
+Current stage: 6G-U
 
-Decision: do not enter business feature development yet. The internal system foundation is structurally ready for a small first business module, but the npm audit finding must be remediated or explicitly accepted before feature work starts.
+Decision: the security audit gate from stage 6G-T is now resolved by stage 6G-U. The internal system foundation is structurally ready for a small first business module, but stage 6G-V should still document the first feature implementation checklist before stage 7A starts.
 
 ## Scope
 
@@ -26,7 +26,7 @@ This document is a pre-feature readiness check. It does not introduce approval f
 | Docker local stack              | Ready                          | Compose covers PostgreSQL, Redis, API, Web, optional MinIO, and optional ClamAV.                                                                                                   | Keep new runtime dependencies out unless the module cannot work without them.                                                           |
 | CI                              | Ready                          | GitHub Actions quality job checks API client drift, lint, typecheck, test, build, and Docker Compose config.                                                                       | Add security audit to CI only after the current npm audit finding is resolved or explicitly accepted.                                   |
 | Dependency updates              | Ready                          | Dependabot watches npm/pnpm, uv, Docker, Docker Compose, and GitHub Actions.                                                                                                       | Review dependency PRs before starting a large business module.                                                                          |
-| Security audit                  | Blocked                        | Python audit reports no known vulnerabilities; npm audit currently reports one high and one moderate `lodash` advisory through the dev-time Orval dependency chain.                | Remediate, override with evidence, or document temporary risk acceptance for the npm audit finding.                                     |
+| Security audit                  | Ready                          | Python audit reports no known vulnerabilities; npm audit reports no known vulnerabilities after the stage 6G-U `lodash` override.                                                  | Re-run npm and Python audit before the first business module PR.                                                                        |
 | Production hardening            | Not a feature blocker          | Local defaults still include development secrets and local Docker-oriented settings.                                                                                               | Before deployment, add production env validation and deployment-specific secret handling.                                               |
 
 ## Code Shape Observations
@@ -40,7 +40,7 @@ This document is a pre-feature readiness check. It does not introduce approval f
 
 Start stage 7 business feature development only after all of these are true:
 
-1. The npm audit `lodash` finding has a committed resolution or a committed temporary acceptance note.
+1. The npm audit `lodash` finding remains resolved in the current lockfile.
 2. The first business module has a narrow written scope, including entities, permissions, audit events, routes, pages, and tests.
 3. The module's API contract will be generated through Orval before frontend integration.
 4. The module's schema changes are represented by Alembic migrations.
@@ -48,6 +48,5 @@ Start stage 7 business feature development only after all of these are true:
 
 ## Recommended Next Stages
 
-1. Stage 6G-U: resolve or explicitly accept the npm audit `lodash` finding.
-2. Stage 6G-V: write a feature module implementation checklist covering backend module layout, permissions, audit logs, migrations, generated API client usage, frontend page structure, and tests.
-3. Stage 7A: start the first business module only after the previous two stages are complete.
+1. Stage 6G-V: write a feature module implementation checklist covering backend module layout, permissions, audit logs, migrations, generated API client usage, frontend page structure, and tests.
+2. Stage 7A: start the first business module only after the checklist is complete and the audits still pass.

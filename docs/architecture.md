@@ -1,6 +1,6 @@
 # Architecture
 
-`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6G-T MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, internal system pages for users, roles, departments, audit logs, dictionaries, and file attachments backed by local storage or MinIO with optional ClamAV scanning, plus Orval API client generation from FastAPI OpenAPI, generated-client migration for frontend reads/writes, a narrow compatibility client for binary and CSV boundaries, Playwright smoke tests for login/navigation, GitHub Actions CI quality gates, Dependabot dependency update visibility, a lightweight manual dependency security audit baseline, and a documented pre-feature readiness gate.
+`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6G-U MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, internal system pages for users, roles, departments, audit logs, dictionaries, and file attachments backed by local storage or MinIO with optional ClamAV scanning, plus Orval API client generation from FastAPI OpenAPI, generated-client migration for frontend reads/writes, a narrow compatibility client for binary and CSV boundaries, Playwright smoke tests for login/navigation, GitHub Actions CI quality gates, Dependabot dependency update visibility, a lightweight manual dependency security audit baseline, a documented pre-feature readiness gate, and npm audit remediation for the previous transitive `lodash` finding.
 
 ## Monorepo Layout
 
@@ -108,7 +108,7 @@ These commands are intentionally not part of the default CI job yet.
 
 ## Feature Readiness
 
-The current readiness decision is documented in `docs/feature-readiness.md`: do not enter business feature development until the npm audit `lodash` finding in the Orval development dependency chain is remediated or explicitly accepted. The platform foundation is otherwise structurally ready for a small first business module if that module follows the existing patterns for Alembic migrations, generated API client usage, permissions, audit logs, and tests.
+The current readiness decision is documented in `docs/feature-readiness.md`: the stage 6G-T security audit gate is resolved by the stage 6G-U `lodash` override, and the platform foundation is structurally ready for a small first business module if that module follows the existing patterns for Alembic migrations, generated API client usage, permissions, audit logs, and tests. Stage 6G-V should still document the first feature implementation checklist before stage 7A starts.
 
 ## Runtime Data Flow
 

@@ -14,7 +14,7 @@ Project guidance for Codex and other AI agents working in this repository.
 - Alembic migration baseline with the `system_info` table.
 - Login MVP with `users`, password hashing, JWT login, `/auth/me`, frontend login, and a protected dashboard.
 - Permission baseline with roles, permissions, user-role links, role-permission links, backend permission dependency, and frontend menu filtering.
-- Stage 6G-T internal system foundation with user create/enable/disable/batch-status confirmation and result feedback/edit/password reset, user role assignment, user role/department filters, role create/update/delete guards, searchable grouped role permission assignment with empty-state feedback, department tree/update/delete rules, audit log filtering/pagination/date range/CSV export, dictionary type/item maintenance guards, local and MinIO file upload/download, upload policy checks, file storage backend factory, ClamAV upload scanner adapter, frontend interaction tests, Orval API client generation from FastAPI OpenAPI, generated-client migration for frontend reads/writes, multipart binary type normalization, a narrowed root API client compatibility layer for runtime configuration, CSV export, file upload, and file download, Playwright smoke coverage for login and internal-system navigation, GitHub Actions CI quality gates, Dependabot dependency update visibility, manual npm/Python dependency security audit scripts, and a pre-feature readiness gate in `docs/feature-readiness.md`.
+- Stage 6G-U internal system foundation with user create/enable/disable/batch-status confirmation and result feedback/edit/password reset, user role assignment, user role/department filters, role create/update/delete guards, searchable grouped role permission assignment with empty-state feedback, department tree/update/delete rules, audit log filtering/pagination/date range/CSV export, dictionary type/item maintenance guards, local and MinIO file upload/download, upload policy checks, file storage backend factory, ClamAV upload scanner adapter, frontend interaction tests, Orval API client generation from FastAPI OpenAPI, generated-client migration for frontend reads/writes, multipart binary type normalization, a narrowed root API client compatibility layer for runtime configuration, CSV export, file upload, and file download, Playwright smoke coverage for login and internal-system navigation, GitHub Actions CI quality gates, Dependabot dependency update visibility, manual npm/Python dependency security audit scripts, a pre-feature readiness gate in `docs/feature-readiness.md`, and a pnpm override that remediates the previous transitive `lodash` audit finding.
 
 Do not add approval flows, reports, payroll, or company-specific business modules unless the user explicitly asks for that phase.
 
@@ -139,7 +139,7 @@ With that alternate Docker mapping, use `http://localhost:15173` for Web and `ht
 - Generated client fetcher: `packages/api-client/src/orval-fetch.ts`.
 - OpenAPI export script: `apps/api/app/scripts/export_openapi.py`.
 - Shared constants: `packages/shared/src/index.ts`.
-- Feature development readiness gate: `docs/feature-readiness.md`. Do not start company-specific feature modules until the npm audit finding is remediated or explicitly accepted.
+- Feature development readiness gate: `docs/feature-readiness.md`. Before starting company-specific feature modules, complete the stage 6G-V implementation checklist and keep npm/Python audits passing.
 
 ## Guardrails
 
