@@ -7,8 +7,8 @@ from app.modules.audit.repository import record_operation_log
 from app.modules.auth.dependencies import DatabaseSession
 from app.modules.auth.models import User
 from app.modules.permissions.dependencies import require_permission
-from app.modules.permissions.repository import list_permission_codes_for_user
 from app.modules.permissions.models import Role
+from app.modules.permissions.repository import list_permission_codes_for_user
 from app.modules.roles.repository import (
     count_users_by_role,
     get_role_by_code,
@@ -194,7 +194,7 @@ async def update_role_permissions(
         if "action:users:manage_superuser" not in permission_codes:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Only users with manage_superuser permission can modify system role permissions",
+                detail="Permission denied: manage_superuser required to modify system role",
             )
 
     missing_codes = await replace_role_permissions(session, role, payload.permission_codes)

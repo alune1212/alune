@@ -81,7 +81,7 @@ class Settings(BaseSettings):
         return [str(origin).strip() for origin in parsed_value if str(origin).strip()]
 
     @model_validator(mode="after")
-    def validate_production_security(self) -> "Settings":
+    def validate_production_security(self) -> Settings:
         if self.environment != "production":
             return self
 

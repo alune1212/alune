@@ -246,21 +246,27 @@ async def update_user(
 
     update_data = payload.model_dump(exclude_unset=True)
 
-    if "is_superuser" in update_data and update_data["is_superuser"] is not None:
-        if not current_user.is_superuser:
-            permission_codes = await list_permission_codes_for_user(session, current_user)
-            if "action:users:manage_superuser" not in permission_codes:
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Only users with manage_superuser permission can modify superuser status",
-                )
-
-    if "is_active" in update_data and update_data["is_active"] is False:
-        if user.id == current_user.id:
+    if (
+        "is_superuser" in update_data
+        and update_data["is_superuser"] is not None
+        and not current_user.is_superuser
+    ):
+        permission_codes = await list_permission_codes_for_user(session, current_user)
+        if "action:users:manage_superuser" not in permission_codes:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="You cannot disable your own account",
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Permission denied: manage_superuser required",
             )
+
+    if (
+        "is_active" in update_data
+        and update_data["is_active"] is False
+        and user.id == current_user.id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You cannot disable your own account",
+        )
 
     if "email" in update_data and update_data["email"] is not None:
         existing_email = await get_user_by_email(session, update_data["email"])

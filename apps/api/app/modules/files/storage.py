@@ -2,7 +2,6 @@ import asyncio
 import re
 import socket
 import struct
-from urllib.parse import quote
 from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -10,6 +9,7 @@ from hashlib import sha256
 from io import BytesIO
 from pathlib import Path
 from typing import Protocol, cast, runtime_checkable
+from urllib.parse import quote
 from uuid import uuid4
 
 from fastapi import HTTPException, Response, UploadFile, status
