@@ -1,6 +1,8 @@
 import asyncio
+import re
 import socket
 import struct
+from urllib.parse import quote
 from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -16,6 +18,14 @@ from starlette.responses import FileResponse, StreamingResponse
 from app.modules.files.schemas import StoredUpload
 
 _CHUNK_SIZE = 1024 * 1024
+
+
+def _sanitize_filename(filename: str) -> str:
+    """Remove newlines and other dangerous characters from filenames
+    to prevent HTTP header injection.
+    """
+    sanitized = re.sub(r"[\r\n]", "", filename)
+    return sanitized[:255]
 
 
 @runtime_checkable
@@ -163,7 +173,8 @@ class LocalFileStorage:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="File content not found",
             )
-        return FileResponse(path=file_path, filename=filename, media_type=content_type)
+        safe_filename = _sanitize_filename(filename)
+        return FileResponse(path=file_path, filename=safe_filename, media_type=content_type)
 
     def resolve(self, storage_path: str) -> Path:
         resolved_path = (self.root / storage_path).resolve()
@@ -255,7 +266,8 @@ class MinioFileStorage:
                 if callable(release_conn):
                     release_conn()
 
-        headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
+        safe_filename = _sanitize_filename(filename)
+        headers = {"Content-Disposition": f"attachment; filename*=UTF-8''{quote(safe_filename)}"}
         return StreamingResponse(iter_object(), media_type=content_type, headers=headers)
 
 
@@ -356,6 +368,21 @@ async def validate_upload_policy(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="File type is not allowed",
         )
+
+    # Size check BEFORE scan: prevents scanner from reading oversized files
+    # into memory. Read the entire upload to measure size, then seek back.
+    chunks: list[bytes] = []
+    accumulated = 0
+    while chunk := await upload.read(_CHUNK_SIZE):
+        accumulated += len(chunk)
+        if accumulated > max_size_bytes:
+            await upload.seek(0)
+            raise HTTPException(
+                status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+                detail="File is too large",
+            )
+        chunks.append(chunk)
+    await upload.seek(0)
 
     scan_result = await (scanner or NoopUploadScanner()).scan(upload)
     if not scan_result.is_clean:
