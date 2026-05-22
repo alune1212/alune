@@ -1,5 +1,4 @@
 import asyncio
-import re
 import socket
 import struct
 from collections.abc import Iterator
@@ -24,7 +23,7 @@ def _sanitize_filename(filename: str) -> str:
     """Remove newlines and other dangerous characters from filenames
     to prevent HTTP header injection.
     """
-    sanitized = re.sub(r"[\r\n]", "", filename)
+    sanitized = filename.replace("\r", "").replace("\n", "")
     return sanitized[:255]
 
 
@@ -369,20 +368,17 @@ async def validate_upload_policy(
             detail="File type is not allowed",
         )
 
-    # Size check BEFORE scan: prevents scanner from reading oversized files
-    # into memory. Read the entire upload to measure size, then seek back.
-    chunks: list[bytes] = []
-    accumulated = 0
-    while chunk := await upload.read(_CHUNK_SIZE):
-        accumulated += len(chunk)
-        if accumulated > max_size_bytes:
-            await upload.seek(0)
-            raise HTTPException(
-                status_code=status.HTTP_413_CONTENT_TOO_LARGE,
-                detail="File is too large",
-            )
-        chunks.append(chunk)
-    await upload.seek(0)
+    # Size check BEFORE scan: measure file size without streaming
+    # content through memory. Starlette UploadFile.seek() only accepts
+    # a single offset arg, so we use the underlying file descriptor.
+    upload.file.seek(0, 2)
+    file_size = upload.file.tell()
+    upload.file.seek(0)
+    if file_size > max_size_bytes:
+        raise HTTPException(
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+            detail="File is too large",
+        )
 
     scan_result = await (scanner or NoopUploadScanner()).scan(upload)
     if not scan_result.is_clean:

@@ -10,8 +10,7 @@ from app.modules.auth.models import User
 from app.modules.auth.repository import get_user_by_username
 from app.modules.auth.security import get_password_hash
 from app.modules.departments.repository import get_department_by_id
-from app.modules.permissions.dependencies import require_permission
-from app.modules.permissions.repository import list_permission_codes_for_user
+from app.modules.permissions.dependencies import ensure_manage_superuser, require_permission
 from app.modules.users.repository import (
     bulk_update_user_status,
     get_user_by_email,
@@ -74,13 +73,8 @@ async def create_user(
     session: DatabaseSession,
     current_user: User = CreateUserDependency,
 ) -> ApiResponse[UserManagementItem]:
-    if payload.is_superuser and not current_user.is_superuser:
-        permission_codes = await list_permission_codes_for_user(session, current_user)
-        if "action:users:manage_superuser" not in permission_codes:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Only users with manage_superuser permission can create superuser accounts",
-            )
+    if payload.is_superuser:
+        await ensure_manage_superuser(session, current_user)
 
     existing_username = await get_user_by_username(session, payload.username)
     if existing_username is not None:
@@ -246,17 +240,8 @@ async def update_user(
 
     update_data = payload.model_dump(exclude_unset=True)
 
-    if (
-        "is_superuser" in update_data
-        and update_data["is_superuser"] is not None
-        and not current_user.is_superuser
-    ):
-        permission_codes = await list_permission_codes_for_user(session, current_user)
-        if "action:users:manage_superuser" not in permission_codes:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Permission denied: manage_superuser required",
-            )
+    if update_data.get("is_superuser") is not None:
+        await ensure_manage_superuser(session, current_user)
 
     if (
         "is_active" in update_data

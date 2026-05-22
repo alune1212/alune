@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { createContext, type ReactNode, useContext, useMemo, useState } from "react";
+import { createContext, type ReactNode, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 import { clearAccessToken, readAccessToken, saveAccessToken } from "@/features/auth/auth-token";
 import { useGetMeApiV1AuthMeGet, type UserPublic } from "@alune/api-client/generated";
@@ -25,13 +25,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const queryClient = useQueryClient();
   const [token, setToken] = useState<string | null>(() => readAccessToken());
   const [isSessionExpired, setIsSessionExpired] = useState(false);
+  const expiredCleanupRef = useRef(false);
 
   const currentUserQuery = useGetMeApiV1AuthMeGet({
     query: {
       queryKey: ["auth", "me", token],
       enabled: token !== null,
       retry: false,
-      staleTime: 0,
     },
     request: {
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
@@ -39,17 +39,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
   });
   const currentUser = currentUserQuery.data?.data.data ?? null;
 
-  // Handle 401: clear credentials and mark session expired.
-  // We use an inline ref-guarded check during render to avoid the
-  // react-hooks/set-state-in-effect warning while still synchronously
-  // responding to auth failures.
-  const errorStatus = (currentUserQuery.error as { status?: number } | null)?.status;
-  if (errorStatus === 401 && token) {
-    clearAccessToken();
-    queryClient.removeQueries({ queryKey: ["auth"] });
-    setToken(null);
-    setIsSessionExpired(true);
-  }
+  useEffect(() => {
+    const errorStatus = (currentUserQuery.error as { status?: number } | null)?.status;
+    if (errorStatus === 401 && token && !expiredCleanupRef.current) {
+      expiredCleanupRef.current = true;
+      clearAccessToken();
+      queryClient.removeQueries({ queryKey: ["auth"] });
+      setToken(null);
+      setIsSessionExpired(true);
+    }
+  }, [currentUserQuery.error, token, queryClient]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -62,6 +61,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         saveAccessToken(nextToken);
         setToken(nextToken);
         setIsSessionExpired(false);
+        expiredCleanupRef.current = false;
         queryClient.invalidateQueries({ queryKey: ["auth"] });
       },
       logout: () => {

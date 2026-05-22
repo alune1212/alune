@@ -14,6 +14,7 @@ class PermissionDefinition:
 
 ADMIN_ROLE_CODE = "admin"
 ADMIN_ROLE_NAME = "Administrator"
+PERMISSION_MANAGE_SUPERUSER = "action:users:manage_superuser"
 
 DEFAULT_PERMISSIONS: tuple[PermissionDefinition, ...] = (
     PermissionDefinition(
@@ -179,7 +180,7 @@ DEFAULT_PERMISSIONS: tuple[PermissionDefinition, ...] = (
         description="Create file attachment metadata and upload file content.",
     ),
     PermissionDefinition(
-        code="action:users:manage_superuser",
+        code=PERMISSION_MANAGE_SUPERUSER,
         name="Manage superuser status",
         type="action",
         description="Allow creating or updating users with superuser privileges.",
