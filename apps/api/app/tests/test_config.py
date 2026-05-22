@@ -1,3 +1,5 @@
+import pytest
+
 from app.core.config import Settings
 
 
@@ -7,7 +9,7 @@ def test_settings_parse_cors_origins_from_comma_separated_env(monkeypatch) -> No
         "http://localhost:5173,http://localhost:15173",
     )
 
-    settings = Settings()
+    settings = Settings(jwt_secret_key="super-secret-key-that-is-long-enough-32chars")
 
     assert settings.api_cors_origins == ["http://localhost:5173", "http://localhost:15173"]
 
@@ -18,7 +20,7 @@ def test_settings_parse_cors_origins_from_json_env(monkeypatch) -> None:
         '["http://localhost:5173", "http://localhost:15173"]',
     )
 
-    settings = Settings()
+    settings = Settings(jwt_secret_key="super-secret-key-that-is-long-enough-32chars")
 
     assert settings.api_cors_origins == ["http://localhost:5173", "http://localhost:15173"]
 
@@ -30,10 +32,59 @@ def test_settings_read_upload_scanner_env(monkeypatch) -> None:
     monkeypatch.setenv("CLAMAV_PORT", "3310")
     monkeypatch.setenv("CLAMAV_TIMEOUT_SECONDS", "5")
 
-    settings = Settings()
+    settings = Settings(jwt_secret_key="super-secret-key-that-is-long-enough-32chars")
 
     assert settings.upload_scanner_enabled is True
     assert settings.upload_scanner_backend == "clamav"
     assert settings.clamav_host == "clamav"
     assert settings.clamav_port == 3310
     assert settings.clamav_timeout_seconds == 5
+
+
+def test_settings_default_environment_is_development(monkeypatch) -> None:
+    settings = Settings(jwt_secret_key="super-secret-key-that-is-long-enough-32chars")
+    assert settings.environment == "development"
+
+
+def test_settings_jwt_secret_key_rejects_default_value() -> None:
+    with pytest.raises(ValueError, match="JWT_SECRET_KEY must not use the default"):
+        Settings(jwt_secret_key="please-change-me")
+
+
+def test_settings_jwt_secret_key_rejects_short_value() -> None:
+    with pytest.raises(ValueError, match="at least 32 characters"):
+        Settings(jwt_secret_key="short")
+
+
+def test_settings_jwt_secret_key_accepts_valid_value() -> None:
+    settings = Settings(jwt_secret_key="a-very-long-and-random-secret-that-is-safe")
+    assert settings.jwt_secret_key == "a-very-long-and-random-secret-that-is-safe"
+
+
+def test_settings_production_rejects_default_jwt_secret(monkeypatch) -> None:
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    with pytest.raises(ValueError, match="JWT_SECRET_KEY"):
+        Settings(
+            environment="production",
+            jwt_secret_key="please-change-me",
+        )
+
+
+def test_settings_production_rejects_default_minio_secret(monkeypatch) -> None:
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    with pytest.raises(ValueError, match="MINIO_SECRET_KEY"):
+        Settings(
+            environment="production",
+            jwt_secret_key="super-secret-key-that-is-long-enough-32chars",
+            minio_secret_key="minioadmin",
+        )
+
+
+def test_settings_production_accepts_secure_config(monkeypatch) -> None:
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    settings = Settings(
+        environment="production",
+        jwt_secret_key="super-secret-key-that-is-long-enough-32chars",
+        minio_secret_key="a-real-minio-secret",
+    )
+    assert settings.environment == "production"

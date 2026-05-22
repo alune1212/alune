@@ -2,7 +2,7 @@ import json
 from functools import lru_cache
 from typing import Annotated, Any
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
@@ -52,6 +52,22 @@ class Settings(BaseSettings):
         ],
     )
 
+    environment: str = "development"
+
+    @field_validator("jwt_secret_key")
+    @classmethod
+    def validate_jwt_secret_key(cls, value: str) -> str:
+        if value == "please-change-me":
+            raise ValueError(
+                "JWT_SECRET_KEY must not use the default value 'please-change-me'. "
+                "Set a strong random secret."
+            )
+        if len(value) < 32:
+            raise ValueError(
+                "JWT_SECRET_KEY must be at least 32 characters long."
+            )
+        return value
+
     @field_validator("api_cors_origins", mode="before")
     @classmethod
     def parse_cors_origins(cls, value: Any) -> list[str]:
@@ -77,6 +93,34 @@ class Settings(BaseSettings):
             msg = f"{name} JSON value must be a list"
             raise ValueError(msg)
         return [str(origin).strip() for origin in parsed_value if str(origin).strip()]
+
+    @model_validator(mode="after")
+    def validate_production_security(self) -> "Settings":
+        if self.environment != "production":
+            return self
+
+        failures: list[str] = []
+
+        if self.jwt_secret_key == "please-change-me":
+            failures.append(
+                "JWT_SECRET_KEY must not use the default value in production"
+            )
+        if len(self.jwt_secret_key) < 32:
+            failures.append(
+                "JWT_SECRET_KEY must be at least 32 characters in production"
+            )
+
+        if self.minio_secret_key == "minioadmin":
+            failures.append(
+                "MINIO_SECRET_KEY must not use the default value 'minioadmin' in production"
+            )
+
+        if failures:
+            raise ValueError(
+                "Production security check failed:\n- " + "\n- ".join(failures)
+            )
+
+        return self
 
 
 @lru_cache
