@@ -1,4 +1,3 @@
-import asyncio
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -197,10 +196,8 @@ async def delete_department(
     if department is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Department not found")
 
-    child_count, assigned_user_count = await asyncio.gather(
-        count_child_departments(session, department.id),
-        count_users_by_department(session, department.id),
-    )
+    child_count = await count_child_departments(session, department.id)
+    assigned_user_count = await count_users_by_department(session, department.id)
     if child_count > 0:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
