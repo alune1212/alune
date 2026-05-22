@@ -1,0 +1,34 @@
+from app.modules.users.schemas import UserCreate, UserUpdate
+
+
+class TestSuperuserProtection:
+    def test_user_create_schema_is_superuser_defaults_false(self):
+        """UserCreate 默认 is_superuser=False，防止客户端误创建超管"""
+        payload = UserCreate(
+            username="testuser",
+            email="test@test.com",
+            password="testpass123",
+        )
+        assert payload.is_superuser is False
+
+    def test_user_update_schema_is_superuser_omitted_by_default(self):
+        """UserUpdate 默认不设置 is_superuser，exclude_unset 后字段不出现"""
+        payload = UserUpdate(email="new@test.com")
+        data = payload.model_dump(exclude_unset=True)
+        assert "is_superuser" not in data
+
+    def test_user_update_schema_can_explicitly_set_is_superuser(self):
+        """UserUpdate 可以显式设置 is_superuser（router 层做权限校验）"""
+        payload = UserUpdate(is_superuser=True)
+        data = payload.model_dump(exclude_unset=True)
+        assert data["is_superuser"] is True
+
+    def test_user_create_schema_can_explicitly_set_is_superuser(self):
+        """UserCreate 可以显式设置 is_superuser=True（router 层做权限校验）"""
+        payload = UserCreate(
+            username="super",
+            email="super@test.com",
+            password="testpass123456",
+            is_superuser=True,
+        )
+        assert payload.is_superuser is True

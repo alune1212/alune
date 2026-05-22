@@ -178,4 +178,10 @@ DEFAULT_PERMISSIONS: tuple[PermissionDefinition, ...] = (
         type="action",
         description="Create file attachment metadata and upload file content.",
     ),
+    PermissionDefinition(
+        code="action:users:manage_superuser",
+        name="Manage superuser status",
+        type="action",
+        description="Allow creating or updating users with superuser privileges.",
+    ),
 )

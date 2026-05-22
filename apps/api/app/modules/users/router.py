@@ -11,6 +11,7 @@ from app.modules.auth.repository import get_user_by_username
 from app.modules.auth.security import get_password_hash
 from app.modules.departments.repository import get_department_by_id
 from app.modules.permissions.dependencies import require_permission
+from app.modules.permissions.repository import list_permission_codes_for_user
 from app.modules.users.repository import (
     bulk_update_user_status,
     get_user_by_email,
@@ -73,6 +74,14 @@ async def create_user(
     session: DatabaseSession,
     current_user: User = CreateUserDependency,
 ) -> ApiResponse[UserManagementItem]:
+    if payload.is_superuser and not current_user.is_superuser:
+        permission_codes = await list_permission_codes_for_user(session, current_user)
+        if "action:users:manage_superuser" not in permission_codes:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only users with manage_superuser permission can create superuser accounts",
+            )
+
     existing_username = await get_user_by_username(session, payload.username)
     if existing_username is not None:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Username already exists")
@@ -236,6 +245,22 @@ async def update_user(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     update_data = payload.model_dump(exclude_unset=True)
+
+    if "is_superuser" in update_data and update_data["is_superuser"] is not None:
+        if not current_user.is_superuser:
+            permission_codes = await list_permission_codes_for_user(session, current_user)
+            if "action:users:manage_superuser" not in permission_codes:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Only users with manage_superuser permission can modify superuser status",
+                )
+
+    if "is_active" in update_data and update_data["is_active"] is False:
+        if user.id == current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="You cannot disable your own account",
+            )
 
     if "email" in update_data and update_data["email"] is not None:
         existing_email = await get_user_by_email(session, update_data["email"])
