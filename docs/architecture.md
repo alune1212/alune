@@ -1,6 +1,6 @@
 # Architecture
 
-`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6G-V MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, internal system pages for users, roles, departments, audit logs, dictionaries, and file attachments backed by local storage or MinIO with optional ClamAV scanning, plus Orval API client generation from FastAPI OpenAPI, generated-client migration for frontend reads/writes, a narrow compatibility client for binary and CSV boundaries, Playwright smoke tests for login/navigation, GitHub Actions CI quality gates, Dependabot dependency update visibility, a lightweight manual dependency security audit baseline, a documented pre-feature readiness gate, npm audit remediation for the previous transitive `lodash` finding, and a business module implementation checklist.
+`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6G-W MVP (security and deployment hardening): infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, internal system pages for users, roles, departments, audit logs, dictionaries, and file attachments backed by local storage or MinIO with optional ClamAV scanning, plus Orval API client generation from FastAPI OpenAPI, generated-client migration for frontend reads/writes, a narrow compatibility client for binary and CSV boundaries, Playwright smoke tests for login/navigation, GitHub Actions CI quality gates, Dependabot dependency update visibility, a lightweight manual dependency security audit baseline, a documented pre-feature readiness gate, npm audit remediation for the previous transitive `lodash` finding, and a business module implementation checklist.
 
 ## Monorepo Layout
 
@@ -36,7 +36,7 @@ FastAPI creates one app with:
 
 Important modules:
 
-- `app/core/config.py` reads environment variables with `pydantic-settings`.
+- `app/core/config.py` reads environment variables with `pydantic-settings`. An `ENVIRONMENT` setting (development/staging/production) controls runtime behavior; in production, default passwords for `JWT_SECRET_KEY` and `MINIO_SECRET_KEY` are rejected, and `JWT_SECRET_KEY` requires at least 32 characters.
 - `app/db/session.py` creates an async SQLAlchemy engine with `asyncpg`.
 - `app/db/base.py` defines SQLAlchemy declarative metadata for Alembic.
 - `app/common/response.py` defines the generic `ApiResponse[DataT]` envelope, and `app/common/pagination.py` defines paginated list payloads.

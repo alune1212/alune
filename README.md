@@ -1,6 +1,6 @@
 # alune-platform
 
-公司内部管理系统 MVP。当前阶段包含最小可运行 monorepo、FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地登录、权限基础，以及阶段 6G-V 的内部系统底座交互、存储、上传扫描、前端测试、Orval API client 生成、内部系统读写 generated hooks 迁移、API client 兼容层收缩、Playwright 登录/导航冒烟测试、GitHub Actions CI、Dependabot 依赖更新可见性、轻量安全审计基线、功能开发前就绪检查、npm audit remediation 和业务模块开发准入清单。
+公司内部管理系统 MVP。当前阶段包含最小可运行 monorepo、FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地登录、权限基础，以及阶段 6G-W 的内部系统底座交互、存储、上传扫描、前端测试、Orval API client 生成、内部系统读写 generated hooks 迁移、API client 兼容层收缩、Playwright 登录/导航冒烟测试、GitHub Actions CI、Dependabot 依赖更新可见性、轻量安全审计基线、功能开发前就绪检查、npm audit remediation、安全与部署硬化和业务模块开发准入清单。
 
 ## 技术栈
 
@@ -53,6 +53,8 @@ alune-platform/
 ```bash
 cp .env.example .env
 ```
+
+`ENVIRONMENT` 设为 `development`（开发环境）；生产环境需设为 `production`，此时不允许使用默认 JWT 和 MinIO 密钥，JWT 密钥至少需 32 字符。
 
 安装前端依赖：
 
@@ -218,9 +220,9 @@ E2E_BASE_URL=http://localhost:15173 E2E_ADMIN_USERNAME=e2e_admin E2E_ADMIN_PASSW
 
 ## 当前阶段边界
 
-已完成阶段 0、阶段 1、阶段 2、阶段 3、阶段 4、阶段 5、阶段 6A、阶段 6B、阶段 6C、阶段 6D、阶段 6E、阶段 6F、阶段 6G-A、阶段 6G-B、阶段 6G-C、阶段 6G-D、阶段 6G-E、阶段 6G-F、阶段 6G-G、阶段 6G-H、阶段 6G-I、阶段 6G-J、阶段 6G-K、阶段 6G-L、阶段 6G-M、阶段 6G-N、阶段 6G-O、阶段 6G-P、阶段 6G-Q、阶段 6G-R、阶段 6G-S、阶段 6G-T、阶段 6G-U 和阶段 6G-V 的内部系统底座 MVP。当前包含登录 MVP、权限基础、用户创建/启停/批量启停确认与结果反馈/资料编辑/部门分配/密码重置、用户角色分配、角色增删改和权限配置搜索分组及空状态、部门创建/启停/删除规则、部门树、登录/操作日志筛选分页/日期过滤/CSV 导出、字典类型维护、字典项维护、文件附件本地和 MinIO 上传下载、上传策略、文件存储后端抽象、ClamAV 上传扫描、用户/角色/字典/部门/审计/文件页面的前端交互测试、基于 FastAPI OpenAPI 的 Orval API client 生成、multipart binary 类型规范化、dashboard/auth 前端入口对 generated hooks 的迁移、内部系统只读页面对 generated hooks 的迁移、用户/角色/部门/字典 JSON 写操作对 generated mutation hooks 的迁移、`packages/api-client` 兼容层收缩到配置、CSV 导出、文件上传和文件下载边界、Playwright 覆盖登录和内部系统导航的冒烟测试、GitHub Actions CI 质量门、Dependabot 对 npm/uv/Docker/Docker Compose/GitHub Actions 的每周依赖更新提醒、npm/Python 依赖安全审计基线、功能开发前就绪检查、npm audit remediation，以及业务模块开发准入清单。不包含审批、报表和公司业务模块。
+已完成阶段 0、阶段 1、阶段 2、阶段 3、阶段 4、阶段 5、阶段 6A、阶段 6B、阶段 6C、阶段 6D、阶段 6E、阶段 6F、阶段 6G-A、阶段 6G-B、阶段 6G-C、阶段 6G-D、阶段 6G-E、阶段 6G-F、阶段 6G-G、阶段 6G-H、阶段 6G-I、阶段 6G-J、阶段 6G-K、阶段 6G-L、阶段 6G-M、阶段 6G-N、阶段 6G-O、阶段 6G-P、阶段 6G-Q、阶段 6G-R、阶段 6G-S、阶段 6G-T、阶段 6G-U、阶段 6G-V 和阶段 6G-W 的内部系统底座 MVP。当前包含登录 MVP、权限基础、用户创建/启停/批量启停确认与结果反馈/资料编辑/部门分配/密码重置、用户角色分配、角色增删改和权限配置搜索分组及空状态、部门创建/启停/删除规则、部门树、登录/操作日志筛选分页/日期过滤/CSV 导出、字典类型维护、字典项维护、文件附件本地和 MinIO 上传下载、上传策略、文件存储后端抽象、ClamAV 上传扫描、用户/角色/字典/部门/审计/文件页面的前端交互测试、基于 FastAPI OpenAPI 的 Orval API client 生成、multipart binary 类型规范化、dashboard/auth 前端入口对 generated hooks 的迁移、内部系统只读页面对 generated hooks 的迁移、用户/角色/部门/字典 JSON 写操作对 generated mutation hooks 的迁移、`packages/api-client` 兼容层收缩到配置、CSV 导出、文件上传和文件下载边界、Playwright 覆盖登录和内部系统导航的冒烟测试、GitHub Actions CI 质量门、Dependabot 对 npm/uv/Docker/Docker Compose/GitHub Actions 的每周依赖更新提醒、npm/Python 依赖安全审计基线、功能开发前就绪检查、npm audit remediation，以及业务模块开发准入清单。不包含审批、报表和公司业务模块。
 
-进入业务功能开发前先阅读 [Feature Readiness](docs/feature-readiness.md) 和 [Feature Module Checklist](docs/feature-module-checklist.md)。阶段 6G-V 后可以进入阶段 7A，但第一业务模块必须先写清楚范围、权限、审计事件、API、页面和测试计划。
+进入业务功能开发前先阅读 [Feature Readiness](docs/feature-readiness.md) 和 [Feature Module Checklist](docs/feature-module-checklist.md)。阶段 6G-W 后可以进入阶段 7A，但第一业务模块必须先写清楚范围、权限、审计事件、API、页面和测试计划。
 
 ## Security Audit
 

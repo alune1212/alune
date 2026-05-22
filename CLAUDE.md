@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## 项目概述
 
-alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础和阶段 6G-V 内部系统底座交互、存储、上传扫描、前端测试、Orval API client 生成、内部系统读写 generated hooks 迁移、API client 兼容层收缩、Playwright 登录/导航冒烟测试、GitHub Actions CI、Dependabot 依赖更新可见性、轻量安全审计基线、功能开发前就绪检查、npm audit remediation 与业务模块开发准入清单。
+alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础和阶段 6G-W 内部系统底座交互、存储、上传扫描、前端测试、Orval API client 生成、内部系统读写 generated hooks 迁移、API client 兼容层收缩、Playwright 登录/导航冒烟测试、GitHub Actions CI、Dependabot 依赖更新可见性、轻量安全审计基线、功能开发前就绪检查、npm audit remediation、安全与部署硬化与业务模块开发准入清单。
 
 ## Quick Start
 
@@ -116,7 +116,7 @@ alune-platform/
 - **认证**: `app/modules/auth/` - 用户表、密码哈希、JWT 登录、当前用户依赖
 - **权限**: `app/modules/permissions/` - 角色、权限、关联表、默认权限、权限校验依赖
 - **内部系统**: `app/modules/users/`、`app/modules/roles/`、`app/modules/departments/` - 用户创建/启停/批量启停/资料编辑/密码重置、用户角色分配、用户角色/部门过滤、角色增删改守卫、角色权限配置、部门树、部门更新/删除规则
-- **基础模块**: `app/modules/audit/`、`app/modules/dictionaries/`、`app/modules/files/` - 登录/操作日志筛选分页/日期过滤/CSV 导出、字典类型/字典项维护守卫、本地文件上传下载、上传策略、文件存储后端工厂和上传扫描 hook
+- **基础模块**: `app/modules/audit/`、`app/modules/dictionaries/`、`app/modules/files/` - 登录/操作日志筛选分页/日期过滤/CSV 导出、字典类型/字典项维护守卫、本地文件上传下载、上传策略（含扫描前大小预检）、文件存储后端工厂和上传扫描 hook；文件下载文件名已做安全过滤防止 HTTP header 注入
 - **模块化**: `app/modules/<feature>/router.py` - 每个功能模块独立路由
 - **统一响应**: `app/common/response.py` - `ApiResponse[DataT]` 泛型模型
 - **异常处理**: `app/core/exceptions.py` - 全局异常处理器
@@ -130,7 +130,7 @@ alune-platform/
 - **布局**: `src/components/layout/` - AppShell > Sidebar + Topbar
 - **功能模块**: `src/features/<feature>/` - 按功能划分页面
 - **导航配置**: `src/config/navigation.ts` - 共享导航项
-- **认证前端**: `src/features/auth/` - 登录页、AuthProvider、token storage、受保护路由
+- **认证前端**: `src/features/auth/` - 登录页（含会话过期提示）、AuthProvider、token storage（401 自动清除）、受保护路由（`RequirePermission` 组件支持路由级权限校验）
 - **内部系统前端**: `src/features/users/`、`src/features/roles/`、`src/features/departments/`、`src/features/audit/`、`src/features/dictionaries/`、`src/features/files/`；用户页面包含角色/部门过滤、批量启停确认和结果反馈，角色页面包含角色增删改、权限搜索、按类型分组配置和搜索空状态，审计页面包含日期过滤和 CSV 导出，字典页面包含类型/字典项维护
 - **表单验证**: 项目使用 Zod v4，必须用 `@hookform/resolvers/standard-schema` 的 `standardSchemaResolver`，不能用 `zodResolver`（仅支持 Zod v3）
 - **菜单权限**: `src/config/navigation.ts` - 根据 `/api/v1/auth/me` 返回的权限码过滤菜单
@@ -164,6 +164,7 @@ alune-platform/
 - `ALLOWED_UPLOAD_CONTENT_TYPES` - 允许上传的 MIME 类型列表
 - `FILE_STORAGE_BACKEND` - 文件存储后端，支持 `local` 和 `minio`
 - `MINIO_ENDPOINT` / `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` / `MINIO_BUCKET` / `MINIO_SECURE` - MinIO 存储配置
+- `ENVIRONMENT` - 运行环境（`development`/`staging`/`production`），生产环境会拒绝默认 JWT 和 MinIO 密钥，JWT 密钥至少 32 字符
 - `UPLOAD_SCANNER_ENABLED` - 上传扫描开关，默认 `false`
 - `UPLOAD_SCANNER_BACKEND` / `CLAMAV_HOST` / `CLAMAV_PORT` / `CLAMAV_TIMEOUT_SECONDS` - ClamAV 扫描配置
 
@@ -211,4 +212,4 @@ alune-platform/
 
 ## 当前阶段边界
 
-已完成阶段 0、1、2、3、4、5、6A、6B、6C、6D、6E、阶段 6F、阶段 6G-A、阶段 6G-B、阶段 6G-C、阶段 6G-D、阶段 6G-E、阶段 6G-F、阶段 6G-G、阶段 6G-H、阶段 6G-I、阶段 6G-J、阶段 6G-K、阶段 6G-L、阶段 6G-M、阶段 6G-N、阶段 6G-O、阶段 6G-P、阶段 6G-Q、阶段 6G-R、阶段 6G-S、阶段 6G-T、阶段 6G-U 和阶段 6G-V 的最小 MVP。不包含：复杂组织架构、审批、报表和公司业务模块。下一阶段建议：进入阶段 7A，先选择第一个小型业务模块并写范围说明。
+已完成阶段 0、1、2、3、4、5、6A、6B、6C、6D、6E、阶段 6F、阶段 6G-A、阶段 6G-B、阶段 6G-C、阶段 6G-D、阶段 6G-E、阶段 6G-F、阶段 6G-G、阶段 6G-H、阶段 6G-I、阶段 6G-J、阶段 6G-K、阶段 6G-L、阶段 6G-M、阶段 6G-N、阶段 6G-O、阶段 6G-P、阶段 6G-Q、阶段 6G-R、阶段 6G-S、阶段 6G-T、阶段 6G-U、阶段 6G-V 和阶段 6G-W（安全与部署硬化）的最小 MVP。不包含：复杂组织架构、审批、报表和公司业务模块。下一阶段建议：进入阶段 7A，先选择第一个小型业务模块并写范围说明。

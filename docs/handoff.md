@@ -41,6 +41,7 @@
 - Added stage 6G-T feature development readiness check: `docs/feature-readiness.md` now records the pre-feature decision, readiness checklist, blockers, and entry criteria.
 - Added stage 6G-U security audit remediation: pnpm override pins transitive `lodash` to `4.18.1`, clearing the npm audit finding from the Orval development dependency chain.
 - Added stage 6G-V feature module checklist: `docs/feature-module-checklist.md` now defines scope, backend, migration, permission, audit, API client, frontend, test, documentation, and verification gates for the first business module.
+- Added stage 6G-W security and deployment hardening: `ENVIRONMENT` setting rejects default passwords in production and enforces minimum JWT key length; non-superusers without `action:users:manage_superuser` cannot create or modify superuser accounts; users cannot disable their own accounts; system role permission modification requires `manage_superuser`; fixed department delete concurrent query (asyncio.gather replaced with sequential await); fixed empty role permission list SQL insert error; frontend auto-clears localStorage token on 401 from `/auth/me` and shows session-expired notice on login page; added `RequirePermission` component for route-level permission checks; file upload size checked before scanner to prevent large-file buffering; download filenames sanitized to prevent HTTP header injection.
 - Verified Docker dependency services with PostgreSQL and Redis healthy.
 - Verified `/api/v1/health/db` returns 200 when the API can reach Docker PostgreSQL.
 
@@ -104,7 +105,7 @@ rg -n "TODO|FIXME|create_all|print\\(" apps packages scripts --glob '!packages/a
 - Dependabot is defined in `.github/dependabot.yml` and checks npm/pnpm, uv, Docker, Docker Compose, and GitHub Actions weekly with per-ecosystem grouping.
 - Lightweight dependency audits are available through `pnpm security:audit`, `pnpm security:audit:npm`, and `pnpm security:audit:python`. These are manual for now and are not part of the default CI quality job.
 - Stage 6G-U audit output: npm audit and Python `pip-audit` both report no known vulnerabilities.
-- Stage 6G-V readiness output: the pre-feature checks are complete. Before coding stage 7A, choose the first small business module and write its scope brief using `docs/feature-module-checklist.md`.
+- Stage 6G-W readiness output: the pre-feature and security hardening checks are complete. Before coding stage 7A, choose the first small business module and write its scope brief using `docs/feature-module-checklist.md`.
 - If local dev servers already occupy 8000 or 5173, use:
 
 ```bash
