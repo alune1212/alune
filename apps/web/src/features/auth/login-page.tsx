@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/features/auth/auth-provider";
+import { loginRoute } from "@/routes/login";
 import { useLoginApiV1AuthLoginPost } from "@alune/api-client/generated";
 import { platformName } from "@alune/shared";
 
@@ -22,6 +23,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export function LoginPage() {
   const auth = useAuth();
   const navigate = useNavigate();
+  const search = loginRoute.useSearch();
 
   const loginMutation = useLoginApiV1AuthLoginPost<Error>({
     mutation: {
@@ -76,6 +78,11 @@ export function LoginPage() {
             </div>
             <CardTitle>Sign in</CardTitle>
             <CardDescription>Use the local administrator account created by the seed command.</CardDescription>
+            {search.expired ? (
+              <div className="mt-3 rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">
+                Your session has expired. Please sign in again.
+              </div>
+            ) : null}
           </CardHeader>
           <CardContent>
             <form className="space-y-4" onSubmit={form.handleSubmit(handleSubmit)}>
