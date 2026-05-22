@@ -66,9 +66,11 @@ async def replace_role_permissions(
     await session.execute(
         delete(role_permissions_table).where(role_permissions_table.c.role_id == role.id)
     )
-    await session.execute(
-        role_permissions_table.insert(),
-        [{"role_id": role.id, "permission_id": permission.id} for permission in permissions],
-    )
+
+    if permissions:
+        await session.execute(
+            role_permissions_table.insert(),
+            [{"role_id": role.id, "permission_id": permission.id} for permission in permissions],
+        )
 
     return []
