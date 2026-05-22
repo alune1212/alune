@@ -271,6 +271,20 @@ Manual Playwright smoke job:
 3. Enable `run_playwright_smoke`.
 4. The job starts PostgreSQL/Redis, runs migrations, seeds `e2e_admin`, starts the API, and runs the web Playwright smoke suite.
 
+## Dependabot
+
+Dependabot configuration lives at `.github/dependabot.yml`.
+
+It checks for dependency updates weekly on Monday morning in `Asia/Shanghai`:
+
+- `npm` at `/` for the pnpm workspace.
+- `uv` at `/apps/api` for Python dependencies.
+- `docker` at `/infra/docker` for Dockerfile base images.
+- `docker-compose` at `/` for Compose service images.
+- `github-actions` at `/` for workflow actions.
+
+Each ecosystem has a broad `groups` entry so routine version updates are batched by ecosystem instead of creating one pull request per dependency.
+
 ## Troubleshooting
 
 ### PostgreSQL 18 Restart Loop

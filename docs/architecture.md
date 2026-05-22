@@ -1,6 +1,6 @@
 # Architecture
 
-`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6G-Q MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, internal system pages for users, roles, departments, audit logs, dictionaries, and file attachments backed by local storage or MinIO with optional ClamAV scanning, plus Orval API client generation from FastAPI OpenAPI, generated-client migration for frontend reads/writes, a narrow compatibility client for binary and CSV boundaries, Playwright smoke tests for login/navigation, and GitHub Actions CI quality gates.
+`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6G-R MVP: infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, internal system pages for users, roles, departments, audit logs, dictionaries, and file attachments backed by local storage or MinIO with optional ClamAV scanning, plus Orval API client generation from FastAPI OpenAPI, generated-client migration for frontend reads/writes, a narrow compatibility client for binary and CSV boundaries, Playwright smoke tests for login/navigation, GitHub Actions CI quality gates, and Dependabot dependency update visibility.
 
 ## Monorepo Layout
 
@@ -83,6 +83,18 @@ GitHub Actions workflow: `.github/workflows/ci.yml`.
 
 - `quality` runs on push and pull request. It sets up Node.js 24, pnpm 10.26.1, Python 3.14, and uv, then verifies API client generation drift, lint, typecheck, tests, build, and Docker Compose config.
 - `playwright-smoke` is manual through `workflow_dispatch` with `run_playwright_smoke=true`. It starts PostgreSQL/Redis, applies migrations, seeds `e2e_admin`, starts the API, and runs `apps/web/e2e/admin-smoke.spec.ts`.
+
+## Dependency Updates
+
+Dependabot configuration: `.github/dependabot.yml`.
+
+- `npm` at `/` watches the pnpm workspace manifests and lockfile.
+- `uv` at `/apps/api` watches backend Python dependencies.
+- `docker` at `/infra/docker` watches API/Web Dockerfiles.
+- `docker-compose` at `/` watches service image tags in `docker-compose.yml`.
+- `github-actions` at `/` watches workflow action references.
+
+Each ecosystem runs weekly on Monday morning in `Asia/Shanghai` and groups all updates for that ecosystem into a single pull request.
 
 ## Runtime Data Flow
 

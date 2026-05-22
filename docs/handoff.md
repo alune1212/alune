@@ -36,6 +36,7 @@
 - Added stage 6G-O API client compatibility shrink: removed migrated JSON helper exports from `packages/api-client`, leaving runtime configuration, audit CSV export, file upload, file download, and boundary types.
 - Added stage 6G-P Playwright smoke tests: web e2e config, root/web e2e scripts, and browser coverage for protected-route redirect, seeded-admin login, and internal-system navigation.
 - Added stage 6G-Q GitHub Actions CI: default quality gate for API client generation drift, lint, typecheck, tests, build, and Docker Compose config, plus a manual Playwright smoke job.
+- Added stage 6G-R Dependabot dependency visibility: weekly grouped update checks for npm/pnpm, uv, Dockerfiles, Docker Compose, and GitHub Actions.
 - Verified Docker dependency services with PostgreSQL and Redis healthy.
 - Verified `/api/v1/health/db` returns 200 when the API can reach Docker PostgreSQL.
 
@@ -64,6 +65,7 @@ pnpm --filter @alune/web exec playwright install --list
 pnpm --filter @alune/web e2e --list
 E2E_BASE_URL=http://localhost:15173 E2E_ADMIN_USERNAME=e2e_admin E2E_ADMIN_PASSWORD=change-this-password pnpm --filter @alune/web e2e
 pnpm exec prettier --check .github/workflows/ci.yml
+pnpm exec prettier --check .github/dependabot.yml
 ```
 
 ## Current Services
@@ -92,6 +94,7 @@ pnpm exec prettier --check .github/workflows/ci.yml
 - Codex sandbox may block Chromium launch with a macOS Mach port permission error; browser smoke tests should be run outside the sandbox when that happens.
 - The Playwright smoke suite expects a seeded administrator. For isolated local verification, seed `e2e_admin` with `FIRST_SUPERUSER_USERNAME=e2e_admin FIRST_SUPERUSER_EMAIL=e2e_admin@example.com FIRST_SUPERUSER_PASSWORD=change-this-password pnpm db:seed`, then pass `E2E_ADMIN_USERNAME` and `E2E_ADMIN_PASSWORD`.
 - GitHub Actions CI is defined in `.github/workflows/ci.yml`. The default `quality` job runs on push/PR; the Playwright smoke job is manual through `workflow_dispatch` with `run_playwright_smoke=true`.
+- Dependabot is defined in `.github/dependabot.yml` and checks npm/pnpm, uv, Docker, Docker Compose, and GitHub Actions weekly with per-ecosystem grouping.
 - If local dev servers already occupy 8000 or 5173, use:
 
 ```bash
@@ -102,6 +105,6 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 
 Next stage should continue hardening the internal system foundation:
 
-- Add Dependabot or Renovate rules for npm, uv, Docker, and GitHub Actions dependency update visibility.
+- Add a lightweight security audit baseline for npm and Python dependencies, then decide whether it belongs in CI.
 
 Do not start approval flows, payroll, reports, or company-specific business modules before the internal system foundation is in place.
