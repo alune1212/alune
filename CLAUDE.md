@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## 项目概述
 
-alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础和阶段 6G-S 内部系统底座交互、存储、上传扫描、前端测试、Orval API client 生成、内部系统读写 generated hooks 迁移、API client 兼容层收缩、Playwright 登录/导航冒烟测试、GitHub Actions CI、Dependabot 依赖更新可见性与轻量安全审计基线。
+alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础和阶段 6G-T 内部系统底座交互、存储、上传扫描、前端测试、Orval API client 生成、内部系统读写 generated hooks 迁移、API client 兼容层收缩、Playwright 登录/导航冒烟测试、GitHub Actions CI、Dependabot 依赖更新可见性、轻量安全审计基线与功能开发前就绪检查。
 
 ## Quick Start
 
@@ -195,6 +195,7 @@ alune-platform/
 - **CI**: `.github/workflows/ci.yml` 的默认 `quality` job 跑 API client 生成一致性、lint、typecheck、test、build 和 Docker Compose 配置校验；`playwright-smoke` 是手动 workflow_dispatch job。
 - **Dependabot**: `.github/dependabot.yml` 每周检查 npm/pnpm、uv、Docker、Docker Compose 和 GitHub Actions，并按生态分组 PR。
 - **Security audit**: `pnpm security:audit` 跑 npm 和 Python 依赖审计；Python 路径由 `scripts/security-audit-python.sh` 导出 uv lockfile 后调用 `uvx pip-audit`。当前不在默认 CI 中阻塞构建。
+- **Feature readiness**: `docs/feature-readiness.md` 记录进入业务功能开发前的准入条件。当前不进入功能开发，先处理或明确接受 npm audit 中 Orval 开发链路带出的 `lodash` advisories。
 - **API 测试**: 使用 httpx AsyncClient + ASGITransport
 - **浏览器测试**: Playwright `1.60.0` 已安装 Chromium `1223` 和 `chromium_headless_shell-1223`。如果 Codex 沙箱内启动 Chromium 出现 macOS Mach port 权限错误，改到沙箱外执行浏览器检查。
 
@@ -203,9 +204,10 @@ alune-platform/
 - `README.md`：新人快速启动。
 - `docs/architecture.md`：架构、数据流、API surface。
 - `docs/runbook.md`：本地运行、Docker、冒烟检查和排障。
+- `docs/feature-readiness.md`：功能开发前准入检查、阻塞项和后续阶段。
 - `docs/handoff.md`：当前阶段完成情况和下一阶段。
 - `AGENTS.md`：Codex/其他 agent 项目约定。
 
 ## 当前阶段边界
 
-已完成阶段 0、1、2、3、4、5、6A、6B、6C、6D、6E、阶段 6F、阶段 6G-A、阶段 6G-B、阶段 6G-C、阶段 6G-D、阶段 6G-E、阶段 6G-F、阶段 6G-G、阶段 6G-H、阶段 6G-I、阶段 6G-J、阶段 6G-K、阶段 6G-L、阶段 6G-M、阶段 6G-N、阶段 6G-O、阶段 6G-P、阶段 6G-Q、阶段 6G-R 和阶段 6G-S 的最小 MVP。不包含：复杂组织架构、审批、报表和公司业务模块。下一阶段建议：审查第一轮安全审计输出，并决定是否增加 scheduled 或非阻塞 CI 安全 job。
+已完成阶段 0、1、2、3、4、5、6A、6B、6C、6D、6E、阶段 6F、阶段 6G-A、阶段 6G-B、阶段 6G-C、阶段 6G-D、阶段 6G-E、阶段 6G-F、阶段 6G-G、阶段 6G-H、阶段 6G-I、阶段 6G-J、阶段 6G-K、阶段 6G-L、阶段 6G-M、阶段 6G-N、阶段 6G-O、阶段 6G-P、阶段 6G-Q、阶段 6G-R、阶段 6G-S 和阶段 6G-T 的最小 MVP。不包含：复杂组织架构、审批、报表和公司业务模块。下一阶段建议：先处理或明确接受 npm audit 的 `lodash` finding，再补第一业务模块实施清单。
