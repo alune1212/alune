@@ -19,7 +19,7 @@ export function RequirePermission({ permission, children, fallback = null }: Req
     return <>{children}</>;
   }
 
-  if (auth.user.permissions.includes(permission)) {
+  if ((auth.user.permissions ?? []).includes(permission)) {
     return <>{children}</>;
   }
 

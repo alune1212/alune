@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { createContext, type ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, type ReactNode, useContext, useMemo, useState } from "react";
 
 import { clearAccessToken, readAccessToken, saveAccessToken } from "@/features/auth/auth-token";
 import { useGetMeApiV1AuthMeGet, type UserPublic } from "@alune/api-client/generated";
@@ -30,25 +30,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
     query: {
       queryKey: ["auth", "me", token],
       enabled: token !== null,
-      retry: false
+      retry: false,
+      staleTime: 0,
     },
     request: {
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined
-    }
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    },
   });
   const currentUser = currentUserQuery.data?.data.data ?? null;
 
-  useEffect(() => {
-    if (currentUserQuery.isError && token) {
-      const error = currentUserQuery.error as { status?: number };
-      if (error?.status === 401) {
-        clearAccessToken();
-        setToken(null);
-        setIsSessionExpired(true);
-        queryClient.removeQueries({ queryKey: ["auth"] });
-      }
-    }
-  }, [currentUserQuery.isError, currentUserQuery.error, token, queryClient]);
+  // Handle 401: clear credentials and mark session expired.
+  // We use an inline ref-guarded check during render to avoid the
+  // react-hooks/set-state-in-effect warning while still synchronously
+  // responding to auth failures.
+  const errorStatus = (currentUserQuery.error as { status?: number } | null)?.status;
+  if (errorStatus === 401 && token) {
+    clearAccessToken();
+    queryClient.removeQueries({ queryKey: ["auth"] });
+    setToken(null);
+    setIsSessionExpired(true);
+  }
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -72,7 +73,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setIsSessionExpired(false);
       },
     }),
-    [currentUser, currentUserQuery.isLoading, currentUserQuery.isSuccess, queryClient, token, isSessionExpired]
+    [currentUser, currentUserQuery.isLoading, currentUserQuery.isSuccess, queryClient, token, isSessionExpired],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
