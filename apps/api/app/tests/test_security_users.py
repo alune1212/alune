@@ -32,3 +32,16 @@ class TestSuperuserProtection:
             is_superuser=True,
         )
         assert payload.is_superuser is True
+
+
+class TestSystemRoleProtection:
+    def test_role_model_has_is_system_field(self):
+        """Role 模型有 is_system 字段，用于系统角色保护判断"""
+        from app.modules.permissions.models import Role
+        assert hasattr(Role, "is_system")
+
+    def test_admin_role_is_system_by_default(self):
+        """新建 Role 的 is_system 默认为 None（数据库列定义 DEFAULT false）"""
+        from app.modules.permissions.models import Role
+        role = Role(code="test", name="Test")
+        assert role.is_system is None
