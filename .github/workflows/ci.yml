@@ -75,6 +75,15 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      - name: Start test dependencies
+        run: docker compose up -d postgres redis
+
+      - name: Run migrations
+        run: pnpm db:upgrade
+
+      - name: Seed test administrator
+        run: FIRST_SUPERUSER_PASSWORD=change-this-password pnpm db:seed
+
       - name: Test
         run: pnpm test
 

@@ -112,6 +112,7 @@ With that alternate Docker mapping, use `http://localhost:15173` for Web and `ht
   - `POST /api/v1/files/upload`
   - `GET /api/v1/files/{file_id}/download`
 - Backend settings live in `apps/api/app/core/config.py`.
+- `ENVIRONMENT` supports `development`, `staging`, and `production`; production rejects default JWT, PostgreSQL, and MinIO credentials and requires a JWT secret of at least 32 characters.
 - Async SQLAlchemy engine/session lives in `apps/api/app/db/session.py`.
 - Alembic config lives in `apps/api/alembic.ini` and `apps/api/alembic/`.
 - Current baseline table: `system_info`.

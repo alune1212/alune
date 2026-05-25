@@ -36,7 +36,7 @@ FastAPI creates one app with:
 
 Important modules:
 
-- `app/core/config.py` reads environment variables with `pydantic-settings`. An `ENVIRONMENT` setting (development/staging/production) controls runtime behavior; in production, default passwords for `JWT_SECRET_KEY` and `MINIO_SECRET_KEY` are rejected, and `JWT_SECRET_KEY` requires at least 32 characters.
+- `app/core/config.py` reads environment variables with `pydantic-settings`. An `ENVIRONMENT` setting (development/staging/production) controls runtime behavior; in production, default values for `JWT_SECRET_KEY`, `POSTGRES_PASSWORD`/the PostgreSQL password embedded in `DATABASE_URL`, and `MINIO_SECRET_KEY` are rejected, and `JWT_SECRET_KEY` requires at least 32 characters.
 - `app/db/session.py` creates an async SQLAlchemy engine with `asyncpg`.
 - `app/db/base.py` defines SQLAlchemy declarative metadata for Alembic.
 - `app/common/response.py` defines the generic `ApiResponse[DataT]` envelope, and `app/common/pagination.py` defines paginated list payloads.

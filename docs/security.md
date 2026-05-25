@@ -31,9 +31,16 @@ The Python audit script exports the `apps/api/uv.lock` dependency graph to a tem
 - Treat audit findings as triage input first. Confirm exploitability and upgrade impact before changing dependencies.
 - Keep `pnpm audit` and `pip-audit` outputs in issue or PR notes when a finding requires follow-up.
 
+## Runtime Hardening
+
+- `ENVIRONMENT` supports `development`, `staging`, and `production`.
+- In `production`, backend settings reject the default `JWT_SECRET_KEY=please-change-me`, require `JWT_SECRET_KEY` to be at least 32 characters, reject the default PostgreSQL password `app` through either `POSTGRES_PASSWORD` or `DATABASE_URL`, and reject the default `MINIO_SECRET_KEY=minioadmin`.
+- Docker Compose passes `ENVIRONMENT`, `DATABASE_URL`, and `POSTGRES_PASSWORD` into the API container so the same production checks run in the app profile.
+- Upload policy checks file size before invoking the scanner, and download responses sanitize/encode filenames before setting `Content-Disposition`.
+
 ## Current Findings
 
-As of stage 6G-U:
+As of stage 6G-W:
 
 - `pnpm security:audit:npm` reports no known vulnerabilities.
 - `pnpm security:audit:python` reports no known vulnerabilities.
