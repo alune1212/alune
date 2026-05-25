@@ -26,7 +26,7 @@ pnpm dev
 如果 8000 或 5173 已被本机开发服务占用，完整 Docker 栈可以换端口：
 
 ```bash
-API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker compose --profile app up --build
+API_PORT=18000 WEB_PORT=15173 docker compose --profile app up --build
 ```
 
 替代端口下访问：前端 http://localhost:15173 | 后端 http://localhost:18000/docs。后端根路径 `/` 没有页面，直接打开 API 根地址返回 `{"detail":"Not Found"}` 属于正常行为。
@@ -130,11 +130,11 @@ alune-platform/
 - **布局**: `src/components/layout/` - AppShell > Sidebar + Topbar
 - **功能模块**: `src/features/<feature>/` - 按功能划分页面
 - **导航配置**: `src/config/navigation.ts` - 共享导航项
-- **认证前端**: `src/features/auth/` - 登录页（含会话过期提示）、AuthProvider、token storage（401 自动清除）、受保护路由（`RequirePermission` 组件支持路由级权限校验）
+- **认证前端**: `src/features/auth/` - 登录页（含会话过期提示）、AuthProvider、token storage（401 自动清除）、受保护路由（`RequirePermission` 已接入内部系统路由权限校验）
 - **内部系统前端**: `src/features/users/`、`src/features/roles/`、`src/features/departments/`、`src/features/audit/`、`src/features/dictionaries/`、`src/features/files/`；用户页面包含角色/部门过滤、批量启停确认和结果反馈，角色页面包含角色增删改、权限搜索、按类型分组配置和搜索空状态，审计页面包含日期过滤和 CSV 导出，字典页面包含类型/字典项维护
 - **表单验证**: 项目使用 Zod v4，必须用 `@hookform/resolvers/standard-schema` 的 `standardSchemaResolver`，不能用 `zodResolver`（仅支持 Zod v3）
 - **菜单权限**: `src/config/navigation.ts` - 根据 `/api/v1/auth/me` 返回的权限码过滤菜单
-- **API client**: `packages/api-client/src/index.ts` - 当前兼容 client（users、roles、departments、audit、dictionaries、files 等内部系统页面仍在使用），其中 JSON 请求和 multipart 上传已委托给生成 request；CSV 导出和文件下载保留 `Blob` 返回，同时复用生成 URL helper；dashboard health 和 auth 前端入口已直接使用 `@alune/api-client/generated` hooks；`packages/api-client/src/generated/api.ts` 是 Orval 从 FastAPI OpenAPI 生成的 types/request functions/React Query hooks；`packages/api-client/src/runtime-config.ts` 保存运行时 API base URL；`packages/api-client/src/orval-fetch.ts` 是生成 client 的自定义 fetcher
+- **API client**: `packages/api-client/src/index.ts` - 当前兼容 client（users、roles、departments、audit、dictionaries、files 等内部系统页面仍在使用），其中 JSON 请求和 multipart 上传已委托给生成 request；CSV 导出和文件下载保留 `Blob` 返回，同时复用生成 URL helper；dashboard health 和 auth 前端入口已直接使用 `@alune/api-client/generated` hooks；`packages/api-client/src/generated/api.ts` 是 Orval 从 FastAPI OpenAPI 生成的 types/request functions/React Query hooks；`packages/api-client/src/runtime-config.ts` 默认使用同源相对 API 路径，可由 `VITE_API_BASE_URL` 覆盖；`packages/api-client/src/orval-fetch.ts` 是生成 client 的自定义 fetcher
 - **Shared constants**: `packages/shared/src/index.ts` - 当前导出 `platformName`
 - **路径别名**: `@/*` -> `./src/*`
 
@@ -158,7 +158,7 @@ alune-platform/
 - `REDIS_URL` - Redis 连接字符串（默认: `redis://localhost:6379/0`）
 - `API_CORS_ORIGINS` - CORS 来源（逗号分隔）
 - `JWT_SECRET_KEY` - JWT 密钥（**必须修改**）
-- `VITE_API_BASE_URL` - 前端 API 基础 URL
+- `VITE_API_BASE_URL` - 本地 Vite 开发时的前端 API 基础 URL覆盖；Docker Web 默认走同源 `/api/` Nginx 反代
 - `LOCAL_FILE_STORAGE_DIR` - API 本地文件上传目录（本地默认 `.local/uploads`，Docker app profile 为 `/app/uploads`）
 - `MAX_UPLOAD_SIZE_BYTES` - 上传文件大小上限
 - `ALLOWED_UPLOAD_CONTENT_TYPES` - 允许上传的 MIME 类型列表

@@ -31,7 +31,7 @@ describe("generated API client", () => {
 
     const response = await healthCheckApiV1HealthGet();
 
-    expect(fetchMock).toHaveBeenCalledWith("http://localhost:8000/api/v1/health", {
+    expect(fetchMock).toHaveBeenCalledWith("/api/v1/health", {
       method: "GET"
     });
     expect(response.data.data.status).toBe("ok");
@@ -93,7 +93,7 @@ describe("generated API client", () => {
 
     expect(fetchMock).toHaveBeenNthCalledWith(
       1,
-      "http://localhost:8000/api/v1/audit/operation-logs/export?q=login&status=success&started_at=2026-01-01T00%3A00%3A00&ended_at=2026-01-31T23%3A59%3A59",
+      "/api/v1/audit/operation-logs/export?q=login&status=success&started_at=2026-01-01T00%3A00%3A00&ended_at=2026-01-31T23%3A59%3A59",
       {
         headers: {
           Authorization: "Bearer token-value"
@@ -102,7 +102,7 @@ describe("generated API client", () => {
     );
     expect(fetchMock).toHaveBeenNthCalledWith(
       2,
-      "http://localhost:8000/api/v1/audit/login-logs/export?q=admin&status=failure",
+      "/api/v1/audit/login-logs/export?q=admin&status=failure",
       {
         headers: {
           Authorization: "Bearer token-value"
@@ -129,7 +129,7 @@ describe("generated API client", () => {
     const response = await uploadFileAttachment("token-value", uploadBody.upload as File);
 
     const [, options] = fetchMock.mock.calls[0]!;
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://localhost:8000/api/v1/files/upload");
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("/api/v1/files/upload");
     expect(options?.method).toBe("POST");
     expect(options?.headers).toEqual({ Authorization: "Bearer token-value" });
     expect(options?.body).toBeInstanceOf(FormData);
@@ -143,7 +143,7 @@ describe("generated API client", () => {
 
     const response = await downloadFileAttachment("token-value", "file-1");
 
-    expect(fetchMock).toHaveBeenCalledWith("http://localhost:8000/api/v1/files/file-1/download", {
+    expect(fetchMock).toHaveBeenCalledWith("/api/v1/files/file-1/download", {
       headers: {
         Authorization: "Bearer token-value"
       }

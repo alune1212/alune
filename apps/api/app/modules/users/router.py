@@ -241,6 +241,11 @@ async def update_user(
     update_data = payload.model_dump(exclude_unset=True)
 
     if update_data.get("is_superuser") is not None:
+        if user.id == current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="You cannot change your own superuser status",
+            )
         await ensure_manage_superuser(session, current_user)
 
     if (

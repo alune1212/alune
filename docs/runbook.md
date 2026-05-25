@@ -122,7 +122,7 @@ pnpm docker:app
 If host ports are busy:
 
 ```bash
-API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker compose --profile app up --build
+API_PORT=18000 WEB_PORT=15173 docker compose --profile app up --build
 ```
 
 With the default mapping, open:
@@ -199,6 +199,8 @@ pnpm --filter @alune/api-client test
 The generation command writes `packages/api-client/openapi/openapi.json` through `apps/api/app/scripts/export_openapi.py`, then Orval writes `packages/api-client/src/generated/api.ts`. The export script normalizes multipart binary fields to `format: binary` so generated upload bodies use `Blob`. Dashboard health, auth entry points, internal-system read queries, and user/role/department/dictionary JSON write actions already use generated hooks. The root compatibility client in `packages/api-client/src/index.ts` is now limited to runtime configuration, audit CSV export, file upload, file download, and the types needed by those binary/CSV boundaries.
 
 Generated requests use `packages/api-client/src/orval-fetch.ts` and the runtime configuration in `packages/api-client/src/runtime-config.ts` so they follow the same API base URL behavior as the compatibility client. The web app initializes this from `VITE_API_BASE_URL`; normal JSON reads/writes should use `@alune/api-client/generated`. CSV export and file download helpers still return `Blob`, and file upload still exposes the current page-facing helper while delegating to the generated multipart request.
+
+By default the web client uses same-origin relative URLs, so Docker Web serves API calls through Nginx at `/api/` and proxies to the API container. For local Vite development, keep using `VITE_API_BASE_URL=http://localhost:8000` when the API runs on a separate port.
 
 ## Playwright Browser Setup
 
@@ -329,7 +331,7 @@ volumes:
 Use alternate host ports for the full app stack:
 
 ```bash
-API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker compose --profile app up --build
+API_PORT=18000 WEB_PORT=15173 docker compose --profile app up --build
 ```
 
 ### API Cannot Reach Database

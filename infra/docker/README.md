@@ -21,7 +21,7 @@ docker compose --profile app up --build
 If local dev servers already use ports 8000 or 5173:
 
 ```bash
-API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker compose --profile app up --build
+API_PORT=18000 WEB_PORT=15173 docker compose --profile app up --build
 ```
 
 Access:
@@ -30,3 +30,5 @@ Access:
 - API docs: http://localhost:8000/docs
 - Health: http://localhost:8000/api/v1/health
 - DB health: http://localhost:8000/api/v1/health/db
+
+The Web image serves static assets and proxies browser requests from `/api/` to the API container. `VITE_API_BASE_URL` is only needed for local Vite development against a separately exposed API port.

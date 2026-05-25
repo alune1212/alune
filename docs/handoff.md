@@ -41,7 +41,7 @@
 - Added stage 6G-T feature development readiness check: `docs/feature-readiness.md` now records the pre-feature decision, readiness checklist, blockers, and entry criteria.
 - Added stage 6G-U security audit remediation: pnpm override pins transitive `lodash` to `4.18.1`, clearing the npm audit finding from the Orval development dependency chain.
 - Added stage 6G-V feature module checklist: `docs/feature-module-checklist.md` now defines scope, backend, migration, permission, audit, API client, frontend, test, documentation, and verification gates for the first business module.
-- Added stage 6G-W security and deployment hardening: `ENVIRONMENT` setting rejects default JWT, PostgreSQL, and MinIO credentials in production and enforces minimum JWT key length; non-superusers without `action:users:manage_superuser` cannot create or modify superuser accounts; users cannot disable their own accounts; system role permission modification requires `manage_superuser`; fixed department delete concurrent query (asyncio.gather replaced with sequential await); fixed empty role permission list SQL insert error; frontend auto-clears localStorage token on 401 from `/auth/me`, redirects protected routes to `/login?expired=true`, and shows a session-expired notice on login page; added `RequirePermission` component for route-level permission checks; file upload size checked before scanner to prevent large-file buffering; download filenames sanitized to prevent HTTP header injection.
+- Added stage 6G-W security and deployment hardening: `ENVIRONMENT` setting rejects default JWT, PostgreSQL, and MinIO credentials in production and enforces minimum JWT key length; non-superusers without `action:users:manage_superuser` cannot create or modify superuser accounts; users cannot disable their own accounts or change their own superuser status; system role permission modification requires `manage_superuser`; fixed department delete concurrent query (asyncio.gather replaced with sequential await); fixed empty role permission list SQL insert error; frontend auto-clears localStorage token on 401 from `/auth/me`, redirects protected routes to `/login?expired=true`, and shows a session-expired notice on login page; attached `RequirePermission` to internal system routes; Docker Web proxies same-origin `/api/` to the API container; file upload size checked before scanner to prevent large-file buffering; download filenames sanitized to prevent HTTP header injection.
 - Verified Docker dependency services with PostgreSQL and Redis healthy.
 - Verified `/api/v1/health/db` returns 200 when the API can reach Docker PostgreSQL.
 
@@ -109,7 +109,7 @@ rg -n "TODO|FIXME|create_all|print\\(" apps packages scripts --glob '!packages/a
 - If local dev servers already occupy 8000 or 5173, use:
 
 ```bash
-API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker compose --profile app up --build
+API_PORT=18000 WEB_PORT=15173 docker compose --profile app up --build
 ```
 
 ## Recommended Next Phase

@@ -1,4 +1,4 @@
-const defaultApiBaseUrl = "http://localhost:8000";
+const defaultApiBaseUrl = "";
 
 let apiBaseUrl = defaultApiBaseUrl;
 

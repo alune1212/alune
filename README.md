@@ -108,7 +108,7 @@ docker compose --profile app up --build
 如果本机已经有开发服务器占用了 8000 或 5173，可以临时换端口：
 
 ```bash
-API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker compose --profile app up --build
+API_PORT=18000 WEB_PORT=15173 docker compose --profile app up --build
 ```
 
 完整 Docker 栈会启动：
@@ -117,6 +117,8 @@ API_PORT=18000 WEB_PORT=15173 VITE_API_BASE_URL=http://localhost:18000 docker co
 - Redis：http://localhost:6379
 - API：http://localhost:8000
 - Web：http://localhost:5173
+
+Docker Web serves browser API requests through Nginx at the relative `/api/` path and proxies them to the API service. Local Vite development can still set `VITE_API_BASE_URL=http://localhost:8000`.
 
 如果使用上面的替代端口命令，访问地址变为：
 

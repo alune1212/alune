@@ -73,9 +73,10 @@ Stage 6G-E adds a reproducible generation path:
 - `apps/api/app/scripts/export_openapi.py` exports FastAPI OpenAPI to `packages/api-client/openapi/openapi.json`.
 - The export script normalizes Pydantic v2 multipart binary schemas from `contentMediaType: application/octet-stream` to OpenAPI `format: binary`, so Orval generates upload fields as `Blob`.
 - `packages/api-client/orval.config.ts` reads that local schema and writes `packages/api-client/src/generated/api.ts`.
-- `packages/api-client/src/runtime-config.ts` stores the API base URL; `apps/web/src/app/main.tsx` initializes it from `VITE_API_BASE_URL`.
+- `packages/api-client/src/runtime-config.ts` stores the API base URL. Its default is same-origin relative requests; `apps/web/src/app/main.tsx` can override it from `VITE_API_BASE_URL` for local Vite development.
 - `packages/api-client/src/orval-fetch.ts` is the generated client's custom fetcher. It uses the runtime API base URL and returns Orval's `{ data, status, headers }` response shape.
 - `packages/api-client/src/index.ts` remains a narrow compatibility layer for runtime configuration, audit CSV export, file upload, and file download. It no longer exports the migrated JSON read/write helpers; frontend code should import generated hooks and types from `@alune/api-client/generated` for normal API access.
+- Docker Web uses `infra/nginx/web.conf` to serve the SPA and proxy `/api/` to the API container, so production browsers do not call `localhost:8000`.
 
 ## CI
 
@@ -226,4 +227,4 @@ The FastAPI root path `/` is intentionally not part of the API surface. Use `/do
 ## Not Implemented Yet
 
 - Complex organization workflows, approvals, reports, and company-specific business modules.
-- Production reverse proxy or deployment topology.
+- External TLS/domain termination in front of the Docker Web proxy.
