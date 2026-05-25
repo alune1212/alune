@@ -23,15 +23,26 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          tanstack: ["@tanstack/react-query", "@tanstack/react-router", "@tanstack/react-table"],
-          ui: [
+        manualChunks(id) {
+          const tanstackModules = [
+            "@tanstack/react-query",
+            "@tanstack/react-router",
+            "@tanstack/react-table"
+          ];
+          const uiModules = [
             "@radix-ui/react-dialog",
             "@radix-ui/react-dropdown-menu",
             "@radix-ui/react-slot",
             "lucide-react",
             "sonner"
-          ]
+          ];
+          if (tanstackModules.some((moduleName) => id.includes(`/node_modules/${moduleName}/`))) {
+            return "tanstack";
+          }
+          if (uiModules.some((moduleName) => id.includes(`/node_modules/${moduleName}/`))) {
+            return "ui";
+          }
+          return undefined;
         }
       }
     }
