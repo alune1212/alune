@@ -5,7 +5,7 @@ import pytest
 from fastapi import HTTPException, UploadFile
 from starlette.datastructures import Headers
 
-from app.modules.files.storage import LocalFileStorage, validate_upload_policy
+from app.modules.files.storage import LocalFileStorage, UploadScanResult, validate_upload_policy
 
 
 def build_upload(*, filename: str, content_type: str, content: bytes) -> UploadFile:
@@ -54,3 +54,32 @@ async def test_upload_policy_rejects_oversized_file(tmp_path: Path) -> None:
 
     assert exc_info.value.status_code == 413
     assert exc_info.value.detail == "File is too large"
+
+
+@pytest.mark.asyncio
+async def test_upload_policy_rejects_oversized_file_before_scanner(tmp_path: Path) -> None:
+    class RecordingScanner:
+        called = False
+
+        async def scan(self, upload: UploadFile) -> UploadScanResult:
+            self.called = True
+            return UploadScanResult(is_clean=True)
+
+    scanner = RecordingScanner()
+    upload = build_upload(
+        filename="large.txt",
+        content_type="text/plain",
+        content=b"123456",
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        await validate_upload_policy(
+            upload,
+            storage=LocalFileStorage(tmp_path),
+            scanner=scanner,
+            max_size_bytes=3,
+            allowed_content_types=["text/plain"],
+        )
+
+    assert exc_info.value.status_code == 413
+    assert scanner.called is False

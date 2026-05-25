@@ -43,7 +43,9 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@postgres:5432/${POSTGRES_DB:-company_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app}
       REDIS_URL: redis://redis:6379/0
+      ENVIRONMENT: ${ENVIRONMENT:-development}
       API_HOST: 0.0.0.0
       API_PORT: 8000
       API_CORS_ORIGINS: http://localhost:${WEB_PORT:-5173}

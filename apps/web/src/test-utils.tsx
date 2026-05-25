@@ -37,6 +37,8 @@ export const mockAuthValue = {
   user: null,
   isAuthenticated: true,
   isLoading: false,
+  isSessionExpired: false,
   setSession: () => {},
-  logout: () => {}
+  logout: () => {},
+  clearExpiredFlag: () => {}
 };

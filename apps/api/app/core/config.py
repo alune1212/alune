@@ -1,6 +1,7 @@
 import json
 from functools import lru_cache
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
+from urllib.parse import unquote, urlsplit
 
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
@@ -16,6 +17,7 @@ class Settings(BaseSettings):
     app_name: str = "alune-platform API"
     app_version: str = "0.1.0"
     database_url: str = "postgresql+asyncpg://app:app@localhost:5432/company_admin"
+    postgres_password: str | None = None
     redis_url: str = "redis://localhost:6379/0"
     api_host: str = "0.0.0.0"
     api_port: int = 8000
@@ -52,7 +54,7 @@ class Settings(BaseSettings):
         ],
     )
 
-    environment: str = "development"
+    environment: Literal["development", "staging", "production"] = "development"
 
     @field_validator("api_cors_origins", mode="before")
     @classmethod
@@ -94,6 +96,15 @@ class Settings(BaseSettings):
         if len(self.jwt_secret_key) < 32:
             failures.append(
                 "JWT_SECRET_KEY must be at least 32 characters in production"
+            )
+
+        database_password = urlsplit(self.database_url).password
+        if (
+            self.postgres_password == "app"
+            or (database_password is not None and unquote(database_password) == "app")
+        ):
+            failures.append(
+                "POSTGRES_PASSWORD must not use the default value 'app' in production"
             )
 
         if self.minio_secret_key == "minioadmin":

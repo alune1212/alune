@@ -19,6 +19,9 @@ export function RequireAuth({ children }: RequireAuthProps) {
   }
 
   if (!auth.isAuthenticated) {
+    if (auth.isSessionExpired) {
+      return <Navigate to="/login" search={{ expired: true }} replace />;
+    }
     return <Navigate to="/login" replace />;
   }
 

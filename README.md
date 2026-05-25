@@ -54,7 +54,7 @@ alune-platform/
 cp .env.example .env
 ```
 
-`ENVIRONMENT` 设为 `development`（开发环境）；生产环境需设为 `production`，此时不允许使用默认 JWT 和 MinIO 密钥，JWT 密钥至少需 32 字符。
+`ENVIRONMENT` 设为 `development`（开发环境）；生产环境需设为 `production`，此时不允许使用默认 JWT、PostgreSQL 和 MinIO 密钥，JWT 密钥至少需 32 字符。
 
 安装前端依赖：
 

@@ -80,11 +80,22 @@ def test_settings_production_rejects_default_minio_secret(monkeypatch) -> None:
         )
 
 
+def test_settings_production_rejects_default_postgres_password(monkeypatch) -> None:
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    with pytest.raises(ValueError, match="POSTGRES_PASSWORD"):
+        Settings(
+            environment="production",
+            jwt_secret_key="super-secret-key-that-is-long-enough-32chars",
+            database_url="postgresql+asyncpg://app:app@localhost:5432/company_admin",
+        )
+
+
 def test_settings_production_accepts_secure_config(monkeypatch) -> None:
     monkeypatch.setenv("ENVIRONMENT", "production")
     settings = Settings(
         environment="production",
         jwt_secret_key="super-secret-key-that-is-long-enough-32chars",
+        database_url="postgresql+asyncpg://app:secure-postgres-password@localhost:5432/company_admin",
         minio_secret_key="a-real-minio-secret",
     )
     assert settings.environment == "production"
