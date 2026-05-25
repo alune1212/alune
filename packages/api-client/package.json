@@ -14,14 +14,14 @@
     "test": "vitest run"
   },
   "peerDependencies": {
-    "@tanstack/react-query": "^5.90.12",
+    "@tanstack/react-query": "^5.100.11",
     "react": "^19.2.0"
   },
   "devDependencies": {
-    "@tanstack/react-query": "^5.90.12",
-    "orval": "^7.13.0",
+    "@tanstack/react-query": "^5.100.11",
+    "orval": "^8.12.2",
     "react": "^19.2.0",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.15"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.7"
   }
 }
