@@ -76,7 +76,7 @@ jobs:
         run: pnpm typecheck
 
       - name: Start test dependencies
-        run: docker compose up -d postgres redis
+        run: docker compose up -d --wait postgres redis
 
       - name: Run migrations
         run: pnpm db:upgrade
