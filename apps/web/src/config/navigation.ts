@@ -1,5 +1,15 @@
-import { BookOpen, FileText, LayoutDashboard, ListChecks, Network, ShieldCheck, Users } from "lucide-react";
+import {
+  BookOpen,
+  FileText,
+  LayoutDashboard,
+  ListChecks,
+  Network,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
 import type { ComponentType } from "react";
+
+import { uiCopy } from "@/config/ui-copy";
 
 export type NavigationItem = {
   label: string;
@@ -9,16 +19,53 @@ export type NavigationItem = {
 };
 
 export const navigationItems: NavigationItem[] = [
-  { label: "Dashboard", to: "/", icon: LayoutDashboard, permission: "menu:dashboard" },
-  { label: "Users", to: "/users", icon: Users, permission: "menu:users" },
-  { label: "Roles", to: "/roles", icon: ShieldCheck, permission: "menu:roles" },
-  { label: "Departments", to: "/departments", icon: Network, permission: "menu:departments" },
-  { label: "Audit", to: "/audit", icon: ListChecks, permission: "menu:audit" },
-  { label: "Dictionaries", to: "/dictionaries", icon: BookOpen, permission: "menu:dictionaries" },
-  { label: "Files", to: "/files", icon: FileText, permission: "menu:files" }
+  {
+    label: uiCopy.modules.dashboard,
+    to: "/",
+    icon: LayoutDashboard,
+    permission: "menu:dashboard",
+  },
+  {
+    label: uiCopy.modules.users,
+    to: "/users",
+    icon: Users,
+    permission: "menu:users",
+  },
+  {
+    label: uiCopy.modules.roles,
+    to: "/roles",
+    icon: ShieldCheck,
+    permission: "menu:roles",
+  },
+  {
+    label: uiCopy.modules.departments,
+    to: "/departments",
+    icon: Network,
+    permission: "menu:departments",
+  },
+  {
+    label: uiCopy.modules.audit,
+    to: "/audit",
+    icon: ListChecks,
+    permission: "menu:audit",
+  },
+  {
+    label: uiCopy.modules.dictionaries,
+    to: "/dictionaries",
+    icon: BookOpen,
+    permission: "menu:dictionaries",
+  },
+  {
+    label: uiCopy.modules.files,
+    to: "/files",
+    icon: FileText,
+    permission: "menu:files",
+  },
 ];
 
-export function getVisibleNavigationItems(permissions: readonly string[]): NavigationItem[] {
+export function getVisibleNavigationItems(
+  permissions: readonly string[],
+): NavigationItem[] {
   const permissionSet = new Set(permissions);
   return navigationItems.filter((item) => permissionSet.has(item.permission));
 }

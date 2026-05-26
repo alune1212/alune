@@ -4,8 +4,15 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import { DataTable } from "@/components/data/data-table";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { uiCopy } from "@/config/ui-copy";
 import { useAuth } from "@/features/auth/auth-provider";
 import {
   useCreateDepartmentApiV1DepartmentsPost,
@@ -14,12 +21,18 @@ import {
   type DepartmentTreeNode,
   useGetDepartmentsApiV1DepartmentsGet,
   useGetDepartmentTreeApiV1DepartmentsTreeGet,
-  useUpdateDepartmentApiV1DepartmentsDepartmentIdPatch
+  useUpdateDepartmentApiV1DepartmentsDepartmentIdPatch,
 } from "@alune/api-client/generated";
 
-function DepartmentTree({ nodes, depth = 0 }: { nodes: DepartmentTreeNode[]; depth?: number }) {
+function DepartmentTree({
+  nodes,
+  depth = 0,
+}: {
+  nodes: DepartmentTreeNode[];
+  depth?: number;
+}) {
   if (nodes.length === 0) {
-    return <p className="text-sm text-slate-500">No departments found.</p>;
+    return <p className="text-sm text-slate-500">{uiCopy.empty.departments}</p>;
   }
 
   return (
@@ -52,26 +65,28 @@ export function DepartmentsPage() {
   const [page, setPage] = useState(1);
   const authRequest = useMemo(
     () => ({
-      headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
+      headers: auth.token
+        ? { Authorization: `Bearer ${auth.token}` }
+        : undefined,
     }),
-    [auth.token]
+    [auth.token],
   );
   const departmentsQuery = useGetDepartmentsApiV1DepartmentsGet(
     { q: search || undefined, page, page_size: 10 },
     {
       query: {
         queryKey: ["internal", "departments", search, page],
-        enabled: auth.token !== null
+        enabled: auth.token !== null,
       },
-      request: authRequest
-    }
+      request: authRequest,
+    },
   );
   const departmentTreeQuery = useGetDepartmentTreeApiV1DepartmentsTreeGet({
     query: {
       queryKey: ["internal", "departments", "tree"],
-      enabled: auth.token !== null
+      enabled: auth.token !== null,
     },
-    request: authRequest
+    request: authRequest,
   });
   const createMutation = useCreateDepartmentApiV1DepartmentsPost({
     mutation: {
@@ -79,22 +94,30 @@ export function DepartmentsPage() {
         setCode("");
         setName("");
         setDescription("");
-        queryClient.invalidateQueries({ queryKey: ["internal", "departments"] });
-      }
+        queryClient.invalidateQueries({
+          queryKey: ["internal", "departments"],
+        });
+      },
     },
-    request: authRequest
+    request: authRequest,
   });
   const toggleMutation = useUpdateDepartmentApiV1DepartmentsDepartmentIdPatch({
     mutation: {
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "departments"] })
+      onSuccess: () =>
+        queryClient.invalidateQueries({
+          queryKey: ["internal", "departments"],
+        }),
     },
-    request: authRequest
+    request: authRequest,
   });
   const deleteMutation = useDeleteDepartmentApiV1DepartmentsDepartmentIdDelete({
     mutation: {
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "departments"] })
+      onSuccess: () =>
+        queryClient.invalidateQueries({
+          queryKey: ["internal", "departments"],
+        }),
     },
-    request: authRequest
+    request: authRequest,
   });
 
   function submitCreateDepartment() {
@@ -102,19 +125,25 @@ export function DepartmentsPage() {
       data: {
         code,
         name,
-        description: description || null
-      }
+        description: description || null,
+      },
     });
   }
 
-  const toggleDepartment = useCallback((department: DepartmentPublic) => {
-    toggleMutation.mutate({
-      departmentId: department.id,
-      data: { is_active: !department.is_active }
-    });
-  }, [toggleMutation]);
+  const toggleDepartment = useCallback(
+    (department: DepartmentPublic) => {
+      toggleMutation.mutate({
+        departmentId: department.id,
+        data: { is_active: !department.is_active },
+      });
+    },
+    [toggleMutation],
+  );
 
-  const departmentsPage = departmentsQuery.data?.status === 200 ? departmentsQuery.data.data.data : undefined;
+  const departmentsPage =
+    departmentsQuery.data?.status === 200
+      ? departmentsQuery.data.data.data
+      : undefined;
   const departments = departmentsPage?.items ?? [];
   const totalPages = departmentsPage
     ? Math.max(1, Math.ceil(departmentsPage.total / departmentsPage.page_size))
@@ -124,80 +153,115 @@ export function DepartmentsPage() {
     () => [
       {
         accessorKey: "code",
-        header: "Code",
-        cell: ({ row }) => <span className="font-medium text-slate-950">{row.original.code}</span>
+        header: uiCopy.common.code,
+        cell: ({ row }) => (
+          <span className="font-medium text-slate-950">
+            {row.original.code}
+          </span>
+        ),
       },
       {
         accessorKey: "name",
-        header: "Name"
+        header: uiCopy.common.name,
       },
       {
         accessorKey: "parent_id",
-        header: "Parent",
-        cell: ({ row }) => row.original.parent_id ?? "-"
+        header: "上级部门",
+        cell: ({ row }) => row.original.parent_id ?? "-",
       },
       {
         accessorKey: "sort_order",
-        header: "Sort"
+        header: "排序",
       },
       {
         accessorKey: "is_active",
-        header: "Status",
-        cell: ({ row }) => (row.original.is_active ? "Active" : "Inactive")
+        header: uiCopy.common.status,
+        cell: ({ row }) =>
+          row.original.is_active
+            ? uiCopy.common.active
+            : uiCopy.common.inactive,
       },
       {
         accessorKey: "description",
-        header: "Description",
-        cell: ({ row }) => row.original.description ?? "-"
+        header: uiCopy.common.description,
+        cell: ({ row }) => row.original.description ?? "-",
       },
       {
         id: "actions",
-        header: "Actions",
+        header: uiCopy.common.actions,
         cell: ({ row }) => (
           <div className="flex gap-2">
-            <Button type="button" variant="outline" onClick={() => toggleDepartment(row.original)}>
-              {row.original.is_active ? "Disable" : "Enable"}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => toggleDepartment(row.original)}
+            >
+              {row.original.is_active
+                ? uiCopy.common.disable
+                : uiCopy.common.enable}
             </Button>
-            <Button type="button" variant="outline" onClick={() => deleteMutation.mutate({ departmentId: row.original.id })}>
-              Delete
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() =>
+                deleteMutation.mutate({ departmentId: row.original.id })
+              }
+            >
+              {uiCopy.common.delete}
             </Button>
           </div>
-        )
-      }
+        ),
+      },
     ],
-    [deleteMutation, toggleDepartment]
+    [deleteMutation, toggleDepartment],
   );
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
       <section>
-        <h1 className="text-2xl font-semibold tracking-normal text-slate-950">Departments</h1>
-        <p className="mt-2 text-sm text-slate-600">Department records for account assignment.</p>
+        <h1 className="text-2xl font-semibold tracking-normal text-slate-950">
+          {uiCopy.modules.departments}
+        </h1>
+        <p className="mt-2 text-sm text-slate-600">用于账号分配的部门记录。</p>
       </section>
 
       <Card>
         <CardHeader>
-          <CardTitle>Create department</CardTitle>
-          <CardDescription>Add a department record. Delete is blocked when children or users exist.</CardDescription>
+          <CardTitle>创建部门</CardTitle>
+          <CardDescription>
+            添加部门记录。存在子部门或用户时不能删除。
+          </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
-          <Input value={code} onChange={(event) => setCode(event.target.value)} placeholder="Code" />
-          <Input value={name} onChange={(event) => setName(event.target.value)} placeholder="Name" />
+          <Input
+            value={code}
+            onChange={(event) => setCode(event.target.value)}
+            placeholder={uiCopy.common.code}
+          />
+          <Input
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder={uiCopy.common.name}
+          />
           <Input
             value={description}
             onChange={(event) => setDescription(event.target.value)}
-            placeholder="Description"
+            placeholder={uiCopy.common.description}
           />
-          <Button type="button" onClick={submitCreateDepartment} disabled={!code || !name}>
-            Create
+          <Button
+            type="button"
+            onClick={submitCreateDepartment}
+            disabled={!code || !name}
+          >
+            {uiCopy.common.create}
           </Button>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Department tree</CardTitle>
-          <CardDescription>Nested view for parent and child departments.</CardDescription>
+          <CardTitle>部门树</CardTitle>
+          <CardDescription>展示上下级部门关系。</CardDescription>
         </CardHeader>
         <CardContent>
           <DepartmentTree nodes={departmentTree} />
@@ -206,8 +270,10 @@ export function DepartmentsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Department list</CardTitle>
-          <CardDescription>{departmentsPage?.total ?? 0} departments</CardDescription>
+          <CardTitle>部门列表</CardTitle>
+          <CardDescription>
+            {departmentsPage?.total ?? 0} 个部门
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -217,11 +283,15 @@ export function DepartmentsPage() {
                 setSearch(event.target.value);
                 setPage(1);
               }}
-              placeholder="Search code or name"
+              placeholder="搜索编码或名称"
             />
             <div className="flex items-center gap-2">
-              <Button type="button" variant="outline" onClick={() => setPage((value) => Math.max(1, value - 1))}>
-                Previous
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setPage((value) => Math.max(1, value - 1))}
+              >
+                {uiCopy.common.previous}
               </Button>
               <span className="min-w-20 text-center text-sm text-slate-600">
                 {page} / {totalPages}
@@ -229,16 +299,24 @@ export function DepartmentsPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+                onClick={() =>
+                  setPage((value) => Math.min(totalPages, value + 1))
+                }
               >
-                Next
+                {uiCopy.common.next}
               </Button>
             </div>
           </div>
           {departmentsQuery.isError ? (
-            <p className="text-sm text-red-600">Unable to load departments.</p>
+            <p className="text-sm text-red-600">
+              {uiCopy.errors.loadDepartments}
+            </p>
           ) : (
-            <DataTable columns={departmentColumns} data={departments} emptyLabel="No departments found." />
+            <DataTable
+              columns={departmentColumns}
+              data={departments}
+              emptyLabel={uiCopy.empty.departments}
+            />
           )}
         </CardContent>
       </Card>

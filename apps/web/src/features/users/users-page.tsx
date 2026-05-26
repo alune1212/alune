@@ -4,13 +4,20 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import { DataTable } from "@/components/data/data-table";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { uiCopy } from "@/config/ui-copy";
 import { useAuth } from "@/features/auth/auth-provider";
 import {
   type DepartmentPublic,
   type RolePublic,
-  type UserManagementItem
+  type UserManagementItem,
 } from "@alune/api-client/generated";
 import {
   useCreateUserApiV1UsersPost,
@@ -21,7 +28,7 @@ import {
   useUpdateUserApiV1UsersUserIdPatch,
   useUpdateUserPasswordApiV1UsersUserIdPasswordPatch,
   useUpdateUserRolesApiV1UsersUserIdRolesPut,
-  useUpdateUsersStatusApiV1UsersBulkStatusPatch
+  useUpdateUsersStatusApiV1UsersBulkStatusPatch,
 } from "@alune/api-client/generated";
 
 type BulkStatusAction = {
@@ -46,13 +53,16 @@ export function UsersPage() {
   const [editDepartmentId, setEditDepartmentId] = useState("");
   const [resetPassword, setResetPassword] = useState("");
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
-  const [pendingBulkStatusAction, setPendingBulkStatusAction] = useState<BulkStatusAction | null>(null);
+  const [pendingBulkStatusAction, setPendingBulkStatusAction] =
+    useState<BulkStatusAction | null>(null);
   const [bulkStatusResult, setBulkStatusResult] = useState<string | null>(null);
   const authRequest = useMemo(
     () => ({
-      headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
+      headers: auth.token
+        ? { Authorization: `Bearer ${auth.token}` }
+        : undefined,
     }),
-    [auth.token]
+    [auth.token],
   );
   const usersQuery = useGetUsersApiV1UsersGet(
     {
@@ -60,40 +70,50 @@ export function UsersPage() {
       role_code: roleFilter || undefined,
       department_id: departmentFilter || undefined,
       page,
-      page_size: 10
+      page_size: 10,
     },
     {
       query: {
-        queryKey: ["internal", "users", search, roleFilter, departmentFilter, page],
-        enabled: auth.token !== null
+        queryKey: [
+          "internal",
+          "users",
+          search,
+          roleFilter,
+          departmentFilter,
+          page,
+        ],
+        enabled: auth.token !== null,
       },
-      request: authRequest
-    }
+      request: authRequest,
+    },
   );
   const rolesQuery = useGetRolesApiV1RolesGet({
     query: {
       queryKey: ["internal", "roles"],
-      enabled: auth.token !== null
+      enabled: auth.token !== null,
     },
-    request: authRequest
+    request: authRequest,
   });
   const departmentsQuery = useGetDepartmentsApiV1DepartmentsGet(
     { page_size: 100 },
     {
       query: {
         queryKey: ["internal", "departments", "for-users"],
-        enabled: auth.token !== null
+        enabled: auth.token !== null,
       },
-      request: authRequest
-    }
-  );
-  const userRolesQuery = useGetUserRolesApiV1UsersUserIdRolesGet(selectedUserId ?? "", {
-    query: {
-      queryKey: ["internal", "users", selectedUserId, "roles"],
-      enabled: auth.token !== null && selectedUserId !== null
+      request: authRequest,
     },
-    request: authRequest
-  });
+  );
+  const userRolesQuery = useGetUserRolesApiV1UsersUserIdRolesGet(
+    selectedUserId ?? "",
+    {
+      query: {
+        queryKey: ["internal", "users", selectedUserId, "roles"],
+        enabled: auth.token !== null && selectedUserId !== null,
+      },
+      request: authRequest,
+    },
+  );
   const createUserMutation = useCreateUserApiV1UsersPost({
     mutation: {
       onSuccess: () => {
@@ -102,15 +122,16 @@ export function UsersPage() {
         setFullName("");
         setPassword("");
         queryClient.invalidateQueries({ queryKey: ["internal", "users"] });
-      }
+      },
     },
-    request: authRequest
+    request: authRequest,
   });
   const updateUserMutation = useUpdateUserApiV1UsersUserIdPatch({
     mutation: {
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "users"] })
+      onSuccess: () =>
+        queryClient.invalidateQueries({ queryKey: ["internal", "users"] }),
     },
-    request: authRequest
+    request: authRequest,
   });
   const bulkStatusMutation = useUpdateUsersStatusApiV1UsersBulkStatusPatch({
     mutation: {
@@ -120,29 +141,34 @@ export function UsersPage() {
         }
         setSelectedUserIds([]);
         setPendingBulkStatusAction(null);
-        setBulkStatusResult(`Updated ${response.data.data.updated_count} users.`);
+        setBulkStatusResult(
+          `已更新 ${response.data.data.updated_count} 个用户。`,
+        );
         queryClient.invalidateQueries({ queryKey: ["internal", "users"] });
-      }
+      },
     },
-    request: authRequest
+    request: authRequest,
   });
-  const resetPasswordMutation = useUpdateUserPasswordApiV1UsersUserIdPasswordPatch({
-    mutation: {
-      onSuccess: () => {
-        setResetPassword("");
-        queryClient.invalidateQueries({ queryKey: ["internal", "users"] });
-      }
-    },
-    request: authRequest
-  });
+  const resetPasswordMutation =
+    useUpdateUserPasswordApiV1UsersUserIdPasswordPatch({
+      mutation: {
+        onSuccess: () => {
+          setResetPassword("");
+          queryClient.invalidateQueries({ queryKey: ["internal", "users"] });
+        },
+      },
+      request: authRequest,
+    });
   const updateRolesMutation = useUpdateUserRolesApiV1UsersUserIdRolesPut({
     mutation: {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["internal", "users", selectedUserId, "roles"] });
+        queryClient.invalidateQueries({
+          queryKey: ["internal", "users", selectedUserId, "roles"],
+        });
         queryClient.invalidateQueries({ queryKey: ["current-user"] });
-      }
+      },
     },
-    request: authRequest
+    request: authRequest,
   });
 
   function submitCreateUser() {
@@ -151,24 +177,27 @@ export function UsersPage() {
         username,
         email,
         full_name: fullName || null,
-        password
-      }
+        password,
+      },
     });
   }
 
-  const toggleUserStatus = useCallback((user: UserManagementItem) => {
-    updateUserMutation.mutate({
-      userId: user.id,
-      data: { is_active: !user.is_active }
-    });
-  }, [updateUserMutation]);
+  const toggleUserStatus = useCallback(
+    (user: UserManagementItem) => {
+      updateUserMutation.mutate({
+        userId: user.id,
+        data: { is_active: !user.is_active },
+      });
+    },
+    [updateUserMutation],
+  );
 
   function confirmBulkStatusChange(action: BulkStatusAction) {
     bulkStatusMutation.mutate({
       data: {
         user_ids: action.userIds,
-        is_active: action.isActive
-      }
+        is_active: action.isActive,
+      },
     });
   }
 
@@ -181,8 +210,8 @@ export function UsersPage() {
       data: {
         email: editEmail,
         full_name: editFullName || null,
-        department_id: editDepartmentId || null
-      }
+        department_id: editDepartmentId || null,
+      },
     });
   }
 
@@ -192,82 +221,119 @@ export function UsersPage() {
     }
     resetPasswordMutation.mutate({
       userId: selectedUserId,
-      data: { password: resetPassword }
+      data: { password: resetPassword },
     });
   }
 
-  const usersPage = usersQuery.data?.status === 200 ? usersQuery.data.data.data : undefined;
+  const usersPage =
+    usersQuery.data?.status === 200 ? usersQuery.data.data.data : undefined;
   const users = usersPage?.items ?? [];
-  const totalPages = usersPage ? Math.max(1, Math.ceil(usersPage.total / usersPage.page_size)) : 1;
+  const totalPages = usersPage
+    ? Math.max(1, Math.ceil(usersPage.total / usersPage.page_size))
+    : 1;
   const roles = rolesQuery.data?.data.data ?? [];
-  const departmentsPage = departmentsQuery.data?.status === 200 ? departmentsQuery.data.data.data : undefined;
+  const departmentsPage =
+    departmentsQuery.data?.status === 200
+      ? departmentsQuery.data.data.data
+      : undefined;
   const departments = departmentsPage?.items ?? [];
   const selectedUser = users.find((user) => user.id === selectedUserId) ?? null;
-  const selectedRoleCodes = userRolesQuery.data?.status === 200 ? userRolesQuery.data.data.data.role_codes : [];
-  const selectedUserIdSet = useMemo(() => new Set(selectedUserIds), [selectedUserIds]);
+  const selectedRoleCodes =
+    userRolesQuery.data?.status === 200
+      ? userRolesQuery.data.data.data.role_codes
+      : [];
+  const selectedUserIdSet = useMemo(
+    () => new Set(selectedUserIds),
+    [selectedUserIds],
+  );
   const userColumns = useMemo<ColumnDef<UserManagementItem>[]>(
     () => [
       {
         id: "select",
-        header: "Select",
+        header: "选择",
         cell: ({ row }) => (
           <input
             type="checkbox"
-            aria-label={`Select ${row.original.username}`}
+            aria-label={`选择 ${row.original.username}`}
             checked={selectedUserIdSet.has(row.original.id)}
             onChange={() => toggleSelectedUser(row.original.id)}
             className="h-4 w-4 rounded border-slate-300"
           />
-        )
+        ),
       },
       {
         accessorKey: "username",
-        header: "Username",
-        cell: ({ row }) => <span className="font-medium text-slate-950">{row.original.username}</span>
+        header: uiCopy.fields.username,
+        cell: ({ row }) => (
+          <span className="font-medium text-slate-950">
+            {row.original.username}
+          </span>
+        ),
       },
       {
         accessorKey: "email",
-        header: "Email"
+        header: uiCopy.common.email,
       },
       {
         accessorKey: "full_name",
-        header: "Full name",
-        cell: ({ row }) => row.original.full_name ?? "-"
+        header: uiCopy.fields.fullName,
+        cell: ({ row }) => row.original.full_name ?? "-",
       },
       {
         accessorKey: "department_id",
-        header: "Department",
-        cell: ({ row }) => (row.original.department_id ? "Assigned" : "Unassigned")
+        header: uiCopy.fields.department,
+        cell: ({ row }) =>
+          row.original.department_id
+            ? uiCopy.common.assigned
+            : uiCopy.common.unassigned,
       },
       {
         accessorKey: "is_active",
-        header: "Status",
-        cell: ({ row }) => (row.original.is_active ? "Active" : "Inactive")
+        header: uiCopy.common.status,
+        cell: ({ row }) =>
+          row.original.is_active
+            ? uiCopy.common.active
+            : uiCopy.common.inactive,
       },
       {
         accessorKey: "is_superuser",
-        header: "Admin",
-        cell: ({ row }) => (row.original.is_superuser ? "Yes" : "No")
+        header: uiCopy.fields.admin,
+        cell: ({ row }) =>
+          row.original.is_superuser ? uiCopy.common.yes : uiCopy.common.no,
       },
       {
         id: "actions",
-        header: "Actions",
+        header: uiCopy.common.actions,
         cell: ({ row }) => (
           <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" onClick={() => toggleUserStatus(row.original)}>
-              {row.original.is_active ? "Disable" : "Enable"}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => toggleUserStatus(row.original)}
+            >
+              {row.original.is_active
+                ? uiCopy.common.disable
+                : uiCopy.common.enable}
             </Button>
-            <Button type="button" variant="outline" onClick={() => setSelectedUserId(row.original.id)}>
-              Roles
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setSelectedUserId(row.original.id)}
+            >
+              角色
             </Button>
-            <Button type="button" variant="outline" onClick={() => startEdit(row.original)}>
-              Edit
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => startEdit(row.original)}
+            >
+              {uiCopy.common.edit}
             </Button>
           </div>
-        )
-      }
+        ),
+      },
     ],
-    [selectedUserIdSet, toggleUserStatus]
+    [selectedUserIdSet, toggleUserStatus],
   );
 
   function toggleRole(role: RolePublic) {
@@ -279,7 +345,7 @@ export function UsersPage() {
       : [...selectedRoleCodes, role.code];
     updateRolesMutation.mutate({
       userId: selectedUserId,
-      data: { role_codes: nextRoleCodes }
+      data: { role_codes: nextRoleCodes },
     });
   }
 
@@ -292,13 +358,17 @@ export function UsersPage() {
 
   function toggleSelectedUser(userId: string) {
     setSelectedUserIds((current) =>
-      current.includes(userId) ? current.filter((id) => id !== userId) : [...current, userId]
+      current.includes(userId)
+        ? current.filter((id) => id !== userId)
+        : [...current, userId],
     );
   }
 
   function toggleCurrentPageSelection() {
     const pageUserIds = users.map((user) => user.id);
-    const everyPageUserSelected = pageUserIds.every((userId) => selectedUserIdSet.has(userId));
+    const everyPageUserSelected = pageUserIds.every((userId) =>
+      selectedUserIdSet.has(userId),
+    );
     setSelectedUserIds((current) => {
       if (everyPageUserSelected) {
         return current.filter((userId) => !pageUserIds.includes(userId));
@@ -311,7 +381,7 @@ export function UsersPage() {
     setBulkStatusResult(null);
     setPendingBulkStatusAction({
       isActive,
-      userIds: selectedUserIds
+      userIds: selectedUserIds,
     });
   }
 
@@ -322,23 +392,37 @@ export function UsersPage() {
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
       <section>
-        <h1 className="text-2xl font-semibold tracking-normal text-slate-950">Users</h1>
-        <p className="mt-2 text-sm text-slate-600">Accounts available in the internal platform.</p>
+        <h1 className="text-2xl font-semibold tracking-normal text-slate-950">
+          {uiCopy.modules.users}
+        </h1>
+        <p className="mt-2 text-sm text-slate-600">内部平台中的账号列表。</p>
       </section>
 
       <Card>
         <CardHeader>
-          <CardTitle>Create user</CardTitle>
-          <CardDescription>Add a local account with an initial password.</CardDescription>
+          <CardTitle>创建用户</CardTitle>
+          <CardDescription>添加一个带初始密码的本地账号。</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_1fr_auto]">
-          <Input value={username} onChange={(event) => setUsername(event.target.value)} placeholder="Username" />
-          <Input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email" />
-          <Input value={fullName} onChange={(event) => setFullName(event.target.value)} placeholder="Full name" />
+          <Input
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
+            placeholder={uiCopy.fields.username}
+          />
+          <Input
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder={uiCopy.common.email}
+          />
+          <Input
+            value={fullName}
+            onChange={(event) => setFullName(event.target.value)}
+            placeholder={uiCopy.fields.fullName}
+          />
           <Input
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            placeholder="Initial password"
+            placeholder={uiCopy.fields.initialPassword}
             type="password"
           />
           <Button
@@ -346,37 +430,45 @@ export function UsersPage() {
             onClick={submitCreateUser}
             disabled={!username || !email || password.length < 8}
           >
-            Create
+            {uiCopy.common.create}
           </Button>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Edit user</CardTitle>
+          <CardTitle>编辑用户</CardTitle>
           <CardDescription>
-            {selectedUser ? `Update profile fields for ${selectedUser.username}` : "Select Edit from the table."}
+            {selectedUser
+              ? `更新 ${selectedUser.username} 的资料字段`
+              : "从表格中选择“编辑”。"}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
-            <Input value={editEmail} onChange={(event) => setEditEmail(event.target.value)} placeholder="Email" />
+            <Input
+              value={editEmail}
+              onChange={(event) => setEditEmail(event.target.value)}
+              placeholder={uiCopy.common.email}
+            />
             <Input
               value={editFullName}
               onChange={(event) => setEditFullName(event.target.value)}
-              placeholder="Full name"
+              placeholder={uiCopy.fields.fullName}
             />
             <Input
               value={editDepartmentId}
               onChange={(event) => setEditDepartmentId(event.target.value)}
-              placeholder="Department ID"
+              placeholder={uiCopy.fields.departmentId}
             />
             <Button
               type="button"
               onClick={saveSelectedUser}
-              disabled={!selectedUserId || !editEmail || updateUserMutation.isPending}
+              disabled={
+                !selectedUserId || !editEmail || updateUserMutation.isPending
+              }
             >
-              Save
+              {uiCopy.common.save}
             </Button>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -384,31 +476,42 @@ export function UsersPage() {
               <Button
                 key={department.id}
                 type="button"
-                variant={editDepartmentId === department.id ? "default" : "outline"}
+                variant={
+                  editDepartmentId === department.id ? "default" : "outline"
+                }
                 disabled={!selectedUserId}
                 onClick={() => selectDepartment(department)}
               >
                 {department.name}
               </Button>
             ))}
-            <Button type="button" variant="outline" disabled={!selectedUserId} onClick={() => setEditDepartmentId("")}>
-              Clear department
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!selectedUserId}
+              onClick={() => setEditDepartmentId("")}
+            >
+              清空部门
             </Button>
           </div>
           <div className="grid gap-3 md:grid-cols-[1fr_auto]">
             <Input
               value={resetPassword}
               onChange={(event) => setResetPassword(event.target.value)}
-              placeholder="New password"
+              placeholder={uiCopy.fields.newPassword}
               type="password"
             />
             <Button
               type="button"
               variant="outline"
               onClick={submitPasswordReset}
-              disabled={!selectedUserId || resetPassword.length < 8 || resetPasswordMutation.isPending}
+              disabled={
+                !selectedUserId ||
+                resetPassword.length < 8 ||
+                resetPasswordMutation.isPending
+              }
             >
-              Reset password
+              重置密码
             </Button>
           </div>
         </CardContent>
@@ -416,9 +519,11 @@ export function UsersPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>User roles</CardTitle>
+          <CardTitle>用户角色</CardTitle>
           <CardDescription>
-            {selectedUser ? `Assign roles for ${selectedUser.username}` : "Select a user from the table."}
+            {selectedUser
+              ? `为 ${selectedUser.username} 分配角色`
+              : "从表格中选择用户。"}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
@@ -426,8 +531,14 @@ export function UsersPage() {
             <Button
               key={role.id}
               type="button"
-              variant={selectedRoleCodes.includes(role.code) ? "default" : "outline"}
-              disabled={!selectedUserId || userRolesQuery.isLoading || updateRolesMutation.isPending}
+              variant={
+                selectedRoleCodes.includes(role.code) ? "default" : "outline"
+              }
+              disabled={
+                !selectedUserId ||
+                userRolesQuery.isLoading ||
+                updateRolesMutation.isPending
+              }
               onClick={() => toggleRole(role)}
             >
               {role.name}
@@ -438,8 +549,8 @@ export function UsersPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>User directory</CardTitle>
-          <CardDescription>{usersPage?.total ?? 0} users</CardDescription>
+          <CardTitle>用户目录</CardTitle>
+          <CardDescription>{usersPage?.total ?? 0} 个用户</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -449,7 +560,7 @@ export function UsersPage() {
                 setSearch(event.target.value);
                 setPage(1);
               }}
-              placeholder="Search username, email, or full name"
+              placeholder="搜索用户名、邮箱或姓名"
             />
             <Input
               value={roleFilter}
@@ -457,7 +568,7 @@ export function UsersPage() {
                 setRoleFilter(event.target.value);
                 setPage(1);
               }}
-              placeholder="Role code"
+              placeholder={uiCopy.fields.roleCode}
             />
             <Input
               value={departmentFilter}
@@ -465,11 +576,15 @@ export function UsersPage() {
                 setDepartmentFilter(event.target.value);
                 setPage(1);
               }}
-              placeholder="Department ID"
+              placeholder={uiCopy.fields.departmentId}
             />
             <div className="flex items-center gap-2">
-              <Button type="button" variant="outline" onClick={() => setPage((value) => Math.max(1, value - 1))}>
-                Previous
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setPage((value) => Math.max(1, value - 1))}
+              >
+                {uiCopy.common.previous}
               </Button>
               <span className="min-w-20 text-center text-sm text-slate-600">
                 {page} / {totalPages}
@@ -477,34 +592,48 @@ export function UsersPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+                onClick={() =>
+                  setPage((value) => Math.min(totalPages, value + 1))
+                }
               >
-                Next
+                {uiCopy.common.next}
               </Button>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button type="button" variant="outline" disabled={users.length === 0} onClick={toggleCurrentPageSelection}>
-              {users.every((user) => selectedUserIdSet.has(user.id)) && users.length > 0
-                ? "Clear page"
-                : "Select page"}
-            </Button>
-            <span className="text-sm text-slate-500">{selectedUserIds.length} selected</span>
             <Button
               type="button"
               variant="outline"
-              disabled={selectedUserIds.length === 0 || bulkStatusMutation.isPending}
+              disabled={users.length === 0}
+              onClick={toggleCurrentPageSelection}
+            >
+              {users.every((user) => selectedUserIdSet.has(user.id)) &&
+              users.length > 0
+                ? "清空本页"
+                : "选择本页"}
+            </Button>
+            <span className="text-sm text-slate-500">
+              {uiCopy.pagination.selectedCount(selectedUserIds.length)}
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={
+                selectedUserIds.length === 0 || bulkStatusMutation.isPending
+              }
               onClick={() => requestBulkStatusChange(true)}
             >
-              Enable selected
+              启用选中用户
             </Button>
             <Button
               type="button"
               variant="outline"
-              disabled={selectedUserIds.length === 0 || bulkStatusMutation.isPending}
+              disabled={
+                selectedUserIds.length === 0 || bulkStatusMutation.isPending
+              }
               onClick={() => requestBulkStatusChange(false)}
             >
-              Disable selected
+              停用选中用户
             </Button>
           </div>
           {bulkStatusResult ? (
@@ -521,12 +650,15 @@ export function UsersPage() {
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h3 id="bulk-status-confirm-title" className="text-sm font-semibold text-slate-950">
-                    Confirm bulk status change
+                  <h3
+                    id="bulk-status-confirm-title"
+                    className="text-sm font-semibold text-slate-950"
+                  >
+                    确认批量状态变更
                   </h3>
                   <p className="mt-1 text-sm text-slate-600">
-                    {pendingBulkStatusAction.isActive ? "Enable" : "Disable"}{" "}
-                    {pendingBulkStatusAction.userIds.length} selected users?
+                    确定要{pendingBulkStatusAction.isActive ? "启用" : "停用"}{" "}
+                    {pendingBulkStatusAction.userIds.length} 个选中用户吗？
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -536,24 +668,34 @@ export function UsersPage() {
                     disabled={bulkStatusMutation.isPending}
                     onClick={() => setPendingBulkStatusAction(null)}
                   >
-                    Cancel
+                    {uiCopy.common.cancel}
                   </Button>
                   <Button
                     type="button"
-                    variant={pendingBulkStatusAction.isActive ? "default" : "destructive"}
+                    variant={
+                      pendingBulkStatusAction.isActive
+                        ? "default"
+                        : "destructive"
+                    }
                     disabled={bulkStatusMutation.isPending}
-                    onClick={() => confirmBulkStatusChange(pendingBulkStatusAction)}
+                    onClick={() =>
+                      confirmBulkStatusChange(pendingBulkStatusAction)
+                    }
                   >
-                    {pendingBulkStatusAction.isActive ? "Confirm enable" : "Confirm disable"}
+                    {pendingBulkStatusAction.isActive ? "确认启用" : "确认停用"}
                   </Button>
                 </div>
               </div>
             </div>
           ) : null}
           {usersQuery.isError ? (
-            <p className="text-sm text-red-600">Unable to load users.</p>
+            <p className="text-sm text-red-600">{uiCopy.errors.loadUsers}</p>
           ) : (
-            <DataTable columns={userColumns} data={users} emptyLabel="No users found." />
+            <DataTable
+              columns={userColumns}
+              data={users}
+              emptyLabel={uiCopy.empty.users}
+            />
           )}
         </CardContent>
       </Card>

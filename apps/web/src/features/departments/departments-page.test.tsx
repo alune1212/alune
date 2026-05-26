@@ -4,21 +4,26 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DepartmentsPage } from "@/features/departments/departments-page";
-import { mockAuthValue, paginatedResponse, renderWithQueryClient, successResponse } from "@/test-utils";
+import {
+  mockAuthValue,
+  paginatedResponse,
+  renderWithQueryClient,
+  successResponse,
+} from "@/test-utils";
 import {
   type DepartmentPublic,
-  type DepartmentTreeNode
+  type DepartmentTreeNode,
 } from "@alune/api-client/generated";
 import {
   useCreateDepartmentApiV1DepartmentsPost,
   useDeleteDepartmentApiV1DepartmentsDepartmentIdDelete,
   useGetDepartmentsApiV1DepartmentsGet,
   useGetDepartmentTreeApiV1DepartmentsTreeGet,
-  useUpdateDepartmentApiV1DepartmentsDepartmentIdPatch
+  useUpdateDepartmentApiV1DepartmentsDepartmentIdPatch,
 } from "@alune/api-client/generated";
 
 vi.mock("@/features/auth/auth-provider", () => ({
-  useAuth: () => mockAuthValue
+  useAuth: () => mockAuthValue,
 }));
 
 vi.mock("@alune/api-client/generated", () => ({
@@ -26,7 +31,7 @@ vi.mock("@alune/api-client/generated", () => ({
   useDeleteDepartmentApiV1DepartmentsDepartmentIdDelete: vi.fn(),
   useGetDepartmentsApiV1DepartmentsGet: vi.fn(),
   useGetDepartmentTreeApiV1DepartmentsTreeGet: vi.fn(),
-  useUpdateDepartmentApiV1DepartmentsDepartmentIdPatch: vi.fn()
+  useUpdateDepartmentApiV1DepartmentsDepartmentIdPatch: vi.fn(),
 }));
 
 const departments: DepartmentPublic[] = [
@@ -37,8 +42,8 @@ const departments: DepartmentPublic[] = [
     parent_id: null,
     description: "People team",
     sort_order: 1,
-    is_active: true
-  }
+    is_active: true,
+  },
 ];
 
 const departmentTree: DepartmentTreeNode[] = [
@@ -53,10 +58,10 @@ const departmentTree: DepartmentTreeNode[] = [
         description: null,
         sort_order: 2,
         is_active: true,
-        children: []
-      }
-    ]
-  }
+        children: [],
+      },
+    ],
+  },
 ];
 const createDepartmentMutate = vi.fn();
 
@@ -65,24 +70,34 @@ describe("DepartmentsPage", () => {
     createDepartmentMutate.mockReset();
     vi.mocked(useGetDepartmentsApiV1DepartmentsGet).mockReturnValue({
       data: { status: 200, data: paginatedResponse(departments) },
-      isError: false
+      isError: false,
     } as unknown as ReturnType<typeof useGetDepartmentsApiV1DepartmentsGet>);
     vi.mocked(useGetDepartmentTreeApiV1DepartmentsTreeGet).mockReturnValue({
       data: { status: 200, data: successResponse(departmentTree) },
-      isError: false
-    } as unknown as ReturnType<typeof useGetDepartmentTreeApiV1DepartmentsTreeGet>);
+      isError: false,
+    } as unknown as ReturnType<
+      typeof useGetDepartmentTreeApiV1DepartmentsTreeGet
+    >);
     vi.mocked(useCreateDepartmentApiV1DepartmentsPost).mockReturnValue({
       mutate: createDepartmentMutate,
-      isPending: false
+      isPending: false,
     } as unknown as ReturnType<typeof useCreateDepartmentApiV1DepartmentsPost>);
-    vi.mocked(useDeleteDepartmentApiV1DepartmentsDepartmentIdDelete).mockReturnValue({
+    vi.mocked(
+      useDeleteDepartmentApiV1DepartmentsDepartmentIdDelete,
+    ).mockReturnValue({
       mutate: vi.fn(),
-      isPending: false
-    } as unknown as ReturnType<typeof useDeleteDepartmentApiV1DepartmentsDepartmentIdDelete>);
-    vi.mocked(useUpdateDepartmentApiV1DepartmentsDepartmentIdPatch).mockReturnValue({
+      isPending: false,
+    } as unknown as ReturnType<
+      typeof useDeleteDepartmentApiV1DepartmentsDepartmentIdDelete
+    >);
+    vi.mocked(
+      useUpdateDepartmentApiV1DepartmentsDepartmentIdPatch,
+    ).mockReturnValue({
       mutate: vi.fn(),
-      isPending: false
-    } as unknown as ReturnType<typeof useUpdateDepartmentApiV1DepartmentsDepartmentIdPatch>);
+      isPending: false,
+    } as unknown as ReturnType<
+      typeof useUpdateDepartmentApiV1DepartmentsDepartmentIdPatch
+    >);
   });
 
   it("shows the department tree and creates a department", async () => {
@@ -93,18 +108,18 @@ describe("DepartmentsPage", () => {
     expect(await screen.findAllByText("Human Resources")).not.toHaveLength(0);
     expect(screen.getByText("Recruiting")).toBeInTheDocument();
 
-    await user.type(screen.getByPlaceholderText("Code"), "FIN");
-    await user.type(screen.getByPlaceholderText("Name"), "Finance");
-    await user.type(screen.getByPlaceholderText("Description"), "Finance team");
-    await user.click(screen.getByRole("button", { name: "Create" }));
+    await user.type(screen.getByPlaceholderText("编码"), "FIN");
+    await user.type(screen.getByPlaceholderText("名称"), "Finance");
+    await user.type(screen.getByPlaceholderText("描述"), "Finance team");
+    await user.click(screen.getByRole("button", { name: "创建" }));
 
     await waitFor(() => {
       expect(createDepartmentMutate).toHaveBeenCalledWith({
         data: {
           code: "FIN",
           name: "Finance",
-          description: "Finance team"
-        }
+          description: "Finance team",
+        },
       });
     });
   });

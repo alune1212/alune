@@ -13,7 +13,7 @@ export function RequireAuth({ children }: RequireAuthProps) {
   if (auth.isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 text-sm text-slate-600">
-        Loading workspace
+        正在加载工作台
       </div>
     );
   }

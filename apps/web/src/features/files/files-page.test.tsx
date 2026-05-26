@@ -4,15 +4,20 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { FilesPage } from "@/features/files/files-page";
-import { mockAuthValue, paginatedResponse, renderWithQueryClient, successResponse } from "@/test-utils";
+import {
+  mockAuthValue,
+  paginatedResponse,
+  renderWithQueryClient,
+  successResponse,
+} from "@/test-utils";
 import {
   uploadFileAttachment,
-  type FileAttachmentPublic
+  type FileAttachmentPublic,
 } from "@alune/api-client";
 import { useGetFileAttachmentsApiV1FilesGet } from "@alune/api-client/generated";
 
 vi.mock("@/features/auth/auth-provider", () => ({
-  useAuth: () => mockAuthValue
+  useAuth: () => mockAuthValue,
 }));
 
 vi.mock("@alune/api-client", async (importOriginal) => {
@@ -20,12 +25,12 @@ vi.mock("@alune/api-client", async (importOriginal) => {
   return {
     ...actual,
     downloadFileAttachment: vi.fn(),
-    uploadFileAttachment: vi.fn()
+    uploadFileAttachment: vi.fn(),
   };
 });
 
 vi.mock("@alune/api-client/generated", () => ({
-  useGetFileAttachmentsApiV1FilesGet: vi.fn()
+  useGetFileAttachmentsApiV1FilesGet: vi.fn(),
 }));
 
 const files: FileAttachmentPublic[] = [
@@ -37,17 +42,19 @@ const files: FileAttachmentPublic[] = [
     size_bytes: 12,
     storage_path: "2026/05/stored-report.txt",
     checksum: null,
-    uploaded_by_user_id: "user-1"
-  }
+    uploaded_by_user_id: "user-1",
+  },
 ];
 
 describe("FilesPage", () => {
   beforeEach(() => {
     vi.mocked(useGetFileAttachmentsApiV1FilesGet).mockReturnValue({
       data: { status: 200, data: paginatedResponse(files) },
-      isError: false
+      isError: false,
     } as unknown as ReturnType<typeof useGetFileAttachmentsApiV1FilesGet>);
-    vi.mocked(uploadFileAttachment).mockResolvedValue(successResponse(files[0]!));
+    vi.mocked(uploadFileAttachment).mockResolvedValue(
+      successResponse(files[0]!),
+    );
   });
 
   it("uploads the selected file", async () => {
@@ -57,11 +64,12 @@ describe("FilesPage", () => {
     const { container } = renderWithQueryClient(<FilesPage />);
 
     await screen.findByText("report.txt");
-    const input = container.querySelector<HTMLInputElement>('input[type="file"]');
+    const input =
+      container.querySelector<HTMLInputElement>('input[type="file"]');
     expect(input).not.toBeNull();
 
     await user.upload(input!, upload);
-    await user.click(screen.getByRole("button", { name: "Upload" }));
+    await user.click(screen.getByRole("button", { name: "上传" }));
 
     await waitFor(() => {
       expect(uploadFileAttachment).toHaveBeenCalledWith("test-token", upload);

@@ -6,7 +6,13 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/features/auth/auth-provider";
 import { loginRoute } from "@/routes/login";
@@ -14,8 +20,8 @@ import { useLoginApiV1AuthLoginPost } from "@alune/api-client/generated";
 import { platformName } from "@alune/shared";
 
 const loginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  password: z.string().min(1, "Password is required")
+  username: z.string().min(1, "请输入用户名"),
+  password: z.string().min(1, "请输入密码"),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -29,24 +35,24 @@ export function LoginPage() {
     mutation: {
       onSuccess: (response) => {
         if (response.status !== 200) {
-          throw new Error("Sign in failed");
+          throw new Error("登录失败");
         }
         auth.setSession(response.data.data.access_token);
-        toast.success("Signed in");
+        toast.success("登录成功");
         navigate({ to: "/" });
       },
       onError: (error) => {
         toast.error(error.message);
-      }
-    }
+      },
+    },
   });
 
   const form = useForm<LoginFormValues>({
     resolver: standardSchemaResolver(loginSchema),
     defaultValues: {
       username: "admin",
-      password: ""
-    }
+      password: "",
+    },
   });
 
   function handleSubmit(values: LoginFormValues) {
@@ -62,11 +68,12 @@ export function LoginPage() {
       <div className="grid w-full max-w-5xl gap-8 lg:grid-cols-[1fr_24rem] lg:items-center">
         <section className="hidden lg:block">
           <div className="max-w-xl">
-            <p className="text-sm font-medium text-slate-500">Internal admin platform</p>
-            <h1 className="mt-3 text-4xl font-semibold tracking-normal text-slate-950">{platformName}</h1>
+            <p className="text-sm font-medium text-slate-500">内部管理平台</p>
+            <h1 className="mt-3 text-4xl font-semibold tracking-normal text-slate-950">
+              {platformName}
+            </h1>
             <p className="mt-4 text-base leading-7 text-slate-600">
-              A focused workspace for company operations with a protected dashboard, RBAC baseline, internal system
-              management pages, and local file attachment workflows.
+              面向公司运营的内部工作台，包含受保护的仪表盘、权限基线、内部系统管理页面和本地文件附件流程。
             </p>
           </div>
         </section>
@@ -76,36 +83,64 @@ export function LoginPage() {
             <div className="mb-2 flex size-10 items-center justify-center rounded-md bg-slate-950 text-white">
               <LogIn className="size-5" />
             </div>
-            <CardTitle>Sign in</CardTitle>
-            <CardDescription>Use the local administrator account created by the seed command.</CardDescription>
+            <CardTitle>登录</CardTitle>
+            <CardDescription>
+              使用种子命令创建的本地管理员账号。
+            </CardDescription>
             {search.expired ? (
               <div className="mt-3 rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">
-                Your session has expired. Please sign in again.
+                登录状态已过期，请重新登录。
               </div>
             ) : null}
           </CardHeader>
           <CardContent>
-            <form className="space-y-4" onSubmit={form.handleSubmit(handleSubmit)}>
+            <form
+              className="space-y-4"
+              onSubmit={form.handleSubmit(handleSubmit)}
+            >
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700" htmlFor="username">
-                  Username
+                <label
+                  className="text-sm font-medium text-slate-700"
+                  htmlFor="username"
+                >
+                  用户名
                 </label>
-                <Input id="username" autoComplete="username" {...form.register("username")} />
+                <Input
+                  id="username"
+                  autoComplete="username"
+                  {...form.register("username")}
+                />
                 {form.formState.errors.username ? (
-                  <p className="text-sm text-red-600">{form.formState.errors.username.message}</p>
+                  <p className="text-sm text-red-600">
+                    {form.formState.errors.username.message}
+                  </p>
                 ) : null}
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700" htmlFor="password">
-                  Password
+                <label
+                  className="text-sm font-medium text-slate-700"
+                  htmlFor="password"
+                >
+                  密码
                 </label>
-                <Input id="password" type="password" autoComplete="current-password" {...form.register("password")} />
+                <Input
+                  id="password"
+                  type="password"
+                  autoComplete="current-password"
+                  {...form.register("password")}
+                />
                 {form.formState.errors.password ? (
-                  <p className="text-sm text-red-600">{form.formState.errors.password.message}</p>
+                  <p className="text-sm text-red-600">
+                    {form.formState.errors.password.message}
+                  </p>
                 ) : null}
               </div>
-              <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
-                {loginMutation.isPending ? "Signing in" : "Sign in"}
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={loginMutation.isPending}
+              >
+                {loginMutation.isPending ? "登录中" : "登录"}
               </Button>
             </form>
           </CardContent>

@@ -8,12 +8,18 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getVisibleNavigationItems } from "@/config/navigation";
 import { useAuth } from "@/features/auth/auth-provider";
 import { platformName } from "@alune/shared";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 type MobileNavigationProps = {
   permissions: readonly string[];
@@ -26,18 +32,28 @@ function MobileNavigation({ permissions }: MobileNavigationProps) {
     <div className="space-y-2 px-1">
       {visibleNavigationItems.map((item) =>
         item.to ? (
-          <Button key={item.label} variant="ghost" className="w-full justify-start" asChild>
+          <Button
+            key={item.label}
+            variant="ghost"
+            className="w-full justify-start"
+            asChild
+          >
             <Link to={item.to}>
               <item.icon className="size-4" />
               {item.label}
             </Link>
           </Button>
         ) : (
-          <Button key={item.label} variant="ghost" className="w-full justify-start text-slate-400" disabled>
+          <Button
+            key={item.label}
+            variant="ghost"
+            className="w-full justify-start text-slate-400"
+            disabled
+          >
             <item.icon className="size-4" />
             {item.label}
           </Button>
-        )
+        ),
       )}
     </div>
   );
@@ -57,7 +73,13 @@ export function Topbar() {
       <div className="flex items-center gap-3">
         <Sheet>
           <SheetTrigger asChild>
-            <Button type="button" variant="ghost" size="icon" className="lg:hidden" aria-label="Open navigation">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="lg:hidden"
+              aria-label="打开导航"
+            >
               <Menu className="size-5" />
             </Button>
           </SheetTrigger>
@@ -69,27 +91,34 @@ export function Topbar() {
           </SheetContent>
         </Sheet>
         <div>
-          <p className="text-sm font-semibold text-slate-950">Company Admin</p>
-          <p className="text-xs text-slate-500">MVP workspace</p>
+          <p className="text-sm font-semibold text-slate-950">公司管理后台</p>
+          <p className="text-xs text-slate-500">MVP 工作台</p>
         </div>
       </div>
 
       <div className="flex items-center gap-3">
         <span className="hidden rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 sm:inline-flex">
-          Local
+          本地
         </span>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button type="button" variant="outline" size="icon" aria-label="Open account menu">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              aria-label="打开账号菜单"
+            >
               <UserCircle className="size-5" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuLabel>{auth.user?.username ?? "Account"}</DropdownMenuLabel>
+            <DropdownMenuLabel>
+              {auth.user?.username ?? "账号"}
+            </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={handleLogout}>
               <LogOut className="size-4" />
-              Sign out
+              退出登录
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

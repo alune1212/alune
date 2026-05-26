@@ -4,32 +4,36 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AuditPage } from "@/features/audit/audit-page";
-import { mockAuthValue, paginatedResponse, renderWithQueryClient } from "@/test-utils";
+import {
+  mockAuthValue,
+  paginatedResponse,
+  renderWithQueryClient,
+} from "@/test-utils";
 import {
   exportOperationLogs,
   type LoginLogPublic,
-  type OperationLogPublic
+  type OperationLogPublic,
 } from "@alune/api-client";
 import {
   useGetLoginLogsApiV1AuditLoginLogsGet,
-  useGetOperationLogsApiV1AuditOperationLogsGet
+  useGetOperationLogsApiV1AuditOperationLogsGet,
 } from "@alune/api-client/generated";
 
 vi.mock("@/features/auth/auth-provider", () => ({
-  useAuth: () => mockAuthValue
+  useAuth: () => mockAuthValue,
 }));
 
 vi.mock("@alune/api-client", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@alune/api-client")>();
   return {
     ...actual,
-    exportOperationLogs: vi.fn()
+    exportOperationLogs: vi.fn(),
   };
 });
 
 vi.mock("@alune/api-client/generated", () => ({
   useGetLoginLogsApiV1AuditLoginLogsGet: vi.fn(),
-  useGetOperationLogsApiV1AuditOperationLogsGet: vi.fn()
+  useGetOperationLogsApiV1AuditOperationLogsGet: vi.fn(),
 }));
 
 const operationLogs: OperationLogPublic[] = [
@@ -42,8 +46,8 @@ const operationLogs: OperationLogPublic[] = [
     ip_address: null,
     user_agent: null,
     status: "success",
-    detail: "Uploaded file"
-  }
+    detail: "Uploaded file",
+  },
 ];
 
 const loginLogs: LoginLogPublic[] = [
@@ -54,21 +58,25 @@ const loginLogs: LoginLogPublic[] = [
     ip_address: "127.0.0.1",
     user_agent: null,
     status: "success",
-    message: "Signed in"
-  }
+    message: "Signed in",
+  },
 ];
 
 describe("AuditPage", () => {
   beforeEach(() => {
     vi.mocked(useGetOperationLogsApiV1AuditOperationLogsGet).mockReturnValue({
       data: { status: 200, data: paginatedResponse(operationLogs) },
-      isError: false
-    } as unknown as ReturnType<typeof useGetOperationLogsApiV1AuditOperationLogsGet>);
+      isError: false,
+    } as unknown as ReturnType<
+      typeof useGetOperationLogsApiV1AuditOperationLogsGet
+    >);
     vi.mocked(useGetLoginLogsApiV1AuditLoginLogsGet).mockReturnValue({
       data: { status: 200, data: paginatedResponse(loginLogs) },
-      isError: false
+      isError: false,
     } as unknown as ReturnType<typeof useGetLoginLogsApiV1AuditLoginLogsGet>);
-    vi.mocked(exportOperationLogs).mockResolvedValue(new Blob(["csv"], { type: "text/csv" }));
+    vi.mocked(exportOperationLogs).mockResolvedValue(
+      new Blob(["csv"], { type: "text/csv" }),
+    );
     vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:operation-logs");
     vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
     vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
@@ -80,16 +88,19 @@ describe("AuditPage", () => {
     renderWithQueryClient(<AuditPage />);
 
     await screen.findByText("Uploaded file");
-    await user.type(screen.getByPlaceholderText("Search action, resource, or detail"), "upload");
-    await user.type(screen.getAllByPlaceholderText("Status")[0]!, "success");
-    await user.click(screen.getAllByRole("button", { name: "Export" })[0]!);
+    await user.type(
+      screen.getByPlaceholderText("搜索操作、资源或详情"),
+      "upload",
+    );
+    await user.type(screen.getAllByPlaceholderText("状态")[0]!, "success");
+    await user.click(screen.getAllByRole("button", { name: "导出" })[0]!);
 
     await waitFor(() => {
       expect(exportOperationLogs).toHaveBeenCalledWith("test-token", {
         q: "upload",
         status: "success",
         startedAt: undefined,
-        endedAt: undefined
+        endedAt: undefined,
       });
     });
   });

@@ -6,7 +6,7 @@ describe("navigation permissions", () => {
   it("shows only menu items allowed by permissions", () => {
     const visibleItems = getVisibleNavigationItems(["menu:dashboard"]);
 
-    expect(visibleItems.map((item) => item.label)).toEqual(["Dashboard"]);
+    expect(visibleItems.map((item) => item.label)).toEqual(["仪表盘"]);
   });
 
   it("shows all default MVP menu items for an administrator", () => {
@@ -21,13 +21,13 @@ describe("navigation permissions", () => {
     ]);
 
     expect(visibleItems.map((item) => item.label)).toEqual([
-      "Dashboard",
-      "Users",
-      "Roles",
-      "Departments",
-      "Audit",
-      "Dictionaries",
-      "Files",
+      "仪表盘",
+      "用户管理",
+      "角色管理",
+      "部门管理",
+      "审计日志",
+      "字典管理",
+      "文件管理",
     ]);
   });
 });

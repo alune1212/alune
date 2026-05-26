@@ -4,8 +4,15 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import { DataTable } from "@/components/data/data-table";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { uiCopy } from "@/config/ui-copy";
 import { useAuth } from "@/features/auth/auth-provider";
 import {
   useCreateRoleApiV1RolesPost,
@@ -16,14 +23,16 @@ import {
   useUpdateRoleApiV1RolesRoleIdPatch,
   useUpdateRolePermissionsApiV1RolesRoleIdPermissionsPut,
   type PermissionPublic,
-  type RolePublic
+  type RolePublic,
 } from "@alune/api-client/generated";
 
 export function RolesPage() {
   const auth = useAuth();
   const queryClient = useQueryClient();
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
-  const [permissionDrafts, setPermissionDrafts] = useState<Record<string, string[]>>({});
+  const [permissionDrafts, setPermissionDrafts] = useState<
+    Record<string, string[]>
+  >({});
   const [roleCode, setRoleCode] = useState("");
   const [roleName, setRoleName] = useState("");
   const [roleDescription, setRoleDescription] = useState("");
@@ -34,36 +43,48 @@ export function RolesPage() {
   const [permissionSearch, setPermissionSearch] = useState("");
   const authRequest = useMemo(
     () => ({
-      headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
+      headers: auth.token
+        ? { Authorization: `Bearer ${auth.token}` }
+        : undefined,
     }),
-    [auth.token]
+    [auth.token],
   );
   const rolesQuery = useGetRolesApiV1RolesGet({
     query: {
       queryKey: ["internal", "roles"],
-      enabled: auth.token !== null
+      enabled: auth.token !== null,
     },
-    request: authRequest
+    request: authRequest,
   });
   const permissionsQuery = useGetPermissionsApiV1RolesPermissionsGet({
     query: {
       queryKey: ["internal", "permissions"],
-      enabled: auth.token !== null
+      enabled: auth.token !== null,
     },
-    request: authRequest
+    request: authRequest,
   });
-  const rolePermissionsQuery = useGetRolePermissionsApiV1RolesRoleIdPermissionsGet(selectedRoleId ?? "", {
-    query: {
-      queryKey: ["internal", "roles", selectedRoleId, "permissions"],
-      enabled: auth.token !== null && selectedRoleId !== null
-    },
-    request: authRequest
-  });
-  const roles = useMemo(() => rolesQuery.data?.data.data ?? [], [rolesQuery.data?.data.data]);
-  const permissions = useMemo(() => permissionsQuery.data?.data.data ?? [], [permissionsQuery.data?.data.data]);
+  const rolePermissionsQuery =
+    useGetRolePermissionsApiV1RolesRoleIdPermissionsGet(selectedRoleId ?? "", {
+      query: {
+        queryKey: ["internal", "roles", selectedRoleId, "permissions"],
+        enabled: auth.token !== null && selectedRoleId !== null,
+      },
+      request: authRequest,
+    });
+  const roles = useMemo(
+    () => rolesQuery.data?.data.data ?? [],
+    [rolesQuery.data?.data.data],
+  );
+  const permissions = useMemo(
+    () => permissionsQuery.data?.data.data ?? [],
+    [permissionsQuery.data?.data.data],
+  );
   const fetchedPermissionCodes = useMemo(
-    () => (rolePermissionsQuery.data?.status === 200 ? rolePermissionsQuery.data.data.data.permission_codes : []),
-    [rolePermissionsQuery.data]
+    () =>
+      rolePermissionsQuery.data?.status === 200
+        ? rolePermissionsQuery.data.data.data.permission_codes
+        : [],
+    [rolePermissionsQuery.data],
   );
   const selectedPermissionCodes = useMemo(() => {
     if (selectedRoleId === null) {
@@ -83,24 +104,28 @@ export function RolesPage() {
         (permission.description ?? "").toLowerCase().includes(search)
       );
     });
-    return filteredPermissions.reduce<Record<string, PermissionPublic[]>>((groups, permission) => {
-      const group = groups[permission.type];
-      if (group) {
-        group.push(permission);
-      } else {
-        groups[permission.type] = [permission];
-      }
-      return groups;
-    }, {});
+    return filteredPermissions.reduce<Record<string, PermissionPublic[]>>(
+      (groups, permission) => {
+        const group = groups[permission.type];
+        if (group) {
+          group.push(permission);
+        } else {
+          groups[permission.type] = [permission];
+        }
+        return groups;
+      },
+      {},
+    );
   }, [permissionSearch, permissions]);
-  const updatePermissionsMutation = useUpdateRolePermissionsApiV1RolesRoleIdPermissionsPut({
-    mutation: {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["internal", "roles"] });
-      }
-    },
-    request: authRequest
-  });
+  const updatePermissionsMutation =
+    useUpdateRolePermissionsApiV1RolesRoleIdPermissionsPut({
+      mutation: {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["internal", "roles"] });
+        },
+      },
+      request: authRequest,
+    });
   const createRoleMutation = useCreateRoleApiV1RolesPost({
     mutation: {
       onSuccess: () => {
@@ -108,47 +133,54 @@ export function RolesPage() {
         setRoleName("");
         setRoleDescription("");
         queryClient.invalidateQueries({ queryKey: ["internal", "roles"] });
-      }
+      },
     },
-    request: authRequest
+    request: authRequest,
   });
   const updateRoleMutation = useUpdateRoleApiV1RolesRoleIdPatch({
     mutation: {
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "roles"] })
+      onSuccess: () =>
+        queryClient.invalidateQueries({ queryKey: ["internal", "roles"] }),
     },
-    request: authRequest
+    request: authRequest,
   });
   const deleteRoleMutation = useDeleteRoleApiV1RolesRoleIdDelete({
     mutation: {
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internal", "roles"] })
+      onSuccess: () =>
+        queryClient.invalidateQueries({ queryKey: ["internal", "roles"] }),
     },
-    request: authRequest
+    request: authRequest,
   });
 
   const roleColumnsWithActions = useMemo<ColumnDef<RolePublic>[]>(
     () => [
       {
         accessorKey: "code",
-        header: "Code",
-        cell: ({ row }) => <span className="font-medium text-slate-950">{row.original.code}</span>
+        header: uiCopy.common.code,
+        cell: ({ row }) => (
+          <span className="font-medium text-slate-950">
+            {row.original.code}
+          </span>
+        ),
       },
       {
         accessorKey: "name",
-        header: "Name"
+        header: uiCopy.common.name,
       },
       {
         accessorKey: "description",
-        header: "Description",
-        cell: ({ row }) => row.original.description ?? "-"
+        header: uiCopy.common.description,
+        cell: ({ row }) => row.original.description ?? "-",
       },
       {
         accessorKey: "is_system",
-        header: "System",
-        cell: ({ row }) => (row.original.is_system ? "Yes" : "No")
+        header: uiCopy.common.system,
+        cell: ({ row }) =>
+          row.original.is_system ? uiCopy.common.yes : uiCopy.common.no,
       },
       {
         id: "actions",
-        header: "Actions",
+        header: uiCopy.common.actions,
         cell: ({ row }) => (
           <div className="flex flex-wrap gap-2">
             <Button
@@ -158,24 +190,30 @@ export function RolesPage() {
                 setSelectedRoleId(row.original.id);
               }}
             >
-              Configure
+              配置权限
             </Button>
-            <Button type="button" variant="outline" onClick={() => startEditRole(row.original)}>
-              Edit
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => startEditRole(row.original)}
+            >
+              {uiCopy.common.edit}
             </Button>
             <Button
               type="button"
               variant="outline"
               disabled={row.original.is_system}
-              onClick={() => deleteRoleMutation.mutate({ roleId: row.original.id })}
+              onClick={() =>
+                deleteRoleMutation.mutate({ roleId: row.original.id })
+              }
             >
-              Delete
+              {uiCopy.common.delete}
             </Button>
           </div>
-        )
-      }
+        ),
+      },
     ],
-    [deleteRoleMutation]
+    [deleteRoleMutation],
   );
 
   function togglePermission(permission: PermissionPublic) {
@@ -206,8 +244,8 @@ export function RolesPage() {
       data: {
         code: roleCode,
         name: roleName,
-        description: roleDescription || null
-      }
+        description: roleDescription || null,
+      },
     });
   }
 
@@ -220,8 +258,8 @@ export function RolesPage() {
       data: {
         code: editRoleCode,
         name: editRoleName,
-        description: editRoleDescription || null
-      }
+        description: editRoleDescription || null,
+      },
     });
   }
 
@@ -231,122 +269,160 @@ export function RolesPage() {
     }
     updatePermissionsMutation.mutate({
       roleId: selectedRoleId,
-      data: { permission_codes: [...selectedPermissionCodes] }
+      data: { permission_codes: [...selectedPermissionCodes] },
     });
   }
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
       <section>
-        <h1 className="text-2xl font-semibold tracking-normal text-slate-950">Roles</h1>
-        <p className="mt-2 text-sm text-slate-600">Role records used by the permission baseline.</p>
+        <h1 className="text-2xl font-semibold tracking-normal text-slate-950">
+          {uiCopy.modules.roles}
+        </h1>
+        <p className="mt-2 text-sm text-slate-600">权限基线使用的角色记录。</p>
       </section>
 
       <Card>
         <CardHeader>
-          <CardTitle>Create role</CardTitle>
-          <CardDescription>Add a custom role for permission assignment.</CardDescription>
+          <CardTitle>创建角色</CardTitle>
+          <CardDescription>添加一个用于权限分配的自定义角色。</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
-          <Input value={roleCode} onChange={(event) => setRoleCode(event.target.value)} placeholder="Code" />
-          <Input value={roleName} onChange={(event) => setRoleName(event.target.value)} placeholder="Name" />
+          <Input
+            value={roleCode}
+            onChange={(event) => setRoleCode(event.target.value)}
+            placeholder={uiCopy.common.code}
+          />
+          <Input
+            value={roleName}
+            onChange={(event) => setRoleName(event.target.value)}
+            placeholder={uiCopy.common.name}
+          />
           <Input
             value={roleDescription}
             onChange={(event) => setRoleDescription(event.target.value)}
-            placeholder="Description"
+            placeholder={uiCopy.common.description}
           />
-          <Button type="button" disabled={!roleCode || !roleName} onClick={submitCreateRole}>
-            Create
+          <Button
+            type="button"
+            disabled={!roleCode || !roleName}
+            onClick={submitCreateRole}
+          >
+            {uiCopy.common.create}
           </Button>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Edit role</CardTitle>
-          <CardDescription>System roles are protected from edit and delete operations.</CardDescription>
+          <CardTitle>编辑角色</CardTitle>
+          <CardDescription>系统角色受保护，不能编辑或删除。</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
-          <Input value={editRoleCode} onChange={(event) => setEditRoleCode(event.target.value)} placeholder="Code" />
-          <Input value={editRoleName} onChange={(event) => setEditRoleName(event.target.value)} placeholder="Name" />
+          <Input
+            value={editRoleCode}
+            onChange={(event) => setEditRoleCode(event.target.value)}
+            placeholder={uiCopy.common.code}
+          />
+          <Input
+            value={editRoleName}
+            onChange={(event) => setEditRoleName(event.target.value)}
+            placeholder={uiCopy.common.name}
+          />
           <Input
             value={editRoleDescription}
             onChange={(event) => setEditRoleDescription(event.target.value)}
-            placeholder="Description"
+            placeholder={uiCopy.common.description}
           />
           <Button
             type="button"
             disabled={!editRoleId || !editRoleCode || !editRoleName}
             onClick={submitUpdateRole}
           >
-            Save
+            {uiCopy.common.save}
           </Button>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Role list</CardTitle>
-          <CardDescription>{roles.length} roles</CardDescription>
+          <CardTitle>角色列表</CardTitle>
+          <CardDescription>{roles.length} 个角色</CardDescription>
         </CardHeader>
         <CardContent>
           {rolesQuery.isError ? (
-            <p className="text-sm text-red-600">Unable to load roles.</p>
+            <p className="text-sm text-red-600">{uiCopy.errors.loadRoles}</p>
           ) : (
-            <DataTable columns={roleColumnsWithActions} data={roles} emptyLabel="No roles found." />
+            <DataTable
+              columns={roleColumnsWithActions}
+              data={roles}
+              emptyLabel={uiCopy.empty.roles}
+            />
           )}
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Permission assignment</CardTitle>
-          <CardDescription>Pick a role, adjust permission codes, then save.</CardDescription>
+          <CardTitle>权限分配</CardTitle>
+          <CardDescription>选择角色，调整权限编码后保存。</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {selectedRoleId === null ? (
-            <p className="text-sm text-slate-500">Select a role from the table.</p>
+            <p className="text-sm text-slate-500">从表格中选择角色。</p>
           ) : (
             <>
               <Input
                 value={permissionSearch}
                 onChange={(event) => setPermissionSearch(event.target.value)}
-                placeholder="Search permissions"
+                placeholder="搜索权限"
               />
               {Object.keys(groupedPermissions).length === 0 ? (
                 <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-4 text-sm text-slate-500">
-                  No permissions match this search.
+                  {uiCopy.empty.permissions}
                 </p>
               ) : null}
-              {Object.entries(groupedPermissions).map(([type, groupPermissions]) => (
-                <section key={type} className="space-y-2">
-                  <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                    <h3 className="text-sm font-semibold text-slate-950">{type}</h3>
-                    <span className="text-xs text-slate-500">{groupPermissions.length} permissions</span>
-                  </div>
-                  <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-                    {groupPermissions.map((permission) => (
-                      <label
-                        key={permission.code}
-                        className="flex items-start gap-2 rounded-md border border-slate-200 px-3 py-2 text-sm"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedPermissionCodes.has(permission.code)}
-                          onChange={() => togglePermission(permission)}
-                          className="mt-1"
-                        />
-                        <span>
-                          <span className="block font-medium text-slate-950">{permission.code}</span>
-                          <span className="block text-xs text-slate-500">{permission.name}</span>
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </section>
-              ))}
+              {Object.entries(groupedPermissions).map(
+                ([type, groupPermissions]) => (
+                  <section key={type} className="space-y-2">
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                      <h3 className="text-sm font-semibold text-slate-950">
+                        {type}
+                      </h3>
+                      <span className="text-xs text-slate-500">
+                        {groupPermissions.length} 个权限
+                      </span>
+                    </div>
+                    <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+                      {groupPermissions.map((permission) => (
+                        <label
+                          key={permission.code}
+                          className="flex items-start gap-2 rounded-md border border-slate-200 px-3 py-2 text-sm"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedPermissionCodes.has(
+                              permission.code,
+                            )}
+                            onChange={() => togglePermission(permission)}
+                            className="mt-1"
+                          />
+                          <span>
+                            <span className="block font-medium text-slate-950">
+                              {permission.code}
+                            </span>
+                            <span className="block text-xs text-slate-500">
+                              {permission.name}
+                            </span>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </section>
+                ),
+              )}
               <Button type="button" onClick={saveRolePermissions}>
-                Save permissions
+                保存权限
               </Button>
             </>
           )}
