@@ -20,7 +20,7 @@ const routePermissions = [
 
 describe("protected routes", () => {
   it.each(routePermissions)("wraps %s with its route permission", (_routeFile, source, permission) => {
-    expect(source).toContain("RequirePermission");
+    expect(source).toContain("ProtectedPage");
     expect(source).toContain(`permission="${permission}"`);
   });
 });

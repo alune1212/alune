@@ -21,14 +21,16 @@ async def login(
     session: DatabaseSession,
     request: Request,
 ) -> ApiResponse[Token]:
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
     user = await authenticate_user(session, form_data.username, form_data.password)
     if user is None:
         await record_login_log(
             session,
             username=form_data.username,
             user_id=None,
-            ip_address=request.client.host if request.client else None,
-            user_agent=request.headers.get("user-agent"),
+            ip_address=ip_address,
+            user_agent=user_agent,
             status="failure",
             message="Incorrect username or password",
         )
@@ -43,8 +45,8 @@ async def login(
         session,
         username=user.username,
         user_id=user.id,
-        ip_address=request.client.host if request.client else None,
-        user_agent=request.headers.get("user-agent"),
+        ip_address=ip_address,
+        user_agent=user_agent,
         status="success",
     )
     await session.commit()
@@ -56,8 +58,6 @@ async def login(
 
 @router.get("/me", response_model=ApiResponse[UserPublic])
 async def get_me(current_user: CurrentUser, session: DatabaseSession) -> ApiResponse[UserPublic]:
-    permissions = await list_permission_codes_for_user(session, current_user)
-    user_data = UserPublic.model_validate(current_user).model_copy(
-        update={"permissions": permissions},
-    )
+    user_data = UserPublic.model_validate(current_user)
+    user_data.permissions = await list_permission_codes_for_user(session, current_user)
     return ApiResponse(success=True, data=user_data)

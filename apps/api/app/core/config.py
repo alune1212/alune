@@ -58,12 +58,12 @@ class Settings(BaseSettings):
 
     @field_validator("api_cors_origins", mode="before")
     @classmethod
-    def parse_cors_origins(cls, value: Any) -> list[str]:
+    def parse_cors_origins(cls, value: object) -> list[str]:
         return cls._parse_string_list(value, "API_CORS_ORIGINS")
 
     @field_validator("allowed_upload_content_types", mode="before")
     @classmethod
-    def parse_allowed_upload_content_types(cls, value: Any) -> list[str]:
+    def parse_allowed_upload_content_types(cls, value: object) -> list[str]:
         return cls._parse_string_list(value, "ALLOWED_UPLOAD_CONTENT_TYPES")
 
     @classmethod
@@ -90,22 +90,15 @@ class Settings(BaseSettings):
         failures: list[str] = []
 
         if self.jwt_secret_key == "please-change-me":
-            failures.append(
-                "JWT_SECRET_KEY must not use the default value in production"
-            )
+            failures.append("JWT_SECRET_KEY must not use the default value in production")
         if len(self.jwt_secret_key) < 32:
-            failures.append(
-                "JWT_SECRET_KEY must be at least 32 characters in production"
-            )
+            failures.append("JWT_SECRET_KEY must be at least 32 characters in production")
 
         database_password = urlsplit(self.database_url).password
-        if (
-            self.postgres_password == "app"
-            or (database_password is not None and unquote(database_password) == "app")
+        if self.postgres_password == "app" or (
+            database_password is not None and unquote(database_password) == "app"
         ):
-            failures.append(
-                "POSTGRES_PASSWORD must not use the default value 'app' in production"
-            )
+            failures.append("POSTGRES_PASSWORD must not use the default value 'app' in production")
 
         if self.minio_secret_key == "minioadmin":
             failures.append(
@@ -113,9 +106,7 @@ class Settings(BaseSettings):
             )
 
         if failures:
-            raise ValueError(
-                "Production security check failed:\n- " + "\n- ".join(failures)
-            )
+            raise ValueError("Production security check failed:\n- " + "\n- ".join(failures))
 
         return self
 

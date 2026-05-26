@@ -52,7 +52,7 @@ export function Sidebar() {
       </div>
       <nav className="flex flex-1 flex-col gap-1 px-3 py-4">
         {visibleNavigationItems.map((item) =>
-          "to" in item ? (
+          item.to ? (
             <Link
               key={item.label}
               to={item.to}
@@ -66,7 +66,7 @@ export function Sidebar() {
               }}
             >
               <item.icon className="size-4 shrink-0" />
-              {!isCollapsed ? <span>{item.label}</span> : null}
+              {isCollapsed ? null : <span>{item.label}</span>}
             </Link>
           ) : (
             <div
@@ -78,7 +78,7 @@ export function Sidebar() {
               aria-disabled="true"
             >
               <item.icon className="size-4 shrink-0" />
-              {!isCollapsed ? <span>{item.label}</span> : null}
+              {isCollapsed ? null : <span>{item.label}</span>}
             </div>
           ),
         )}

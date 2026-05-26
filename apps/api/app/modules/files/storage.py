@@ -20,9 +20,6 @@ _CHUNK_SIZE = 1024 * 1024
 
 
 def _sanitize_filename(filename: str) -> str:
-    """Remove newlines and other dangerous characters from filenames
-    to prevent HTTP header injection.
-    """
     sanitized = filename.replace("\r", "").replace("\n", "")
     return sanitized[:255]
 
@@ -107,9 +104,10 @@ class ClamAvUploadScanner:
         if response.endswith("OK"):
             return UploadScanResult(is_clean=True)
         if response.endswith("FOUND"):
-            message = response.removeprefix("stream: ").removesuffix("FOUND").strip()
-            return UploadScanResult(is_clean=False, message=message)
-        return UploadScanResult(is_clean=False, message=f"ClamAV scan failed: {response}")
+            msg = response.removeprefix("stream: ").removesuffix("FOUND").strip()
+        else:
+            msg = f"ClamAV scan failed: {response}"
+        return UploadScanResult(is_clean=False, message=msg)
 
 
 class LocalFileStorage:
@@ -303,18 +301,11 @@ def get_file_storage(
     if backend == "local":
         return LocalFileStorage(local_root)
     if backend == "minio":
-        missing_settings = [
-            name
-            for name, value in {
-                "MINIO_ENDPOINT": minio_endpoint,
-                "MINIO_ACCESS_KEY": minio_access_key,
-                "MINIO_SECRET_KEY": minio_secret_key,
-                "MINIO_BUCKET": minio_bucket,
-            }.items()
-            if not value
-        ]
-        if missing_settings:
-            msg = f"Missing MinIO storage settings: {', '.join(missing_settings)}"
+        if not minio_endpoint or not minio_access_key or not minio_secret_key or not minio_bucket:
+            msg = (
+                "Missing MinIO storage settings"
+                " (MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, MINIO_BUCKET)"
+            )
             raise ValueError(msg)
         assert minio_endpoint is not None
         assert minio_access_key is not None

@@ -15,13 +15,7 @@ export function RequirePermission({ permission, children, fallback = null }: Req
     return null;
   }
 
-  if (auth.user.is_superuser) {
-    return <>{children}</>;
-  }
+  const hasPermission = auth.user.is_superuser || (auth.user.permissions ?? []).includes(permission);
 
-  if ((auth.user.permissions ?? []).includes(permission)) {
-    return <>{children}</>;
-  }
-
-  return <>{fallback}</>;
+  return hasPermission ? children : fallback;
 }

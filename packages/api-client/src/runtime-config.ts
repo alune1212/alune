@@ -7,12 +7,7 @@ function normalizeBaseUrl(baseUrl: string): string {
 }
 
 export function configureApiClient(options: { baseUrl?: string }): void {
-  if (!options.baseUrl) {
-    apiBaseUrl = defaultApiBaseUrl;
-    return;
-  }
-
-  apiBaseUrl = normalizeBaseUrl(options.baseUrl);
+  apiBaseUrl = options.baseUrl ? normalizeBaseUrl(options.baseUrl) : defaultApiBaseUrl;
 }
 
 export function getApiBaseUrl(): string {

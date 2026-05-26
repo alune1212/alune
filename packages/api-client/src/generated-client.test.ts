@@ -8,7 +8,6 @@ import {
   uploadFileAttachment
 } from "./index";
 import { healthCheckApiV1HealthGet } from "./generated/api";
-import type { BodyUploadFileAttachmentApiV1FilesUploadPost } from "./generated/api";
 
 describe("generated API client", () => {
   afterEach(() => {
@@ -124,9 +123,8 @@ describe("generated API client", () => {
       )
     );
     const file = new File(["content"], "contract.pdf", { type: "application/pdf" });
-    const uploadBody: BodyUploadFileAttachmentApiV1FilesUploadPost = { upload: file };
 
-    const response = await uploadFileAttachment("token-value", uploadBody.upload as File);
+    const response = await uploadFileAttachment("token-value", file);
 
     const [, options] = fetchMock.mock.calls[0]!;
     expect(fetchMock.mock.calls[0]?.[0]).toBe("/api/v1/files/upload");

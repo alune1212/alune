@@ -160,25 +160,24 @@ export function AuditPage() {
     : 1;
 
   async function downloadCsv(kind: "operation" | "login") {
-    const blob =
-      kind === "operation"
-        ? await exportOperationLogs(auth.token!, {
-            q: operationSearch || undefined,
-            status: operationStatus || undefined,
-            startedAt: operationStartedAt || undefined,
-            endedAt: operationEndedAt || undefined,
-          })
-        : await exportLoginLogs(auth.token!, {
-            q: loginSearch || undefined,
-            status: loginStatus || undefined,
-            startedAt: loginStartedAt || undefined,
-            endedAt: loginEndedAt || undefined,
-          });
+    const token = auth.token!;
+    const blob = kind === "operation"
+      ? await exportOperationLogs(token, {
+          q: operationSearch || undefined,
+          status: operationStatus || undefined,
+          startedAt: operationStartedAt || undefined,
+          endedAt: operationEndedAt || undefined,
+        })
+      : await exportLoginLogs(token, {
+          q: loginSearch || undefined,
+          status: loginStatus || undefined,
+          startedAt: loginStartedAt || undefined,
+          endedAt: loginEndedAt || undefined,
+        });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download =
-      kind === "operation" ? "operation-logs.csv" : "login-logs.csv";
+    anchor.download = `${kind}-logs.csv`;
     anchor.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }

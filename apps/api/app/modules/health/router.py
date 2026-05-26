@@ -1,16 +1,13 @@
-from typing import Annotated
-
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.response import ApiResponse
-from app.db.session import get_db_session
+from app.db.session import get_db_session  # noqa: F401 - used by test imports
+from app.modules.auth.dependencies import DatabaseSession
 
 router = APIRouter(prefix="/health", tags=["health"])
-DatabaseSession = Annotated[AsyncSession, Depends(get_db_session)]
 
 
 class HealthStatus(BaseModel):

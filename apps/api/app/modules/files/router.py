@@ -13,6 +13,7 @@ from app.modules.files.models import FileAttachment
 from app.modules.files.repository import get_file_attachment_by_id, list_file_attachments
 from app.modules.files.schemas import FileAttachmentCreate, FileAttachmentPublic
 from app.modules.files.storage import (
+    FileStorage,
     get_file_storage,
     get_upload_scanner,
     validate_upload_policy,
@@ -22,6 +23,24 @@ from app.modules.permissions.dependencies import require_permission
 router = APIRouter(prefix="/files", tags=["files"])
 CreateFileDependency = Depends(require_permission("action:files:create"))
 ReadFileDependency = Depends(require_permission("action:files:read"))
+
+
+def _build_file_storage(settings: Settings) -> FileStorage:
+    try:
+        return get_file_storage(
+            backend=settings.file_storage_backend,
+            local_root=settings.local_file_storage_dir,
+            minio_endpoint=settings.minio_endpoint,
+            minio_access_key=settings.minio_access_key,
+            minio_secret_key=settings.minio_secret_key,
+            minio_bucket=settings.minio_bucket,
+            minio_secure=settings.minio_secure,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(exc),
+        ) from exc
 
 
 @router.get(
@@ -87,28 +106,14 @@ async def upload_file_attachment(
     upload: Annotated[UploadFile, File()],
     current_user: User = CreateFileDependency,
 ) -> ApiResponse[FileAttachmentPublic]:
-    try:
-        storage = get_file_storage(
-            backend=settings.file_storage_backend,
-            local_root=settings.local_file_storage_dir,
-            minio_endpoint=settings.minio_endpoint,
-            minio_access_key=settings.minio_access_key,
-            minio_secret_key=settings.minio_secret_key,
-            minio_bucket=settings.minio_bucket,
-            minio_secure=settings.minio_secure,
-        )
-        scanner = get_upload_scanner(
-            enabled=settings.upload_scanner_enabled,
-            backend=settings.upload_scanner_backend,
-            clamav_host=settings.clamav_host,
-            clamav_port=settings.clamav_port,
-            clamav_timeout_seconds=settings.clamav_timeout_seconds,
-        )
-    except ValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(exc),
-        ) from exc
+    storage = _build_file_storage(settings)
+    scanner = get_upload_scanner(
+        enabled=settings.upload_scanner_enabled,
+        backend=settings.upload_scanner_backend,
+        clamav_host=settings.clamav_host,
+        clamav_port=settings.clamav_port,
+        clamav_timeout_seconds=settings.clamav_timeout_seconds,
+    )
 
     stored = await validate_upload_policy(
         upload,
@@ -148,22 +153,7 @@ async def download_file_attachment(
     if file_attachment is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
 
-    try:
-        storage = get_file_storage(
-            backend=settings.file_storage_backend,
-            local_root=settings.local_file_storage_dir,
-            minio_endpoint=settings.minio_endpoint,
-            minio_access_key=settings.minio_access_key,
-            minio_secret_key=settings.minio_secret_key,
-            minio_bucket=settings.minio_bucket,
-            minio_secure=settings.minio_secure,
-        )
-    except ValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(exc),
-        ) from exc
-
+    storage = _build_file_storage(settings)
     return await storage.download_response(
         storage_path=file_attachment.storage_path,
         filename=file_attachment.original_filename,
