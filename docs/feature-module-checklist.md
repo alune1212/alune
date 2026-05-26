@@ -1,8 +1,8 @@
 # Feature Module Checklist
 
-Last reviewed: 2026-05-22
+Last reviewed: 2026-05-26
 
-Current stage: 6G-V
+Current stage: 6G-W
 
 Use this checklist before starting any company-specific business module. A module is not ready to implement until the scope, data model, permissions, audit events, API contract, frontend surface, tests, and verification commands are all written down.
 

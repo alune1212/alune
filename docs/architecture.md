@@ -109,7 +109,7 @@ These commands are intentionally not part of the default CI job yet.
 
 ## Feature Readiness
 
-The current readiness decision is documented in `docs/feature-readiness.md`: the security audit gate is resolved, and stage 6G-V adds `docs/feature-module-checklist.md` for business module development. The platform foundation is ready for a small first business module if that module starts with a written scope brief and follows the existing patterns for Alembic migrations, generated API client usage, permissions, audit logs, and tests.
+The current readiness decision is documented in `docs/feature-readiness.md`: the security audit gate is resolved, stage 6G-V adds `docs/feature-module-checklist.md` for business module development, and stage 6G-W completes the current security and deployment hardening pass. The platform foundation is ready for a small first business module if that module starts with a written scope brief and follows the existing patterns for Alembic migrations, generated API client usage, permissions, audit logs, and tests.
 
 ## Runtime Data Flow
 

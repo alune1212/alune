@@ -1,10 +1,10 @@
 # Feature Development Readiness
 
-Last reviewed: 2026-05-22
+Last reviewed: 2026-05-26
 
-Current stage: 6G-V
+Current stage: 6G-W
 
-Decision: the security audit gate from stage 6G-T is resolved, and stage 6G-V now provides the business module implementation checklist. The internal system foundation is ready to start a small first business module after that module has a written scope brief.
+Decision: the security audit gate from stage 6G-T is resolved, stage 6G-V provides the business module implementation checklist, and stage 6G-W completes the current security and deployment hardening pass. The internal system foundation is ready to start a small first business module after that module has a written scope brief.
 
 ## Scope
 
@@ -28,7 +28,7 @@ This document is a pre-feature readiness check. It does not introduce approval f
 | Dependency updates              | Ready                          | Dependabot watches npm/pnpm, uv, Docker, Docker Compose, and GitHub Actions.                                                                                                       | Review dependency PRs before starting a large business module.                                                                          |
 | Security audit                  | Ready                          | Python audit reports no known vulnerabilities; npm audit reports no known vulnerabilities after the stage 6G-U `lodash` override.                                                  | Re-run npm and Python audit before the first business module PR.                                                                        |
 | Module implementation checklist | Ready                          | Stage 6G-V adds `docs/feature-module-checklist.md` with scope, backend, migration, permission, audit, API client, frontend, test, documentation, and verification gates.           | Use the checklist before coding the first business module.                                                                              |
-| Production hardening            | Not a feature blocker          | Local defaults still include development secrets and local Docker-oriented settings.                                                                                               | Before deployment, add production env validation and deployment-specific secret handling.                                               |
+| Production hardening            | Ready for current MVP boundary | `ENVIRONMENT=production` rejects default JWT, PostgreSQL, and MinIO credentials, enforces minimum JWT key length, and Docker Web proxies `/api/` to the API container.              | Before real deployment, add deployment-specific secret distribution, monitoring, backup, and recovery procedures.                       |
 
 ## Code Shape Observations
 
