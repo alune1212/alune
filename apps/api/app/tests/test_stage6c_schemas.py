@@ -30,7 +30,7 @@ def test_department_tree_node_supports_nested_children() -> None:
     tree = DepartmentTreeNode(
         id=root_id,
         code="HQ",
-        name="Headquarters",
+        name="默认空间",
         parent_id=None,
         description=None,
         sort_order=0,
@@ -39,7 +39,7 @@ def test_department_tree_node_supports_nested_children() -> None:
             DepartmentTreeNode(
                 id=child_id,
                 code="HR",
-                name="Human Resources",
+                name="协作空间",
                 parent_id=root_id,
                 description=None,
                 sort_order=1,

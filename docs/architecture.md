@@ -45,7 +45,7 @@ Important modules:
 - `app/modules/auth/` implements the login MVP: `users` model, password hashing, JWT creation, current-user dependency, and auth router.
 - `app/modules/permissions/` implements the RBAC baseline: roles, permissions, association tables, default permission registry, permission queries, and `require_permission`.
 - `app/modules/apps/` implements Alune Hub App Center entries under `/api/v1/apps`, backed by `platform_apps` and `app_category` dictionary values.
-- `app/modules/users/`, `app/modules/roles/`, and `app/modules/departments/` implement user creation/update/password reset, batch user status updates, user role assignment, user filtering by role/department, role create/update/delete guards, role permission assignment, department trees, and department edit/delete rules.
+- `app/modules/users/`, `app/modules/roles/`, and `app/modules/departments/` implement user creation/update/password reset, batch user status updates, user role assignment, user filtering by role/space, role create/update/delete guards, role permission assignment, space trees, and space edit/delete rules. The retained technical module name is `departments`.
 - `app/modules/audit/`, `app/modules/dictionaries/`, and `app/modules/files/` implement paginated log reads with date filters and CSV export, dictionary type/item maintenance with system/delete guards, and local/MinIO file upload/download metadata with upload policy checks, a file storage backend factory, and an optional ClamAV upload scanner.
 - `alembic/` contains migration environment and versioned schema changes.
 
@@ -62,12 +62,12 @@ The app uses:
 - App shell layout in `src/components/layout/`.
 - Home page in `src/features/dashboard/dashboard-page.tsx`.
 - Login page and auth provider in `src/features/auth/`.
-- Apps, users, roles, departments/spaces, audit, dictionaries, and files pages in `src/features/`; apps include app entry registration/navigation, users include role/space filters plus confirmed batch status controls with result feedback, roles include guarded create/edit/delete controls plus searchable grouped permissions with empty-state feedback, audit includes date filters and CSV export, and dictionaries include type/item maintenance controls.
+- Apps, users, roles, spaces, audit logs, configuration dictionaries, and file resources pages in `src/features/`; apps include app entry registration/navigation, users include role/space filters plus confirmed batch status controls with result feedback, roles include guarded create/edit/delete controls plus searchable grouped permissions with empty-state feedback, audit includes date filters and CSV export, and dictionaries include type/item maintenance controls.
 - Frontend interaction tests cover app center creation/status changes, user batch status, role permission search, dictionary type creation, space tree/create flow, audit export filters, and file upload.
-- Playwright smoke tests in `apps/web/e2e/` cover protected-route redirect, seeded-admin login, and internal-system navigation.
+- Playwright smoke tests in `apps/web/e2e/` cover protected-route redirect, seeded-admin login, and Alune Hub navigation.
 - Navigation permission filtering in `src/config/navigation.ts`.
 
-The dashboard health check, auth entry points, internal-system read queries, and user/role/department/dictionary JSON write actions now use Orval-generated React Query hooks from `@alune/api-client/generated`. The `@alune/api-client` root export is now intentionally narrow: runtime configuration, audit CSV export, file upload, file download, and the few types needed by those compatibility boundaries.
+The home health check, auth entry points, platform read queries, and user/role/space/dictionary JSON write actions now use Orval-generated React Query hooks from `@alune/api-client/generated`. The `@alune/api-client` root export is now intentionally narrow: runtime configuration, audit CSV export, file upload, file download, and the few types needed by those compatibility boundaries.
 
 Stage 6G-E adds a reproducible generation path:
 
@@ -194,11 +194,11 @@ The FastAPI root path `/` is intentionally not part of the API surface. Use `/do
 | PATCH  | `/api/v1/roles/{role_id}`              | Updates non-system roles.                                                                          |
 | DELETE | `/api/v1/roles/{role_id}`              | Deletes non-system roles only when no users are assigned.                                          |
 | PUT    | `/api/v1/roles/{role_id}/permissions`  | Replaces permission codes assigned to one role.                                                    |
-| GET    | `/api/v1/departments`                  | Returns paginated department records for administrators.                                           |
-| GET    | `/api/v1/departments/tree`             | Returns a nested department tree.                                                                  |
-| POST   | `/api/v1/departments`                  | Creates a department record.                                                                       |
-| PATCH  | `/api/v1/departments/{department_id}`  | Updates department fields.                                                                         |
-| DELETE | `/api/v1/departments/{department_id}`  | Deletes departments only when no children or users are assigned.                                   |
+| GET    | `/api/v1/departments`                  | Returns paginated space records; technical path remains `departments`.                             |
+| GET    | `/api/v1/departments/tree`             | Returns a nested space tree; technical path remains `departments`.                                 |
+| POST   | `/api/v1/departments`                  | Creates a space record; technical path remains `departments`.                                      |
+| PATCH  | `/api/v1/departments/{department_id}`  | Updates space fields; technical path remains `departments`.                                        |
+| DELETE | `/api/v1/departments/{department_id}`  | Deletes spaces only when no child spaces or users are assigned.                                    |
 | GET    | `/api/v1/audit/operation-logs`         | Returns paginated/filterable operation logs with optional date range.                              |
 | GET    | `/api/v1/audit/operation-logs/export`  | Exports operation logs as CSV with `q`, `status`, `started_at`, and `ended_at` filters.            |
 | GET    | `/api/v1/audit/login-logs`             | Returns paginated/filterable login logs with optional date range.                                  |
@@ -230,10 +230,10 @@ The FastAPI root path `/` is intentionally not part of the API surface. Use `/do
 | `platform_apps`                         | Alune Hub App Center entries for internal pages and external links.         |
 | `operation_logs`                        | Operation log foundation.                                                   |
 | `login_logs`                            | Login log foundation.                                                       |
-| `dictionary_types` / `dictionary_items` | Dictionary management foundation.                                           |
+| `dictionary_types` / `dictionary_items` | Configuration dictionary foundation.                                        |
 | `file_attachments`                      | File attachment metadata foundation.                                        |
 
 ## Not Implemented Yet
 
-- Script execution, dynamic plugin loading, schedulers, approvals, reports, and company-specific business modules.
+- Script execution, dynamic plugin loading, schedulers, approvals, reports, and company-specific enterprise workflows.
 - External TLS/domain termination in front of the Docker Web proxy.

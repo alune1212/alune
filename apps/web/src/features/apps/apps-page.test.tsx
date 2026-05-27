@@ -83,8 +83,8 @@ const categoryTypes: DictionaryTypePublic[] = [
   {
     id: "type-app-category",
     code: "app_category",
-    name: "App category",
-    description: "App category",
+    name: "应用分类",
+    description: "Alune Hub 应用中心默认分类。",
     is_system: true,
   },
 ];
@@ -155,7 +155,7 @@ describe("AppsPage", () => {
     renderWithQueryClient(<AppsPage />);
 
     await screen.findByText("个人笔记");
-    await user.type(screen.getByPlaceholderText("应用标识"), "links");
+    await user.type(screen.getByPlaceholderText("应用编码"), "links");
     await user.type(screen.getByPlaceholderText("应用名称"), "链接收藏");
     await user.type(screen.getByPlaceholderText("入口地址"), "https://example.com");
     await user.click(screen.getByRole("button", { name: "创建应用" }));

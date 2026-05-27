@@ -13,7 +13,7 @@ def ensure_permission_code(permission_codes: Iterable[str], required_permission:
     if required_permission not in permission_codes:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Permission denied",
+            detail="权限不足",
         )
 
 

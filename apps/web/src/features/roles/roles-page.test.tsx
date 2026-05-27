@@ -39,8 +39,8 @@ const roles: RolePublic[] = [
   {
     id: "role-admin",
     code: "admin",
-    name: "Admin",
-    description: "Administrator",
+    name: "管理员",
+    description: "Alune Hub 默认管理员角色",
     is_system: true,
   },
 ];
@@ -49,16 +49,16 @@ const permissions: PermissionPublic[] = [
   {
     id: "permission-dashboard",
     code: "dashboard:view",
-    name: "Dashboard",
+    name: "首页菜单",
     type: "menu",
-    description: "Open dashboard",
+    description: "打开首页",
   },
   {
     id: "permission-users",
     code: "users:update",
-    name: "Update users",
+    name: "编辑用户",
     type: "action",
-    description: "Change users",
+    description: "修改用户信息",
   },
 ];
 

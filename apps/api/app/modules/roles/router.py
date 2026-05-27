@@ -56,7 +56,7 @@ async def create_role(
 ) -> ApiResponse[RolePublic]:
     existing_role = await get_role_by_code(session, payload.code)
     if existing_role is not None:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Role code exists")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="角色编码已存在")
 
     role = Role(**payload.model_dump(), is_system=False)
     session.add(role)
@@ -95,7 +95,7 @@ async def get_role_permissions(
 ) -> ApiResponse[RolePermissionPublic]:
     role = await get_role_by_id(session, role_id)
     if role is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Role not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="角色不存在")
 
     permission_codes = await list_role_permission_codes(session, role.id)
     return ApiResponse(
@@ -116,17 +116,17 @@ async def update_role(
 ) -> ApiResponse[RolePublic]:
     role = await get_role_by_id(session, role_id)
     if role is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Role not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="角色不存在")
     if role.is_system:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="System role cannot be updated"
+            status_code=status.HTTP_409_CONFLICT, detail="系统角色不能修改"
         )
 
     update_data = payload.model_dump(exclude_unset=True)
     if "code" in update_data and update_data["code"] is not None:
         existing_role = await get_role_by_code(session, update_data["code"])
         if existing_role is not None and existing_role.id != role.id:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Role code exists")
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="角色编码已存在")
 
     for field_name, value in update_data.items():
         setattr(role, field_name, value)
@@ -154,14 +154,14 @@ async def delete_role(
 ) -> None:
     role = await get_role_by_id(session, role_id)
     if role is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Role not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="角色不存在")
     if role.is_system:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="System role cannot be deleted"
+            status_code=status.HTTP_409_CONFLICT, detail="系统角色不能删除"
         )
     user_count = await count_users_by_role(session, role.id)
     if user_count > 0:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Role has assigned users")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="角色下仍有关联用户")
 
     await session.delete(role)
     await record_operation_log(
@@ -186,7 +186,7 @@ async def update_role_permissions(
 ) -> ApiResponse[RolePermissionPublic]:
     role = await get_role_by_id(session, role_id)
     if role is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Role not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="角色不存在")
 
     if role.is_system:
         await ensure_manage_superuser(session, current_user)
@@ -195,7 +195,7 @@ async def update_role_permissions(
     if missing_codes:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Unknown permission codes: {', '.join(missing_codes)}",
+            detail=f"未知权限编码: {', '.join(missing_codes)}",
         )
 
     await record_operation_log(

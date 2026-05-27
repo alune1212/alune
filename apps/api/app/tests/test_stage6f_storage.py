@@ -19,7 +19,7 @@ from app.modules.files.storage import (
 
 class RejectingScanner:
     async def scan(self, upload: UploadFile) -> UploadScanResult:
-        return UploadScanResult(is_clean=False, message="Rejected by scanner")
+        return UploadScanResult(is_clean=False, message="扫描器拒绝文件")
 
 
 class FakeClamAvClient:
@@ -160,7 +160,7 @@ async def test_upload_policy_rejects_scanner_failure(tmp_path: Path) -> None:
         )
 
     assert exc_info.value.status_code == 400
-    assert exc_info.value.detail == "Rejected by scanner"
+    assert exc_info.value.detail == "扫描器拒绝文件"
 
 
 @pytest.mark.asyncio

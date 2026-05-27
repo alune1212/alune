@@ -35,7 +35,7 @@ async def database_health_check(
     try:
         await session.execute(text("SELECT 1"))
     except (OSError, SQLAlchemyError) as exc:
-        raise HTTPException(status_code=503, detail="Database is unavailable") from exc
+        raise HTTPException(status_code=503, detail="数据库不可用") from exc
 
     return ApiResponse(
         success=True,

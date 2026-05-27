@@ -40,7 +40,7 @@ export const uiCopy = {
   fields: {
     admin: "管理员",
     department: "空间",
-    departmentId: "空间 ID",
+    departmentId: "空间编号",
     fullName: "姓名",
     initialPassword: "初始密码",
     newPassword: "新密码",

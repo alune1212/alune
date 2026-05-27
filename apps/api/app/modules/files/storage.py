@@ -132,7 +132,7 @@ class LocalFileStorage:
                 target_path.unlink(missing_ok=True)
                 raise HTTPException(
                     status_code=status.HTTP_413_CONTENT_TOO_LARGE,
-                    detail="File is too large",
+                    detail="文件过大",
                 )
             chunks.append(chunk)
 
@@ -168,7 +168,7 @@ class LocalFileStorage:
         if not await asyncio.to_thread(file_path.is_file):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="File content not found",
+                detail="文件内容不存在",
             )
         safe_filename = _sanitize_filename(filename)
         return FileResponse(path=file_path, filename=safe_filename, media_type=content_type)
@@ -202,7 +202,7 @@ class MinioFileStorage:
             if max_size_bytes and accumulated > max_size_bytes:
                 raise HTTPException(
                     status_code=status.HTTP_413_CONTENT_TOO_LARGE,
-                    detail="File is too large",
+                    detail="文件过大",
                 )
             digest.update(chunk)
             chunks.append(chunk)
@@ -243,7 +243,7 @@ class MinioFileStorage:
         except Exception as exc:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="File content not found",
+                detail="文件内容不存在",
             ) from exc
 
         def iter_object() -> Iterator[bytes]:
@@ -252,7 +252,7 @@ class MinioFileStorage:
                 if not callable(stream):
                     raise HTTPException(
                         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                        detail="Invalid MinIO object response",
+                        detail="文件存储响应无效",
                     )
                 yield from stream(_CHUNK_SIZE)
             finally:
@@ -356,7 +356,7 @@ async def validate_upload_policy(
     if content_type not in allowed_content_types:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File type is not allowed",
+            detail="文件类型不允许",
         )
 
     # Size check BEFORE scan: measure file size without streaming
@@ -368,14 +368,14 @@ async def validate_upload_policy(
     if file_size > max_size_bytes:
         raise HTTPException(
             status_code=status.HTTP_413_CONTENT_TOO_LARGE,
-            detail="File is too large",
+            detail="文件过大",
         )
 
     scan_result = await (scanner or NoopUploadScanner()).scan(upload)
     if not scan_result.is_clean:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=scan_result.message or "File did not pass security scan",
+            detail=scan_result.message or "文件未通过安全扫描",
         )
     await upload.seek(0)
 

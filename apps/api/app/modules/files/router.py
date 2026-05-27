@@ -1,3 +1,4 @@
+import logging
 from typing import Annotated
 from uuid import UUID
 
@@ -23,6 +24,7 @@ from app.modules.permissions.dependencies import require_permission
 router = APIRouter(prefix="/files", tags=["files"])
 CreateFileDependency = Depends(require_permission("action:files:create"))
 ReadFileDependency = Depends(require_permission("action:files:read"))
+logger = logging.getLogger(__name__)
 
 
 def _build_file_storage(settings: Settings) -> FileStorage:
@@ -37,9 +39,10 @@ def _build_file_storage(settings: Settings) -> FileStorage:
             minio_secure=settings.minio_secure,
         )
     except ValueError as exc:
+        logger.exception("Invalid file storage configuration")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(exc),
+            detail="文件存储配置无效",
         ) from exc
 
 
@@ -151,7 +154,7 @@ async def download_file_attachment(
 ) -> Response:
     file_attachment = await get_file_attachment_by_id(session, file_id)
     if file_attachment is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="文件不存在")
 
     storage = _build_file_storage(settings)
     return await storage.download_response(

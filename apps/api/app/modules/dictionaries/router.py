@@ -56,7 +56,7 @@ async def create_dictionary_type(
 ) -> ApiResponse[DictionaryTypePublic]:
     existing_type = await get_dictionary_type_by_code(session, payload.code)
     if existing_type is not None:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Dictionary code exists")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="字典编码已存在")
 
     dictionary_type = DictionaryType(**payload.model_dump())
     session.add(dictionary_type)
@@ -86,12 +86,12 @@ async def update_dictionary_type(
     dictionary_type = await get_dictionary_type_by_id(session, type_id)
     if dictionary_type is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Dictionary type not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="字典类型不存在"
         )
     if dictionary_type.is_system:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="System dictionary type cannot be updated",
+            detail="系统字典类型不能修改",
         )
 
     update_data = payload.model_dump(exclude_unset=True)
@@ -99,7 +99,7 @@ async def update_dictionary_type(
         existing_type = await get_dictionary_type_by_code(session, update_data["code"])
         if existing_type is not None and existing_type.id != dictionary_type.id:
             raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT, detail="Dictionary code exists"
+                status_code=status.HTTP_409_CONFLICT, detail="字典编码已存在"
             )
 
     for field_name, value in update_data.items():
@@ -129,17 +129,17 @@ async def delete_dictionary_type(
     dictionary_type = await get_dictionary_type_by_id(session, type_id)
     if dictionary_type is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Dictionary type not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="字典类型不存在"
         )
     if dictionary_type.is_system:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="System dictionary type cannot be deleted",
+            detail="系统字典类型不能删除",
         )
     item_count = await count_dictionary_items_by_type(session, dictionary_type.id)
     if item_count > 0:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="Dictionary type has items"
+            status_code=status.HTTP_409_CONFLICT, detail="字典类型下仍有字典项"
         )
 
     await session.delete(dictionary_type)
@@ -180,7 +180,7 @@ async def create_dictionary_item(
     if dictionary_type is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Dictionary type missing",
+            detail="字典类型不存在",
         )
     existing_item = await get_dictionary_item_by_type_and_value(
         session,
@@ -188,7 +188,7 @@ async def create_dictionary_item(
         value=payload.value,
     )
     if existing_item is not None:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Dictionary value exists")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="字典项值已存在")
 
     item = DictionaryItem(**payload.model_dump())
     session.add(item)
@@ -219,7 +219,7 @@ async def update_dictionary_item(
     if item is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Dictionary item not found",
+            detail="字典项不存在",
         )
 
     update_data = payload.model_dump(exclude_unset=True)
@@ -232,7 +232,7 @@ async def update_dictionary_item(
         if existing_item is not None and existing_item.id != item.id:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="Dictionary value exists",
+                detail="字典项值已存在",
             )
 
     for field_name, value in update_data.items():
@@ -263,7 +263,7 @@ async def delete_dictionary_item(
     if item is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Dictionary item not found",
+            detail="字典项不存在",
         )
 
     await session.delete(item)

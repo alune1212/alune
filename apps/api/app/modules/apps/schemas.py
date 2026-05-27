@@ -11,12 +11,12 @@ def validate_entry_url(entry_type: AppEntryType, entry_url: str | None) -> None:
     if entry_url is None:
         return
     if entry_type == "internal" and not entry_url.startswith("/"):
-        msg = "Internal app entry URL must start with /"
+        msg = "内部应用入口地址必须以 / 开头"
         raise ValueError(msg)
     if entry_type == "external" and not (
         entry_url.startswith("http://") or entry_url.startswith("https://")
     ):
-        msg = "External app entry URL must start with http:// or https://"
+        msg = "外部应用入口地址必须以 http:// 或 https:// 开头"
         raise ValueError(msg)
 
 

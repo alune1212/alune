@@ -89,7 +89,7 @@ async def test_login_rejects_invalid_credentials() -> None:
         app.dependency_overrides.clear()
 
     assert response.status_code == 401
-    assert response.json() == {"detail": "Incorrect username or password"}
+    assert response.json() == {"detail": "用户名或密码错误"}
 
 
 @pytest.mark.asyncio

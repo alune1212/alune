@@ -32,12 +32,12 @@ async def login(
             ip_address=ip_address,
             user_agent=user_agent,
             status="failure",
-            message="Incorrect username or password",
+            message="用户名或密码错误",
         )
         await session.commit()
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
+            detail="用户名或密码错误",
             headers={"WWW-Authenticate": "Bearer"},
         )
 

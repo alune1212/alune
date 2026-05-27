@@ -48,7 +48,7 @@ async def _ensure_category_exists(session: DatabaseSession, category_code: str) 
     if not await app_category_exists(session, category_code):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="App category missing",
+            detail="应用分类不存在",
         )
 
 
@@ -96,7 +96,7 @@ async def create_platform_app(
 ) -> ApiResponse[PlatformAppPublic]:
     existing_app = await get_platform_app_by_code(session, payload.code)
     if existing_app is not None:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="App code exists")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="应用编码已存在")
     await _ensure_category_exists(session, payload.category_code)
 
     platform_app = PlatformApp(**payload.model_dump(), created_by_id=current_user.id)
@@ -126,14 +126,14 @@ async def update_platform_app(
 ) -> ApiResponse[PlatformAppPublic]:
     platform_app = await get_platform_app_by_id(session, app_id)
     if platform_app is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="App not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="应用不存在")
 
     update_data = payload.model_dump(exclude_unset=True)
     update_data.pop("is_active", None)
     if "code" in update_data and update_data["code"] is not None:
         existing_app = await get_platform_app_by_code(session, update_data["code"])
         if existing_app is not None and existing_app.id != platform_app.id:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="App code exists")
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="应用编码已存在")
 
     if "category_code" in update_data and update_data["category_code"] is not None:
         await _ensure_category_exists(session, update_data["category_code"])
@@ -169,7 +169,7 @@ async def update_platform_app_status(
 ) -> ApiResponse[PlatformAppPublic]:
     platform_app = await get_platform_app_by_id(session, app_id)
     if platform_app is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="App not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="应用不存在")
 
     platform_app.is_active = payload.is_active
     await record_operation_log(

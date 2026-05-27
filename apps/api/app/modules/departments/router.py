@@ -95,7 +95,7 @@ async def create_department(
     if existing_department is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Department code already exists",
+            detail="空间编码已存在",
         )
 
     if payload.parent_id is not None:
@@ -103,7 +103,7 @@ async def create_department(
         if parent_department is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Parent department does not exist",
+                detail="上级空间不存在",
             )
 
     department = Department(**payload.model_dump())
@@ -134,7 +134,7 @@ async def update_department(
 ) -> ApiResponse[DepartmentPublic]:
     department = await get_department_by_id(session, department_id)
     if department is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Department not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="空间不存在")
 
     update_data = payload.model_dump(exclude_unset=True)
     if "code" in update_data and update_data["code"] is not None:
@@ -142,13 +142,13 @@ async def update_department(
         if existing_department is not None and existing_department.id != department.id:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="Department code already exists",
+                detail="空间编码已存在",
             )
 
     if "parent_id" in update_data and update_data["parent_id"] == department.id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Department cannot be its own parent",
+            detail="空间不能作为自己的上级空间",
         )
 
     if "parent_id" in update_data and update_data["parent_id"] is not None:
@@ -156,7 +156,7 @@ async def update_department(
         if parent_department is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Parent department does not exist",
+                detail="上级空间不存在",
             )
         if await has_descendant_department(
             session,
@@ -165,7 +165,7 @@ async def update_department(
         ):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Department cannot be moved under its descendant",
+                detail="空间不能移动到自己的下级空间下",
             )
 
     for field_name, value in update_data.items():
@@ -194,19 +194,19 @@ async def delete_department(
 ) -> None:
     department = await get_department_by_id(session, department_id)
     if department is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Department not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="空间不存在")
 
     child_count = await count_child_departments(session, department.id)
     assigned_user_count = await count_users_by_department(session, department.id)
     if child_count > 0:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Department has child departments",
+            detail="空间下仍有子空间",
         )
     if assigned_user_count > 0:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Department has assigned users",
+            detail="空间下仍有关联用户",
         )
 
     await session.delete(department)

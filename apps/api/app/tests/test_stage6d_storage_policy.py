@@ -33,7 +33,7 @@ async def test_upload_policy_rejects_disallowed_content_type(tmp_path: Path) -> 
         )
 
     assert exc_info.value.status_code == 400
-    assert exc_info.value.detail == "File type is not allowed"
+    assert exc_info.value.detail == "文件类型不允许"
 
 
 @pytest.mark.asyncio
@@ -53,7 +53,7 @@ async def test_upload_policy_rejects_oversized_file(tmp_path: Path) -> None:
         )
 
     assert exc_info.value.status_code == 413
-    assert exc_info.value.detail == "File is too large"
+    assert exc_info.value.detail == "文件过大"
 
 
 @pytest.mark.asyncio

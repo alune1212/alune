@@ -18,7 +18,7 @@ BearerToken = Annotated[str, Depends(oauth2_scheme)]
 def credentials_exception() -> HTTPException:
     return HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        detail="无法验证登录凭据",
         headers={"WWW-Authenticate": "Bearer"},
     )
 

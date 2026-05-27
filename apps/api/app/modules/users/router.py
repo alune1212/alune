@@ -78,18 +78,18 @@ async def create_user(
 
     existing_username = await get_user_by_username(session, payload.username)
     if existing_username is not None:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Username already exists")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="用户名已存在")
 
     existing_email = await get_user_by_email(session, payload.email)
     if existing_email is not None:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already exists")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="邮箱已存在")
 
     if payload.department_id is not None:
         department = await get_department_by_id(session, payload.department_id)
         if department is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Department missing",
+                detail="空间不存在",
             )
 
     user = User(
@@ -127,7 +127,7 @@ async def update_users_status(
     if not payload.is_active and current_user.id in payload.user_ids:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Current user cannot be disabled in bulk",
+            detail="不能批量停用当前用户",
         )
 
     updated_count = await bulk_update_user_status(
@@ -158,7 +158,7 @@ async def get_user_roles(
 ) -> ApiResponse[UserRolePublic]:
     user = await get_user_by_id(session, user_id)
     if user is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="用户不存在")
 
     role_codes = await list_user_role_codes(session, user.id)
     return ApiResponse(success=True, data=UserRolePublic(user_id=user.id, role_codes=role_codes))
@@ -176,13 +176,13 @@ async def update_user_roles(
 ) -> ApiResponse[UserRolePublic]:
     user = await get_user_by_id(session, user_id)
     if user is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="用户不存在")
 
     missing_codes = await replace_user_roles(session, user, payload.role_codes)
     if missing_codes:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Unknown role codes: {', '.join(missing_codes)}",
+            detail=f"未知角色编码: {', '.join(missing_codes)}",
         )
 
     await record_operation_log(
@@ -209,7 +209,7 @@ async def update_user_password(
 ) -> ApiResponse[UserManagementItem]:
     user = await get_user_by_id(session, user_id)
     if user is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="用户不存在")
 
     user.hashed_password = get_password_hash(payload.password)
     await record_operation_log(
@@ -236,7 +236,7 @@ async def update_user(
 ) -> ApiResponse[UserManagementItem]:
     user = await get_user_by_id(session, user_id)
     if user is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="用户不存在")
 
     update_data = payload.model_dump(exclude_unset=True)
 
@@ -244,7 +244,7 @@ async def update_user(
         if user.id == current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="You cannot change your own superuser status",
+                detail="不能修改自己的超级用户状态",
             )
         await ensure_manage_superuser(session, current_user)
 
@@ -255,20 +255,20 @@ async def update_user(
     ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You cannot disable your own account",
+            detail="不能停用自己的账号",
         )
 
     if "email" in update_data and update_data["email"] is not None:
         existing_email = await get_user_by_email(session, update_data["email"])
         if existing_email is not None and existing_email.id != user.id:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already exists")
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="邮箱已存在")
 
     if "department_id" in update_data and update_data["department_id"] is not None:
         department = await get_department_by_id(session, update_data["department_id"])
         if department is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Department missing",
+                detail="空间不存在",
             )
 
     for field_name, value in update_data.items():

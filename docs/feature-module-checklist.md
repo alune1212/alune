@@ -113,7 +113,7 @@ Frontend rules:
 - Show loading, empty, success, and error states for the primary workflow.
 - Keep binary upload/download and CSV export on the existing compatibility helpers unless generated hooks can safely preserve the browser-facing behavior.
 
-Avoid building a generic CRUD framework before at least two business modules prove the abstraction.
+Avoid building a generic CRUD framework before at least two personal-platform modules prove the abstraction.
 
 ## Test Checklist
 

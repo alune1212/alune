@@ -38,7 +38,7 @@ const operationColumns: ColumnDef<OperationLogPublic>[] = [
   { accessorKey: "resource", header: "资源" },
   {
     accessorKey: "resource_id",
-    header: "资源 ID",
+    header: "资源编号",
     cell: ({ row }) => row.original.resource_id ?? "-",
   },
   { accessorKey: "status", header: uiCopy.common.status },

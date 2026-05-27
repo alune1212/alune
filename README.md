@@ -232,7 +232,7 @@ E2E_BASE_URL=http://localhost:15173 E2E_ADMIN_USERNAME=e2e_admin E2E_ADMIN_PASSW
 
 ## 当前阶段边界
 
-已完成阶段 0 到阶段 6G-W 的 MVP 底座，并完成阶段 6H 的个人平台定位调整和阶段 7A 的应用中心 V1。当前包含登录 MVP、权限基础、用户/协作者管理、空间管理、角色权限、操作日志、配置字典、文件资源、应用中心登记和导航、基于 FastAPI OpenAPI 的 Orval API client 生成、Playwright 登录/导航冒烟测试、GitHub Actions CI 质量门、Dependabot 依赖更新提醒、npm/Python 依赖安全审计基线和安全部署硬化。不包含审批、报表、薪资、供应商、客户、合同等企业业务模块。
+已完成阶段 0 到阶段 6G-W 的 MVP 底座，并完成阶段 6H 的个人平台定位调整和阶段 7A 的应用中心 V1。当前包含登录 MVP、权限基础、用户/协作者管理、空间管理、角色权限、操作日志、配置字典、文件资源、应用中心登记和导航、基于 FastAPI OpenAPI 的 Orval API client 生成、Playwright 登录/导航冒烟测试、GitHub Actions CI 质量门、Dependabot 依赖更新提醒、npm/Python 依赖安全审计基线和安全部署硬化。不包含审批、报表、薪资、供应商、客户、合同等企业流程。
 
 阶段 7A 之后，最新基础能力边界是：
 

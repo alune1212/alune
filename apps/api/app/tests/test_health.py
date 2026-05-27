@@ -41,4 +41,4 @@ async def test_database_health_returns_503_when_database_is_unavailable() -> Non
         app.dependency_overrides.clear()
 
     assert response.status_code == 503
-    assert response.json() == {"detail": "Database is unavailable"}
+    assert response.json() == {"detail": "数据库不可用"}

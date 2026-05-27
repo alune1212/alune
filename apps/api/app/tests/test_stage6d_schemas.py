@@ -39,7 +39,7 @@ def test_audit_logs_can_be_wrapped_in_paginated_payload() -> None:
         ip_address=None,
         user_agent=None,
         status="failure",
-        message="Incorrect username or password",
+        message="用户名或密码错误",
     )
 
     assert Page[OperationLogPublic](items=[operation_log], page=1, page_size=20, total=1).total == 1

@@ -38,9 +38,9 @@ const departments: DepartmentPublic[] = [
   {
     id: "dept-hr",
     code: "HR",
-    name: "Human Resources",
+    name: "协作空间",
     parent_id: null,
-    description: "People team",
+    description: "协作者空间",
     sort_order: 1,
     is_active: true,
   },
@@ -53,7 +53,7 @@ const departmentTree: DepartmentTreeNode[] = [
       {
         id: "dept-recruiting",
         code: "REC",
-        name: "Recruiting",
+        name: "内容空间",
         parent_id: "dept-hr",
         description: null,
         sort_order: 2,
@@ -100,25 +100,25 @@ describe("DepartmentsPage", () => {
     >);
   });
 
-  it("shows the department tree and creates a department", async () => {
+  it("shows the space tree and creates a space", async () => {
     const user = userEvent.setup();
 
     renderWithQueryClient(<DepartmentsPage />);
 
-    expect(await screen.findAllByText("Human Resources")).not.toHaveLength(0);
-    expect(screen.getByText("Recruiting")).toBeInTheDocument();
+    expect(await screen.findAllByText("协作空间")).not.toHaveLength(0);
+    expect(screen.getByText("内容空间")).toBeInTheDocument();
 
     await user.type(screen.getByPlaceholderText("编码"), "FIN");
-    await user.type(screen.getByPlaceholderText("名称"), "Finance");
-    await user.type(screen.getByPlaceholderText("描述"), "Finance team");
+    await user.type(screen.getByPlaceholderText("名称"), "资料空间");
+    await user.type(screen.getByPlaceholderText("描述"), "资料整理");
     await user.click(screen.getByRole("button", { name: "创建" }));
 
     await waitFor(() => {
       expect(createDepartmentMutate).toHaveBeenCalledWith({
         data: {
           code: "FIN",
-          name: "Finance",
-          description: "Finance team",
+          name: "资料空间",
+          description: "资料整理",
         },
       });
     });

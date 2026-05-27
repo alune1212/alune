@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 在不引入业务模块的前提下修复 MVP 底座的 6 类高优先级安全问题。
+**Goal:** 在不引入个人平台功能模块的前提下修复 MVP 底座的 6 类高优先级安全问题。
 
 **Architecture:** 在现有 Settings 单例、权限依赖注入、API router、前端 AuthProvider 架构内做增量加固。不引入新的框架或模式，所有修改遵循现有的模块化结构和测试模式。
 
@@ -255,7 +255,7 @@ async def update_user(
 ) -> ApiResponse[UserManagementItem]:
     user = await get_user_by_id(session, user_id)
     if user is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="用户不存在")
 
     update_data = payload.model_dump(exclude_unset=True)
 
@@ -272,7 +272,7 @@ async def update_user(
         if user.id == current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="You cannot disable your own account",
+                detail="不能停用自己的账号",
             )
 
     # ... rest unchanged (email check etc.)
@@ -367,7 +367,7 @@ async def update_role_permissions(
 ) -> ApiResponse[RolePermissionPublic]:
     role = await get_role_by_id(session, role_id)
     if role is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Role not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="角色不存在")
 
     if role.is_system:
         permission_codes = await list_permission_codes_for_user(session, current_user)
@@ -708,8 +708,8 @@ import { useLoginApiV1AuthLoginPost } from "@alune/api-client/generated";
 import { platformName } from "@alune/shared";
 
 const loginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  password: z.string().min(1, "Password is required")
+  username: z.string().min(1, "请输入用户名"),
+  password: z.string().min(1, "请输入密码")
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -890,7 +890,7 @@ async def validate_upload_policy(
     if content_type not in allowed_content_types:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File type is not allowed",
+            detail="文件类型不允许",
         )
 
     # 大小前置检查：先读完整文件检查大小，再做扫描，避免扫描器读超大文件
@@ -901,7 +901,7 @@ async def validate_upload_policy(
         if accumulated > max_size_bytes:
             raise HTTPException(
                 status_code=status.HTTP_413_CONTENT_TOO_LARGE,
-                detail="File is too large",
+                detail="文件过大",
             )
         chunks.append(chunk)
 
@@ -959,7 +959,7 @@ async def validate_upload_policy(
     if content_type not in allowed_content_types:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File type is not allowed",
+            detail="文件类型不允许",
         )
 
     # 大小前置检查：在扫描前验证大小，避免扫描器读入超大文件
@@ -971,7 +971,7 @@ async def validate_upload_policy(
             await upload.seek(0)
             raise HTTPException(
                 status_code=status.HTTP_413_CONTENT_TOO_LARGE,
-                detail="File is too large",
+                detail="文件过大",
             )
         chunks.append(chunk)
     await upload.seek(0)

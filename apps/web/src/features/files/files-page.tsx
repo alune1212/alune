@@ -105,7 +105,7 @@ export function FilesPage() {
           {uiCopy.modules.files}
         </h1>
         <p className="mt-2 text-sm text-slate-600">
-          存储在 API 本地存储中的文件附件。
+          存储在平台本地空间中的文件附件。
         </p>
       </section>
 

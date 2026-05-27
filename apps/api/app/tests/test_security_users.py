@@ -218,7 +218,7 @@ async def test_manage_superuser_permission_can_create_superuser_over_http(monkey
 @pytest.mark.asyncio
 async def test_regular_admin_cannot_update_system_role_permissions_over_http(monkeypatch) -> None:
     current_user = build_user()
-    system_role = Role(id=uuid4(), code="admin", name="Administrator", is_system=True)
+    system_role = Role(id=uuid4(), code="admin", name="管理员", is_system=True)
 
     async def fake_get_role_by_id(session, role_id):
         return system_role
@@ -254,4 +254,4 @@ async def test_current_user_cannot_change_own_superuser_status_over_http(monkeyp
     )
 
     assert response.status_code == 400
-    assert response.json()["detail"] == "You cannot change your own superuser status"
+    assert response.json()["detail"] == "不能修改自己的超级用户状态"

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-const adminUsername = process.env.E2E_ADMIN_USERNAME ?? "admin";
+const adminUsername = process.env.E2E_ADMIN_USERNAME ?? "e2e_admin";
 const adminPassword = process.env.E2E_ADMIN_PASSWORD ?? "change-this-password";
 
 const internalPages = [
@@ -23,7 +23,7 @@ test.describe("admin smoke", () => {
   test("redirects protected routes to the login page", async ({ page }) => {
     await page.goto("/users");
 
-    await expect(page).toHaveURL(/\/login$/u);
+    await expect(page).toHaveURL(/\/login(?:\?expired=false)?$/u);
     await expect(page.getByRole("heading", { name: "登录" })).toBeVisible();
   });
 
@@ -33,11 +33,13 @@ test.describe("admin smoke", () => {
     await page.getByRole("button", { name: "登录" }).click();
 
     await expect(page.getByRole("heading", { name: "Alune Hub" })).toBeVisible();
-    await expect(page.getByText("API").first()).toBeVisible();
+    await expect(page.getByText("接口服务").first()).toBeVisible();
 
     for (const internalPage of internalPages) {
       await page.getByRole("link", { name: internalPage.label }).click();
-      await expect(page.getByRole("heading", { name: internalPage.heading })).toBeVisible();
+      await expect(
+        page.getByRole("heading", { level: 1, name: internalPage.heading }),
+      ).toBeVisible();
     }
   });
 });

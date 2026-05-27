@@ -199,10 +199,9 @@ export function AppsPage() {
     };
 
     if (editingApp) {
-      const { is_active: _ignored, ...updateData } = data as typeof data & { is_active?: boolean };
       updateMutation.mutate({
         appId: editingApp.id,
-        data: updateData,
+        data,
       });
       return;
     }
@@ -252,7 +251,7 @@ export function AppsPage() {
             <Input
               value={code}
               onChange={(event) => setCode(event.target.value)}
-              placeholder="应用标识"
+              placeholder="应用编码"
             />
             <Input
               value={name}

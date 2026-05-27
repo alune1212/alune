@@ -67,9 +67,12 @@ export function DashboardPage() {
   } else if (healthQuery.isError) {
     healthLabel = "离线";
     badgeColor = "text-red-600";
-  } else {
-    healthLabel = healthStatus?.status.toUpperCase() ?? "未知";
+  } else if (healthStatus?.status === "ok") {
+    healthLabel = "正常";
     badgeColor = "text-emerald-600";
+  } else {
+    healthLabel = "未知";
+    badgeColor = "text-slate-500";
   }
 
   return (
@@ -85,7 +88,7 @@ export function DashboardPage() {
         </div>
         <div className="inline-flex w-fit items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm">
           <Database className="size-4 text-slate-500" />
-          <span className="font-medium text-slate-700">API</span>
+          <span className="font-medium text-slate-700">接口服务</span>
           <span className={badgeColor}>{healthLabel}</span>
         </div>
       </section>
@@ -142,26 +145,26 @@ export function DashboardPage() {
         <CardHeader>
           <CardTitle>系统状态</CardTitle>
           <CardDescription>
-            前端通过 TanStack Query 调用 FastAPI 健康检查接口。
+            平台接口服务的基础可用性。
           </CardDescription>
         </CardHeader>
         <CardContent>
           {healthQuery.isError ? (
             <p className="text-sm text-red-600">
-              API 健康检查失败，请确认后端已在 8000 端口启动。
+              接口服务暂不可用，请稍后重试或检查本地服务状态。
             </p>
           ) : (
             <dl className="grid gap-3 text-sm sm:grid-cols-3">
               <div>
                 <dt className="text-slate-500">服务</dt>
                 <dd className="mt-1 font-medium text-slate-950">
-                  {healthStatus?.service ?? "api"}
+                  接口服务
                 </dd>
               </div>
               <div>
                 <dt className="text-slate-500">状态</dt>
                 <dd className="mt-1 font-medium text-slate-950">
-                  {healthStatus?.status ?? "检查中"}
+                  {healthLabel}
                 </dd>
               </div>
               <div>

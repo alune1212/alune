@@ -49,4 +49,4 @@ Stage 6G-U remediated the previous `lodash` advisories by adding a pnpm override
 
 ## Next Security Step
 
-Keep `pnpm security:audit:npm` and `pnpm security:audit:python` passing before the first business module PR. When Orval or the Stoplight dependency chain releases a native fix, prefer removing the override if the audit remains clean.
+Keep `pnpm security:audit:npm` and `pnpm security:audit:python` passing before the next personal-platform feature PR. When Orval or the Stoplight dependency chain releases a native fix, prefer removing the override if the audit remains clean.

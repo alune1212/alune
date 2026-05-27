@@ -1,6 +1,7 @@
 import asyncio
 import logging
 
+from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
@@ -26,9 +27,9 @@ from app.modules.permissions.repository import (
 
 logger = logging.getLogger(__name__)
 DEFAULT_DEPARTMENT_CODE = "headquarters"
-DEFAULT_DEPARTMENT_NAME = "Default Space"
+DEFAULT_DEPARTMENT_NAME = "默认空间"
 APP_CATEGORY_DICTIONARY_CODE = "app_category"
-APP_CATEGORY_DICTIONARY_NAME = "App category"
+APP_CATEGORY_DICTIONARY_NAME = "应用分类"
 DEFAULT_APP_CATEGORIES = (
     ("tool", "工具", 10),
     ("automation", "自动化", 20),
@@ -43,11 +44,14 @@ async def seed_default_rbac(session: AsyncSession) -> Role:
         admin_role = Role(
             code=ADMIN_ROLE_CODE,
             name=ADMIN_ROLE_NAME,
-            description="System administrator role with all default permissions.",
+            description="Alune Hub 默认管理员角色。拥有全部默认权限。",
             is_system=True,
         )
         session.add(admin_role)
         await session.flush()
+    else:
+        admin_role.name = ADMIN_ROLE_NAME
+        admin_role.description = "Alune Hub 默认管理员角色。拥有全部默认权限。"
 
     for permission_definition in DEFAULT_PERMISSIONS:
         permission = await get_permission_by_code(session, permission_definition.code)
@@ -60,6 +64,10 @@ async def seed_default_rbac(session: AsyncSession) -> Role:
             )
             session.add(permission)
             await session.flush()
+        else:
+            permission.name = permission_definition.name
+            permission.type = permission_definition.type
+            permission.description = permission_definition.description
 
         await link_role_permission(session, admin_role, permission)
 
@@ -69,12 +77,14 @@ async def seed_default_rbac(session: AsyncSession) -> Role:
 async def seed_default_department(session: AsyncSession) -> Department:
     department = await get_department_by_code(session, DEFAULT_DEPARTMENT_CODE)
     if department is not None:
+        department.name = DEFAULT_DEPARTMENT_NAME
+        department.description = "Alune Hub 默认空间。用于个人主账号和协作者。"
         return department
 
     department = Department(
         code=DEFAULT_DEPARTMENT_CODE,
         name=DEFAULT_DEPARTMENT_NAME,
-        description="Default space for Alune Hub collaborators.",
+        description="Alune Hub 默认空间。用于个人主账号和协作者。",
         sort_order=0,
         is_active=True,
     )
@@ -89,11 +99,14 @@ async def seed_default_app_categories(session: AsyncSession) -> None:
         dictionary_type = DictionaryType(
             code=APP_CATEGORY_DICTIONARY_CODE,
             name=APP_CATEGORY_DICTIONARY_NAME,
-            description="Default categories for Alune Hub app entries.",
+            description="Alune Hub 应用中心默认分类。",
             is_system=True,
         )
         session.add(dictionary_type)
         await session.flush()
+    else:
+        dictionary_type.name = APP_CATEGORY_DICTIONARY_NAME
+        dictionary_type.description = "Alune Hub 应用中心默认分类。"
 
     for value, label, sort_order in DEFAULT_APP_CATEGORIES:
         existing_item = await get_dictionary_item_by_type_and_value(
@@ -113,6 +126,14 @@ async def seed_default_app_categories(session: AsyncSession) -> None:
             )
 
 
+async def normalize_legacy_display_names(session: AsyncSession) -> None:
+    await session.execute(
+        update(User)
+        .where(User.full_name == "System Administrator")
+        .values(full_name="系统管理员")
+    )
+
+
 async def seed_first_superuser() -> None:
     settings = get_settings()
     password = settings.first_superuser_password
@@ -125,10 +146,13 @@ async def seed_first_superuser() -> None:
         admin_role = await seed_default_rbac(session)
         root_department = await seed_default_department(session)
         await seed_default_app_categories(session)
+        await normalize_legacy_display_names(session)
         existing_user = await get_user_by_username(session, settings.first_superuser_username)
         if existing_user is not None:
             if existing_user.department_id is None:
                 existing_user.department_id = root_department.id
+            if existing_user.full_name == "System Administrator":
+                existing_user.full_name = "系统管理员"
             await link_user_role(session, existing_user, admin_role)
             await session.commit()
             logger.info("First superuser already exists: %s", settings.first_superuser_username)
@@ -137,7 +161,7 @@ async def seed_first_superuser() -> None:
         user = User(
             username=settings.first_superuser_username,
             email=settings.first_superuser_email,
-            full_name="System Administrator",
+            full_name="系统管理员",
             department_id=root_department.id,
             hashed_password=get_password_hash(password),
             is_active=True,

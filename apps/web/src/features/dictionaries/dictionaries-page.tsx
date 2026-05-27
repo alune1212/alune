@@ -253,7 +253,7 @@ export function DictionariesPage() {
     () => [
       { accessorKey: "label", header: "标签" },
       { accessorKey: "value", header: "值" },
-      { accessorKey: "type_id", header: "类型 ID" },
+      { accessorKey: "type_id", header: "类型编号" },
       { accessorKey: "sort_order", header: "排序" },
       {
         accessorKey: "is_active",
@@ -381,13 +381,13 @@ export function DictionariesPage() {
       <Card>
         <CardHeader>
           <CardTitle>创建字典项</CardTitle>
-          <CardDescription>使用上方列表中的类型 ID。</CardDescription>
+          <CardDescription>使用上方列表中的类型编号。</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
           <Input
             value={itemTypeId}
             onChange={(event) => setItemTypeId(event.target.value)}
-            placeholder="类型 ID"
+            placeholder="类型编号"
           />
           <Input
             value={itemLabel}
