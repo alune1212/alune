@@ -1,6 +1,6 @@
 # Architecture
 
-`alune-platform` is a minimal monorepo foundation for a company internal admin platform. The current implementation stops at the stage 6G-W MVP (security and deployment hardening): infrastructure, health checks, a dashboard shell, Alembic-managed tables, a narrow login flow, the first RBAC baseline, internal system pages for users, roles, departments, audit logs, dictionaries, and file attachments backed by local storage or MinIO with optional ClamAV scanning, plus Orval API client generation from FastAPI OpenAPI, generated-client migration for frontend reads/writes, a narrow compatibility client for binary and CSV boundaries, Playwright smoke tests for login/navigation, GitHub Actions CI quality gates, Dependabot dependency update visibility, a lightweight manual dependency security audit baseline, a documented pre-feature readiness gate, npm audit remediation for the previous transitive `lodash` finding, and a business module implementation checklist.
+`alune-platform` is the Alune Hub personal platform foundation. The current implementation includes the stage 6G-W security/deployment hardening baseline, stage 6H user-facing repositioning to a personal workspace, and stage 7A App Center V1. The platform provides authentication, RBAC, collaborator/user management, spaces, operation logs, configuration dictionaries, file resources, and app entry registration/navigation. App Center V1 is a registry and launcher for internal pages and external links; it does not execute scripts, load dynamic plugins, or schedule jobs.
 
 ## Monorepo Layout
 
@@ -44,6 +44,7 @@ Important modules:
 - `app/modules/system/models.py` defines the `system_info` table model.
 - `app/modules/auth/` implements the login MVP: `users` model, password hashing, JWT creation, current-user dependency, and auth router.
 - `app/modules/permissions/` implements the RBAC baseline: roles, permissions, association tables, default permission registry, permission queries, and `require_permission`.
+- `app/modules/apps/` implements Alune Hub App Center entries under `/api/v1/apps`, backed by `platform_apps` and `app_category` dictionary values.
 - `app/modules/users/`, `app/modules/roles/`, and `app/modules/departments/` implement user creation/update/password reset, batch user status updates, user role assignment, user filtering by role/department, role create/update/delete guards, role permission assignment, department trees, and department edit/delete rules.
 - `app/modules/audit/`, `app/modules/dictionaries/`, and `app/modules/files/` implement paginated log reads with date filters and CSV export, dictionary type/item maintenance with system/delete guards, and local/MinIO file upload/download metadata with upload policy checks, a file storage backend factory, and an optional ClamAV upload scanner.
 - `alembic/` contains migration environment and versioned schema changes.
@@ -59,10 +60,10 @@ The app uses:
 - Zustand only for UI state in `src/stores/ui-store.ts`.
 - shadcn/ui-compatible primitives in `src/components/ui/`.
 - App shell layout in `src/components/layout/`.
-- Dashboard page in `src/features/dashboard/dashboard-page.tsx`.
+- Home page in `src/features/dashboard/dashboard-page.tsx`.
 - Login page and auth provider in `src/features/auth/`.
-- Users, roles, departments, audit, dictionaries, and files pages in `src/features/`; users include role/department filters plus confirmed batch status controls with result feedback, roles include guarded create/edit/delete controls plus searchable grouped permissions with empty-state feedback, audit includes date filters and CSV export, and dictionaries include type/item maintenance controls.
-- Frontend interaction tests cover user batch status, role permission search, dictionary type creation, department tree/create flow, audit export filters, and file upload.
+- Apps, users, roles, departments/spaces, audit, dictionaries, and files pages in `src/features/`; apps include app entry registration/navigation, users include role/space filters plus confirmed batch status controls with result feedback, roles include guarded create/edit/delete controls plus searchable grouped permissions with empty-state feedback, audit includes date filters and CSV export, and dictionaries include type/item maintenance controls.
+- Frontend interaction tests cover app center creation/status changes, user batch status, role permission search, dictionary type creation, space tree/create flow, audit export filters, and file upload.
 - Playwright smoke tests in `apps/web/e2e/` cover protected-route redirect, seeded-admin login, and internal-system navigation.
 - Navigation permission filtering in `src/config/navigation.ts`.
 
@@ -109,7 +110,7 @@ These commands are intentionally not part of the default CI job yet.
 
 ## Feature Readiness
 
-The current readiness decision is documented in `docs/feature-readiness.md`: the security audit gate is resolved, stage 6G-V adds `docs/feature-module-checklist.md` for business module development, and stage 6G-W completes the current security and deployment hardening pass. The platform foundation is ready for a small first business module if that module starts with a written scope brief and follows the existing patterns for Alembic migrations, generated API client usage, permissions, audit logs, and tests.
+The current readiness decision is documented in `docs/feature-readiness.md`: the security audit gate is resolved, stage 6H repositions the product as Alune Hub, and stage 7A adds App Center V1 as the first personal-platform module. Future modules should continue to start from a written scope brief and follow existing patterns for Alembic migrations, generated API client usage, permissions, audit logs, and tests.
 
 ## Runtime Data Flow
 
@@ -122,6 +123,7 @@ flowchart LR
   GeneratedClient --> API["FastAPI /api/v1/health"]
   GeneratedClient --> Login["/api/v1/auth/login"]
   GeneratedClient --> Me["/api/v1/auth/me"]
+  GeneratedClient --> Apps["/api/v1/apps"]
   GeneratedClient --> Users["/api/v1/users"]
   GeneratedClient --> Roles["/api/v1/roles"]
   GeneratedClient --> Departments["/api/v1/departments"]
@@ -135,6 +137,8 @@ flowchart LR
   Login --> Postgres
   Me --> Postgres
   Me --> Permissions["roles / permissions / links"]
+  Apps --> Postgres
+  Apps --> Dictionaries
   Users --> Postgres
   Roles --> Postgres
   Departments --> Postgres
@@ -172,6 +176,10 @@ The FastAPI root path `/` is intentionally not part of the API surface. Use `/do
 | GET    | `/api/v1/health/db`                    | Run `SELECT 1` through SQLAlchemy AsyncSession. Returns 503 if PostgreSQL is unavailable.          |
 | POST   | `/api/v1/auth/login`                   | OAuth2 password login. Returns a JWT access token.                                                 |
 | GET    | `/api/v1/auth/me`                      | Returns the current active user and permission codes from a Bearer token.                          |
+| GET    | `/api/v1/apps`                         | Returns paginated App Center entries with search/category/status filters.                          |
+| POST   | `/api/v1/apps`                         | Creates an App Center entry.                                                                       |
+| PATCH  | `/api/v1/apps/{app_id}`                | Updates an App Center entry.                                                                       |
+| PATCH  | `/api/v1/apps/{app_id}/status`         | Enables or disables an App Center entry.                                                          |
 | GET    | `/api/v1/users`                        | Returns paginated user records for administrators. Supports `q`, `department_id`, and `role_code`. |
 | POST   | `/api/v1/users`                        | Creates a user account.                                                                            |
 | PATCH  | `/api/v1/users/bulk-status`            | Enables or disables multiple users and records one audit log entry.                                |
@@ -218,7 +226,8 @@ The FastAPI root path `/` is intentionally not part of the API surface. Use `/do
 | `permissions`                           | Menu and action permission definitions.                                     |
 | `user_roles`                            | User-to-role assignments.                                                   |
 | `role_permissions`                      | Role-to-permission assignments.                                             |
-| `departments`                           | Department hierarchy and user assignment target.                            |
+| `departments`                           | Space hierarchy and user assignment target; technical table name retained.  |
+| `platform_apps`                         | Alune Hub App Center entries for internal pages and external links.         |
 | `operation_logs`                        | Operation log foundation.                                                   |
 | `login_logs`                            | Login log foundation.                                                       |
 | `dictionary_types` / `dictionary_items` | Dictionary management foundation.                                           |
@@ -226,5 +235,5 @@ The FastAPI root path `/` is intentionally not part of the API surface. Use `/do
 
 ## Not Implemented Yet
 
-- Complex organization workflows, approvals, reports, and company-specific business modules.
+- Script execution, dynamic plugin loading, schedulers, approvals, reports, and company-specific business modules.
 - External TLS/domain termination in front of the Docker Web proxy.

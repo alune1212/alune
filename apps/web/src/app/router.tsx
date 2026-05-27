@@ -1,5 +1,6 @@
 import { createRouter } from "@tanstack/react-router";
 
+import { appsRoute } from "@/routes/apps";
 import { auditRoute } from "@/routes/audit";
 import { departmentsRoute } from "@/routes/departments";
 import { dictionariesRoute } from "@/routes/dictionaries";
@@ -13,6 +14,7 @@ import { usersRoute } from "@/routes/users";
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
+  appsRoute,
   usersRoute,
   rolesRoute,
   departmentsRoute,

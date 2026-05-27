@@ -1,6 +1,6 @@
 # alune-platform
 
-公司内部管理系统 MVP。当前阶段包含最小可运行 monorepo、FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地登录、权限基础，以及阶段 6G-W 的内部系统底座交互、存储、上传扫描、前端测试、Orval API client 生成、内部系统读写 generated hooks 迁移、API client 兼容层收缩、Playwright 登录/导航冒烟测试、GitHub Actions CI、Dependabot 依赖更新可见性、轻量安全审计基线、功能开发前就绪检查、npm audit remediation、安全与部署硬化和业务模块开发准入清单。
+Alune Hub 个人平台中枢 MVP。当前阶段包含最小可运行 monorepo、FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地登录、权限基础、空间/协作者管理、操作日志、配置字典、文件资源，以及阶段 7A 的应用中心 V1。应用中心用于登记和导航平台内功能与外部工具入口，不执行脚本、不加载动态插件。
 
 ## 技术栈
 
@@ -41,8 +41,8 @@ alune-platform/
 ## 文档
 
 - [Architecture](docs/architecture.md) - 当前架构、数据流和 API surface。
-- [Feature Module Checklist](docs/feature-module-checklist.md) - 业务模块开发前的范围、权限、审计、迁移、前端和测试准入清单。
-- [Feature Readiness](docs/feature-readiness.md) - 进入业务功能开发前的准入检查和阻塞项。
+- [Feature Module Checklist](docs/feature-module-checklist.md) - 个人平台模块开发前的范围、权限、审计、迁移、前端和测试准入清单。
+- [Feature Readiness](docs/feature-readiness.md) - 进入下一轮功能开发前的准入检查和阻塞项。
 - [Runbook](docs/runbook.md) - 本地启动、Docker、冒烟检查和排障。
 - [Security](docs/security.md) - 依赖安全审计基线和当前边界。
 - [Handoff](docs/handoff.md) - 当前完成状态、已验证命令和下一阶段建议。
@@ -232,19 +232,20 @@ E2E_BASE_URL=http://localhost:15173 E2E_ADMIN_USERNAME=e2e_admin E2E_ADMIN_PASSW
 
 ## 当前阶段边界
 
-已完成阶段 0、阶段 1、阶段 2、阶段 3、阶段 4、阶段 5、阶段 6A、阶段 6B、阶段 6C、阶段 6D、阶段 6E、阶段 6F、阶段 6G-A、阶段 6G-B、阶段 6G-C、阶段 6G-D、阶段 6G-E、阶段 6G-F、阶段 6G-G、阶段 6G-H、阶段 6G-I、阶段 6G-J、阶段 6G-K、阶段 6G-L、阶段 6G-M、阶段 6G-N、阶段 6G-O、阶段 6G-P、阶段 6G-Q、阶段 6G-R、阶段 6G-S、阶段 6G-T、阶段 6G-U、阶段 6G-V 和阶段 6G-W 的内部系统底座 MVP。当前包含登录 MVP、权限基础、用户创建/启停/批量启停确认与结果反馈/资料编辑/部门分配/密码重置、用户角色分配、用户角色/部门过滤、角色增删改和权限配置搜索分组及空状态、部门创建/启停/删除规则、部门树、登录/操作日志筛选分页/日期过滤/CSV 导出、字典类型维护、字典项维护、文件附件本地和 MinIO 上传下载、上传策略、文件存储后端抽象、ClamAV 上传扫描、用户/角色/字典/部门/审计/文件页面的前端交互测试、基于 FastAPI OpenAPI 的 Orval API client 生成、multipart binary 类型规范化、dashboard/auth 前端入口对 generated hooks 的迁移、内部系统只读页面对 generated hooks 的迁移、用户/角色/部门/字典 JSON 写操作对 generated mutation hooks 的迁移、`packages/api-client` 兼容层收缩到配置、CSV 导出、文件上传和文件下载边界、Playwright 覆盖登录和内部系统导航的冒烟测试、GitHub Actions CI 质量门、Dependabot 对 npm/uv/Docker/Docker Compose/GitHub Actions 的每周依赖更新提醒、npm/Python 依赖安全审计基线、功能开发前就绪检查、npm audit remediation、业务模块开发准入清单，以及阶段 6G-W 的安全与部署硬化。不包含审批、报表和公司业务模块。
+已完成阶段 0 到阶段 6G-W 的 MVP 底座，并完成阶段 6H 的个人平台定位调整和阶段 7A 的应用中心 V1。当前包含登录 MVP、权限基础、用户/协作者管理、空间管理、角色权限、操作日志、配置字典、文件资源、应用中心登记和导航、基于 FastAPI OpenAPI 的 Orval API client 生成、Playwright 登录/导航冒烟测试、GitHub Actions CI 质量门、Dependabot 依赖更新提醒、npm/Python 依赖安全审计基线和安全部署硬化。不包含审批、报表、薪资、供应商、客户、合同等企业业务模块。
 
-阶段 6G-W 之后，最新基础能力边界是：
+阶段 7A 之后，最新基础能力边界是：
 
 - `ENVIRONMENT` 支持 `development`、`staging` 和 `production`；生产模式会拒绝默认 JWT、PostgreSQL、MinIO 凭据，并要求 JWT 密钥至少 32 字符。
 - 超级用户管理需要 `action:users:manage_superuser` 或当前用户本身是超级用户；用户不能禁用自己的账号，也不能修改自己的超级用户状态。
-- 系统角色权限变更受超级用户管理权限保护，空权限列表更新和部门删除并发查询问题已修复。
+- 系统角色权限变更受超级用户管理权限保护，空权限列表更新和空间删除并发查询问题已修复。
 - 前端 `/auth/me` 返回 401 时会清理本地 token，并跳转到 `/login?expired=true` 展示会话过期提示。
-- 内部系统路由已接入 `RequirePermission`，无菜单权限时显示 forbidden 页面，而不是只依赖菜单隐藏。
+- 平台路由已接入 `RequirePermission`，无菜单权限时显示 forbidden 页面，而不是只依赖菜单隐藏。
 - Docker Web 通过 Nginx 将同源 `/api/` 代理到 API 容器，生产浏览器不再调用 `localhost:8000`。
 - 文件上传会在扫描前先做大小检查；文件下载响应会清理并编码文件名，避免 `Content-Disposition` 头注入。
+- 应用中心 V1 只负责应用登记、筛选、启停和入口导航，不执行脚本、任务调度或动态插件加载。
 
-进入业务功能开发前先阅读 [Feature Readiness](docs/feature-readiness.md) 和 [Feature Module Checklist](docs/feature-module-checklist.md)。阶段 6G-W 后可以进入阶段 7A，但第一业务模块必须先写清楚范围、权限、审计事件、API、页面和测试计划。
+进入下一轮功能开发前先阅读 [Feature Readiness](docs/feature-readiness.md) 和 [Feature Module Checklist](docs/feature-module-checklist.md)。阶段 7B 应先选择一个小型个人平台模块，并写清楚范围、权限、审计事件、API、页面和测试计划。
 
 ## Security Audit
 
@@ -287,7 +288,8 @@ Dependabot 配置位于 `.github/dependabot.yml`，每周一上午按 `Asia/Shan
 - `permissions` - 菜单/操作权限表，通过 Alembic migration 创建。
 - `user_roles` - 用户角色关联表。
 - `role_permissions` - 角色权限关联表。
-- `departments` - 部门基础表，支持层级和用户归属。
+- `departments` - 空间基础表，保留技术表名，用户界面显示为空间管理。
+- `platform_apps` - Alune Hub 应用入口表，支持平台内页面和外部链接登记。
 - `operation_logs` - 操作日志基础表。
 - `login_logs` - 登录日志基础表。
 - `dictionary_types` / `dictionary_items` - 字典基础表。
@@ -301,6 +303,10 @@ Dependabot 配置位于 `.github/dependabot.yml`，每周一上午按 `Asia/Shan
 | GET    | `/api/v1/health/db`                    | PostgreSQL 连接检查；数据库不可用时返回 503                                                            |
 | POST   | `/api/v1/auth/login`                   | OAuth2 password 登录，返回 JWT access token                                                            |
 | GET    | `/api/v1/auth/me`                      | 根据 Bearer token 返回当前用户和权限码                                                                 |
+| GET    | `/api/v1/apps`                         | 应用中心分页列表，支持 `q`/`category_code`/`is_active`/`page`/`page_size`，需 `action:apps:read`       |
+| POST   | `/api/v1/apps`                         | 创建应用入口，需 `action:apps:create`                                                                  |
+| PATCH  | `/api/v1/apps/{app_id}`                | 更新应用入口，需 `action:apps:update`                                                                  |
+| PATCH  | `/api/v1/apps/{app_id}/status`         | 启用/停用应用入口，需 `action:apps:manage_status`                                                       |
 | GET    | `/api/v1/users`                        | 用户分页列表，支持 `q`/`department_id`/`role_code`/`page`/`page_size`，需 `action:users:read`          |
 | POST   | `/api/v1/users`                        | 创建用户，需 `action:users:create`                                                                     |
 | PATCH  | `/api/v1/users/bulk-status`            | 批量启用/禁用用户，需 `action:users:update`                                                            |
@@ -315,11 +321,11 @@ Dependabot 配置位于 `.github/dependabot.yml`，每周一上午按 `Asia/Shan
 | PATCH  | `/api/v1/roles/{role_id}`              | 更新非系统角色，需 `action:roles:update`                                                               |
 | DELETE | `/api/v1/roles/{role_id}`              | 删除未分配用户的非系统角色，需 `action:roles:delete`                                                   |
 | PUT    | `/api/v1/roles/{role_id}/permissions`  | 更新角色权限，需 `action:roles:update_permissions`                                                     |
-| GET    | `/api/v1/departments`                  | 部门分页列表，支持 `q`/`page`/`page_size`，需 `action:departments:read`                                |
-| GET    | `/api/v1/departments/tree`             | 部门树，需 `action:departments:read`                                                                   |
-| POST   | `/api/v1/departments`                  | 创建部门，需 `action:departments:create`                                                               |
-| PATCH  | `/api/v1/departments/{department_id}`  | 更新/启停部门，需 `action:departments:update`                                                          |
-| DELETE | `/api/v1/departments/{department_id}`  | 删除无子部门且无用户的部门，需 `action:departments:delete`                                             |
+| GET    | `/api/v1/departments`                  | 空间分页列表，技术路径仍为 departments，支持 `q`/`page`/`page_size`，需 `action:departments:read`      |
+| GET    | `/api/v1/departments/tree`             | 空间树，技术路径仍为 departments，需 `action:departments:read`                                         |
+| POST   | `/api/v1/departments`                  | 创建空间，技术路径仍为 departments，需 `action:departments:create`                                     |
+| PATCH  | `/api/v1/departments/{department_id}`  | 更新/启停空间，技术路径仍为 departments，需 `action:departments:update`                                |
+| DELETE | `/api/v1/departments/{department_id}`  | 删除无子空间且无用户的空间，技术路径仍为 departments，需 `action:departments:delete`                   |
 | GET    | `/api/v1/audit/operation-logs`         | 操作日志分页筛选，支持 `q`/`status`/`started_at`/`ended_at`/`page`/`page_size`，需 `action:audit:read` |
 | GET    | `/api/v1/audit/operation-logs/export`  | 导出操作日志 CSV，支持 `q`/`status`/`started_at`/`ended_at`，需 `action:audit:read`                    |
 | GET    | `/api/v1/audit/login-logs`             | 登录日志分页筛选，支持 `q`/`status`/`started_at`/`ended_at`/`page`/`page_size`，需 `action:audit:read` |

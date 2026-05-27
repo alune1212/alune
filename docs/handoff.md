@@ -42,6 +42,8 @@
 - Added stage 6G-U security audit remediation: pnpm override pins transitive `lodash` to `4.18.1`, clearing the npm audit finding from the Orval development dependency chain.
 - Added stage 6G-V feature module checklist: `docs/feature-module-checklist.md` now defines scope, backend, migration, permission, audit, API client, frontend, test, documentation, and verification gates for the first business module.
 - Added stage 6G-W security and deployment hardening: `ENVIRONMENT` setting rejects default JWT, PostgreSQL, and MinIO credentials in production and enforces minimum JWT key length; non-superusers without `action:users:manage_superuser` cannot create or modify superuser accounts; users cannot disable their own accounts or change their own superuser status; system role permission modification requires `manage_superuser`; fixed department delete concurrent query (asyncio.gather replaced with sequential await); fixed empty role permission list SQL insert error; frontend auto-clears localStorage token on 401 from `/auth/me`, redirects protected routes to `/login?expired=true`, and shows a session-expired notice on login page; attached `RequirePermission` to internal system routes; Docker Web proxies same-origin `/api/` to the API container; file upload size checked before scanner to prevent large-file buffering; download filenames sanitized to prevent HTTP header injection.
+- Added stage 6H Alune Hub repositioning: user-visible product name is now `Alune Hub`; frontend shell, login page, navigation, dashboard, empty states, and page descriptions use personal-platform and private-workspace language; existing technical identifiers such as `departments`, `roles`, API paths, and table names remain stable.
+- Added stage 7A App Center V1: `/api/v1/apps`, `platform_apps`, app create/update/status APIs, app permissions, operation-log writes for create/update/enable/disable, `app_category` dictionary seed data, Orval generated hooks, `/apps` frontend page, and a homepage app-entry area for enabled apps.
 - Verified Docker dependency services with PostgreSQL and Redis healthy.
 - Verified `/api/v1/health/db` returns 200 when the API can reach Docker PostgreSQL.
 
@@ -105,7 +107,7 @@ rg -n "TODO|FIXME|create_all|print\\(" apps packages scripts --glob '!packages/a
 - Dependabot is defined in `.github/dependabot.yml` and checks npm/pnpm, uv, Docker, Docker Compose, and GitHub Actions weekly with per-ecosystem grouping.
 - Lightweight dependency audits are available through `pnpm security:audit`, `pnpm security:audit:npm`, and `pnpm security:audit:python`. These are manual for now and are not part of the default CI quality job.
 - Stage 6G-U audit output: npm audit and Python `pip-audit` both report no known vulnerabilities.
-- Stage 6G-W readiness output: the pre-feature and security hardening checks are complete. Before coding stage 7A, choose the first small business module and write its scope brief using `docs/feature-module-checklist.md`.
+- Stage 7A readiness output: Alune Hub has completed the personal-platform positioning pass and the App Center V1 registration/navigation module. Before coding stage 7B, choose one small personal-platform module and write its scope brief using `docs/feature-module-checklist.md`.
 - If local dev servers already occupy 8000 or 5173, use:
 
 ```bash
@@ -114,8 +116,8 @@ API_PORT=18000 WEB_PORT=15173 docker compose --profile app up --build
 
 ## Recommended Next Phase
 
-Next stage can start scoped business feature preparation:
+Next stage can start scoped personal-platform feature preparation:
 
-- Stage 7A: choose the first small business module and write its scope brief before implementation.
+- Stage 7B: choose the next small personal module and write its scope brief before implementation.
 
-Do not start approval flows, payroll, reports, or company-specific business modules before the internal system foundation is in place.
+Do not start approval flows, payroll, reports, company-specific business modules, executable scripts, schedulers, or dynamic plugin loading before a narrow personal-platform module requires them.

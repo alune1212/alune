@@ -491,7 +491,7 @@ export function UsersPage() {
               disabled={!selectedUserId}
               onClick={() => setEditDepartmentId("")}
             >
-              清空部门
+              清空空间
             </Button>
           </div>
           <div className="grid gap-3 md:grid-cols-[1fr_auto]">

@@ -4,19 +4,19 @@ Project guidance for Codex and other AI agents working in this repository.
 
 ## Current Scope
 
-`alune-platform` is a company internal admin platform MVP. The current codebase covers only:
+`alune-platform` is the Alune Hub personal platform MVP. The current codebase covers only:
 
 - pnpm workspace + Turborepo monorepo wiring.
 - FastAPI backend health endpoints.
-- Vite React dashboard shell.
+- Vite React personal workspace shell.
 - PostgreSQL 18 and Redis 8 through Docker Compose.
 - API/Web Docker images for a complete MVP stack.
 - Alembic migration baseline with the `system_info` table.
 - Login MVP with `users`, password hashing, JWT login, `/auth/me`, frontend login, and a protected dashboard.
 - Permission baseline with roles, permissions, user-role links, role-permission links, backend permission dependency, and frontend menu filtering.
-- Stage 6G-W internal system foundation with user create/enable/disable/batch-status confirmation and result feedback/edit/password reset, user role assignment, user role/department filters, role create/update/delete guards, searchable grouped role permission assignment with empty-state feedback, department tree/update/delete rules, audit log filtering/pagination/date range/CSV export, dictionary type/item maintenance guards, local and MinIO file upload/download, upload policy checks with size pre-check before scan, download filename sanitization, file storage backend factory, ClamAV upload scanner adapter, frontend interaction tests, Orval API client generation from FastAPI OpenAPI, generated-client migration for frontend reads/writes, multipart binary type normalization, a narrowed root API client compatibility layer for runtime configuration, CSV export, file upload, and file download, Playwright smoke coverage for login and internal-system navigation, GitHub Actions CI quality gates, Dependabot dependency update visibility, manual npm/Python dependency security audit scripts, a pre-feature readiness gate in `docs/feature-readiness.md`, a pnpm override that remediates the previous transitive `lodash` audit finding, a business module checklist in `docs/feature-module-checklist.md`, an `ENVIRONMENT` setting with production credential validation, superuser management permission guard including self-superuser-status change prevention, self-disable prevention, department delete concurrency fix, role permission clear fix, 401-triggered token cleanup and session-expired notice on frontend, `RequirePermission` attached to business routes for route-level access control, and Docker Web Nginx proxying `/api/` to the API container so production browsers do not call localhost.
+- Stage 6G-W internal foundation, Stage 6H personal-platform repositioning, and Stage 7A App Center V1 with user create/enable/disable/batch-status confirmation and result feedback/edit/password reset, user role assignment, user role/space filters, role create/update/delete guards, searchable grouped role permission assignment with empty-state feedback, space tree/update/delete rules, audit log filtering/pagination/date range/CSV export, dictionary type/item maintenance guards, local and MinIO file upload/download, upload policy checks with size pre-check before scan, download filename sanitization, file storage backend factory, ClamAV upload scanner adapter, app entry registration/navigation, frontend interaction tests, Orval API client generation from FastAPI OpenAPI, generated-client migration for frontend reads/writes, multipart binary type normalization, a narrowed root API client compatibility layer for runtime configuration, CSV export, file upload, and file download, Playwright smoke coverage for login and navigation, GitHub Actions CI quality gates, Dependabot dependency update visibility, manual npm/Python dependency security audit scripts, an `ENVIRONMENT` setting with production credential validation, superuser management permission guard including self-superuser-status change prevention, self-disable prevention, department delete concurrency fix, role permission clear fix, 401-triggered token cleanup and session-expired notice on frontend, `RequirePermission` attached to protected routes for route-level access control, and Docker Web Nginx proxying `/api/` to the API container so production browsers do not call localhost.
 
-Do not add approval flows, reports, payroll, or company-specific business modules unless the user explicitly asks for that phase.
+Do not add script execution, dynamic plugin loading, approval flows, reports, payroll, or company-specific business modules unless the user explicitly asks for that phase.
 
 ## Key Commands
 
@@ -76,6 +76,10 @@ With that alternate Docker mapping, use `http://localhost:15173` for Web and `ht
   - `GET /api/v1/health/db`
   - `POST /api/v1/auth/login`
   - `GET /api/v1/auth/me`
+  - `GET /api/v1/apps`
+  - `POST /api/v1/apps`
+  - `PATCH /api/v1/apps/{app_id}`
+  - `PATCH /api/v1/apps/{app_id}/status`
   - `GET /api/v1/users`
   - `POST /api/v1/users`
   - `PATCH /api/v1/users/bulk-status`
@@ -118,7 +122,7 @@ With that alternate Docker mapping, use `http://localhost:15173` for Web and `ht
 - Current baseline table: `system_info`.
 - Current auth table: `users`.
 - Current permission tables: `roles`, `permissions`, `user_roles`, `role_permissions`.
-- Current internal system tables: `departments`, `operation_logs`, `login_logs`, `dictionary_types`, `dictionary_items`, `file_attachments`.
+- Current platform tables: `departments` (displayed as spaces), `platform_apps`, `operation_logs`, `login_logs`, `dictionary_types`, `dictionary_items`, `file_attachments`.
 - Local file storage defaults to `.local/uploads`; Docker app profile mounts `api_uploads` at `/app/uploads`.
 - Upload policy is configured by `MAX_UPLOAD_SIZE_BYTES` and `ALLOWED_UPLOAD_CONTENT_TYPES`.
 - File storage backend is configured by `FILE_STORAGE_BACKEND`; `local` and `minio` are implemented. MinIO uses `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`, and `MINIO_SECURE`.
@@ -131,7 +135,7 @@ With that alternate Docker mapping, use `http://localhost:15173` for Web and `ht
 - App shell: `apps/web/src/components/layout/`.
 - Dashboard page: `apps/web/src/features/dashboard/dashboard-page.tsx`.
 - Login page and auth provider: `apps/web/src/features/auth/`.
-- Internal system pages: `apps/web/src/features/users/`, `apps/web/src/features/roles/`, `apps/web/src/features/departments/`, `apps/web/src/features/audit/`, `apps/web/src/features/dictionaries/`, `apps/web/src/features/files/`.
+- Platform pages: `apps/web/src/features/apps/`, `apps/web/src/features/users/`, `apps/web/src/features/roles/`, `apps/web/src/features/departments/`, `apps/web/src/features/audit/`, `apps/web/src/features/dictionaries/`, `apps/web/src/features/files/`.
 - Navigation config: `apps/web/src/config/navigation.ts`.
 - Menu filtering: `apps/web/src/config/navigation.ts`.
 - Compatibility API client: `packages/api-client/src/index.ts`; keep the TODO to migrate call sites to `@alune/api-client/generated`.
@@ -144,7 +148,7 @@ With that alternate Docker mapping, use `http://localhost:15173` for Web and `ht
 
 ## Guardrails
 
-- Keep stage 0-6G-W minimal. Avoid over-abstracting before real business modules exist.
+- Keep the Alune Hub platform small. Avoid over-abstracting before at least two personal-platform modules prove the abstraction.
 - Use TanStack Query for server state and Zustand only for UI state.
 - Keep shadcn/ui-compatible primitives under `apps/web/src/components/ui/`.
 - Keep backend modules under `apps/api/app/modules/<feature>/`.

@@ -91,8 +91,8 @@ export function Topbar() {
           </SheetContent>
         </Sheet>
         <div>
-          <p className="text-sm font-semibold text-slate-950">公司管理后台</p>
-          <p className="text-xs text-slate-500">MVP 工作台</p>
+          <p className="text-sm font-semibold text-slate-950">个人平台中枢</p>
+          <p className="text-xs text-slate-500">私有工作台</p>
         </div>
       </div>
 

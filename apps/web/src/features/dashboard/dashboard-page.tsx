@@ -1,4 +1,4 @@
-import { Activity, Database, FileText, ShieldCheck } from "lucide-react";
+import { Activity, Database, FileText, Grid2X2, ShieldCheck } from "lucide-react";
 
 import {
   Card,
@@ -7,38 +7,56 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useMemo } from "react";
+
 import { uiCopy } from "@/config/ui-copy";
-import { useHealthCheckApiV1HealthGet } from "@alune/api-client/generated";
+import { getPlatformAppPage } from "@/features/apps/app-response";
+import { useAuth } from "@/features/auth/auth-provider";
+import {
+  useGetPlatformAppsApiV1AppsGet,
+  useHealthCheckApiV1HealthGet,
+} from "@alune/api-client/generated";
 import { platformName } from "@alune/shared";
 
 const summaryCards = [
   {
     title: uiCopy.modules.users,
     value: "就绪",
-    description: "用户目录已连接后端",
+    description: "账号与协作者目录已连接后端",
     icon: Activity,
   },
   {
     title: uiCopy.modules.roles,
     value: "就绪",
-    description: "管理员可查看和维护角色记录",
+    description: "管理员可维护平台访问权限",
     icon: ShieldCheck,
   },
   {
     title: uiCopy.modules.departments,
     value: "就绪",
-    description: "部门记录可用于账号分配",
+    description: "空间记录可用于协作者分配",
     icon: FileText,
   },
 ];
 
 export function DashboardPage() {
+  const auth = useAuth();
+  const request = useMemo(
+    () => ({ headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined }),
+    [auth.token],
+  );
   const healthQuery = useHealthCheckApiV1HealthGet({
     query: {
       refetchInterval: 30_000,
     },
   });
+  const appsQuery = useGetPlatformAppsApiV1AppsGet(
+    { is_active: true, page: 1, page_size: 6 },
+    { query: { queryKey: ["apps"] }, request },
+  );
   const healthStatus = healthQuery.data?.data.data;
+  const appPage = getPlatformAppPage(appsQuery.data?.data);
+  const apps = appPage?.items ?? [];
 
   let healthLabel: string;
   let badgeColor: string;
@@ -62,8 +80,7 @@ export function DashboardPage() {
             {platformName}
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-            基于 React、FastAPI、PostgreSQL 和 Redis
-            的公司内部管理平台基础底座。
+            面向个人与协作者的私有工作台，集中管理应用入口、权限、空间、配置和文件资源。
           </p>
         </div>
         <div className="inline-flex w-fit items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm">
@@ -91,6 +108,35 @@ export function DashboardPage() {
           </Card>
         ))}
       </section>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>应用入口</CardTitle>
+          <CardDescription>常用工具和平台内功能的快速入口。</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {apps.length === 0 ? (
+            <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-6 text-center text-sm text-slate-500">
+              {uiCopy.empty.apps}
+            </p>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {apps.map((app) => (
+                <a
+                  key={app.id}
+                  href={app.entry_url}
+                  className="flex items-center gap-3 rounded-md border border-slate-200 bg-white px-3 py-3 text-sm hover:bg-slate-50"
+                  target={app.entry_type === "external" ? "_blank" : undefined}
+                  rel={app.entry_type === "external" ? "noopener,noreferrer" : undefined}
+                >
+                  <Grid2X2 className="size-4 text-slate-500" />
+                  <span className="font-medium text-slate-950">{app.name}</span>
+                </a>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

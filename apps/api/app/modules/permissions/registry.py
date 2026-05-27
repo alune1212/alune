@@ -24,6 +24,12 @@ DEFAULT_PERMISSIONS: tuple[PermissionDefinition, ...] = (
         description="View the dashboard navigation item.",
     ),
     PermissionDefinition(
+        code="menu:apps",
+        name="Apps menu",
+        type="menu",
+        description="View the app center navigation item.",
+    ),
+    PermissionDefinition(
         code="menu:users",
         name="Users menu",
         type="menu",
@@ -64,6 +70,30 @@ DEFAULT_PERMISSIONS: tuple[PermissionDefinition, ...] = (
         name="Read dashboard",
         type="action",
         description="Read dashboard data.",
+    ),
+    PermissionDefinition(
+        code="action:apps:read",
+        name="Read apps",
+        type="action",
+        description="Read app center data.",
+    ),
+    PermissionDefinition(
+        code="action:apps:create",
+        name="Create apps",
+        type="action",
+        description="Create app center entries.",
+    ),
+    PermissionDefinition(
+        code="action:apps:update",
+        name="Update apps",
+        type="action",
+        description="Update app center entries.",
+    ),
+    PermissionDefinition(
+        code="action:apps:manage_status",
+        name="Manage app status",
+        type="action",
+        description="Enable or disable app center entries.",
     ),
     PermissionDefinition(
         code="action:users:read",

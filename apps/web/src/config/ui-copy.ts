@@ -1,12 +1,13 @@
 export const uiCopy = {
   modules: {
-    dashboard: "仪表盘",
+    dashboard: "首页",
+    apps: "应用中心",
     users: "用户管理",
-    roles: "角色管理",
-    departments: "部门管理",
-    audit: "审计日志",
-    dictionaries: "字典管理",
-    files: "文件管理",
+    roles: "角色权限",
+    departments: "空间管理",
+    audit: "操作日志",
+    dictionaries: "配置字典",
+    files: "文件资源",
   },
   common: {
     actions: "操作",
@@ -38,8 +39,8 @@ export const uiCopy = {
   },
   fields: {
     admin: "管理员",
-    department: "部门",
-    departmentId: "部门 ID",
+    department: "空间",
+    departmentId: "空间 ID",
     fullName: "姓名",
     initialPassword: "初始密码",
     newPassword: "新密码",
@@ -51,7 +52,8 @@ export const uiCopy = {
     selectedCount: (count: number) => `已选择 ${count} 个`,
   },
   empty: {
-    departments: "暂无部门。",
+    apps: "暂无应用。",
+    departments: "暂无空间。",
     dictionaryItems: "暂无字典项。",
     dictionaryTypes: "暂无字典类型。",
     files: "暂无文件。",
@@ -62,7 +64,8 @@ export const uiCopy = {
     users: "暂无用户。",
   },
   errors: {
-    loadDepartments: "无法加载部门。",
+    loadApps: "无法加载应用。",
+    loadDepartments: "无法加载空间。",
     loadLoginLogs: "无法加载登录日志。",
     loadOperationLogs: "无法加载操作日志。",
     loadRoles: "无法加载角色。",

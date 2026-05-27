@@ -209,6 +209,44 @@ export interface ApiResponsePageOperationLogPublic {
   error?: string | null;
 }
 
+export type PlatformAppPublicEntryType = typeof PlatformAppPublicEntryType[keyof typeof PlatformAppPublicEntryType];
+
+
+export const PlatformAppPublicEntryType = {
+  internal: 'internal',
+  external: 'external',
+} as const;
+
+export interface PlatformAppPublic {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  category_code: string;
+  entry_type: PlatformAppPublicEntryType;
+  entry_url: string;
+  icon: string | null;
+  sort_order: number;
+  is_active: boolean;
+  created_by_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PagePlatformAppPublic {
+  items: PlatformAppPublic[];
+  page: number;
+  page_size: number;
+  total: number;
+}
+
+export interface ApiResponsePagePlatformAppPublic {
+  success: boolean;
+  data: PagePlatformAppPublic;
+  message?: string;
+  error?: string | null;
+}
+
 export interface UserManagementItem {
   id: string;
   username: string;
@@ -229,6 +267,13 @@ export interface PageUserManagementItem {
 export interface ApiResponsePageUserManagementItem {
   success: boolean;
   data: PageUserManagementItem;
+  message?: string;
+  error?: string | null;
+}
+
+export interface ApiResponsePlatformAppPublic {
+  success: boolean;
+  data: PlatformAppPublic;
   message?: string;
   error?: string | null;
 }
@@ -495,6 +540,59 @@ export interface HTTPValidationError {
   detail?: ValidationError[];
 }
 
+export type PlatformAppCreateEntryType = typeof PlatformAppCreateEntryType[keyof typeof PlatformAppCreateEntryType];
+
+
+export const PlatformAppCreateEntryType = {
+  internal: 'internal',
+  external: 'external',
+} as const;
+
+export interface PlatformAppCreate {
+  /**
+     * @minLength 1
+     * @maxLength 100
+     * @pattern ^[A-Za-z0-9_.-]+$
+     */
+  code: string;
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  name: string;
+  description?: string | null;
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  category_code: string;
+  entry_type: PlatformAppCreateEntryType;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  entry_url: string;
+  icon?: string | null;
+  sort_order?: number;
+  is_active?: boolean;
+}
+
+export interface PlatformAppStatusUpdate {
+  is_active: boolean;
+}
+
+export interface PlatformAppUpdate {
+  code?: string | null;
+  name?: string | null;
+  description?: string | null;
+  category_code?: string | null;
+  entry_type?: 'internal' | 'external' | null;
+  entry_url?: string | null;
+  icon?: string | null;
+  sort_order?: number | null;
+  is_active?: boolean | null;
+}
+
 export interface RoleCreate {
   /**
      * @minLength 1
@@ -573,6 +671,21 @@ export interface UserUpdate {
   is_active?: boolean | null;
   is_superuser?: boolean | null;
 }
+
+export type GetPlatformAppsApiV1AppsGetParams = {
+q?: string | null;
+category_code?: string | null;
+is_active?: boolean | null;
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+page_size?: number;
+};
 
 export type GetOperationLogsApiV1AuditOperationLogsGetParams = {
 q?: string | null;
@@ -664,6 +777,402 @@ page_size?: number;
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
+
+export type getPlatformAppsApiV1AppsGetResponse200 = {
+  data: ApiResponsePagePlatformAppPublic
+  status: 200
+}
+
+export type getPlatformAppsApiV1AppsGetResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type getPlatformAppsApiV1AppsGetResponseSuccess = (getPlatformAppsApiV1AppsGetResponse200) & {
+  headers: Headers;
+};
+export type getPlatformAppsApiV1AppsGetResponseError = (getPlatformAppsApiV1AppsGetResponse422) & {
+  headers: Headers;
+};
+
+export type getPlatformAppsApiV1AppsGetResponse = (getPlatformAppsApiV1AppsGetResponseSuccess | getPlatformAppsApiV1AppsGetResponseError)
+
+export const getGetPlatformAppsApiV1AppsGetUrl = (params?: GetPlatformAppsApiV1AppsGetParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/apps?${stringifiedParams}` : `/api/v1/apps`
+}
+
+/**
+ * @summary Get Platform Apps
+ */
+export const getPlatformAppsApiV1AppsGet = async (params?: GetPlatformAppsApiV1AppsGetParams, options?: RequestInit): Promise<getPlatformAppsApiV1AppsGetResponse> => {
+
+  return orvalFetch<getPlatformAppsApiV1AppsGetResponse>(getGetPlatformAppsApiV1AppsGetUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPlatformAppsApiV1AppsGetQueryKey = (params?: GetPlatformAppsApiV1AppsGetParams,) => {
+    return [
+    `/api/v1/apps`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetPlatformAppsApiV1AppsGetQueryOptions = <TData = Awaited<ReturnType<typeof getPlatformAppsApiV1AppsGet>>, TError = HTTPValidationError>(params?: GetPlatformAppsApiV1AppsGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlatformAppsApiV1AppsGet>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPlatformAppsApiV1AppsGetQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPlatformAppsApiV1AppsGet>>> = ({ signal }) => getPlatformAppsApiV1AppsGet(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPlatformAppsApiV1AppsGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPlatformAppsApiV1AppsGetQueryResult = NonNullable<Awaited<ReturnType<typeof getPlatformAppsApiV1AppsGet>>>
+export type GetPlatformAppsApiV1AppsGetQueryError = HTTPValidationError
+
+
+export function useGetPlatformAppsApiV1AppsGet<TData = Awaited<ReturnType<typeof getPlatformAppsApiV1AppsGet>>, TError = HTTPValidationError>(
+ params: undefined |  GetPlatformAppsApiV1AppsGetParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlatformAppsApiV1AppsGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPlatformAppsApiV1AppsGet>>,
+          TError,
+          Awaited<ReturnType<typeof getPlatformAppsApiV1AppsGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPlatformAppsApiV1AppsGet<TData = Awaited<ReturnType<typeof getPlatformAppsApiV1AppsGet>>, TError = HTTPValidationError>(
+ params?: GetPlatformAppsApiV1AppsGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlatformAppsApiV1AppsGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPlatformAppsApiV1AppsGet>>,
+          TError,
+          Awaited<ReturnType<typeof getPlatformAppsApiV1AppsGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPlatformAppsApiV1AppsGet<TData = Awaited<ReturnType<typeof getPlatformAppsApiV1AppsGet>>, TError = HTTPValidationError>(
+ params?: GetPlatformAppsApiV1AppsGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlatformAppsApiV1AppsGet>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get Platform Apps
+ */
+
+export function useGetPlatformAppsApiV1AppsGet<TData = Awaited<ReturnType<typeof getPlatformAppsApiV1AppsGet>>, TError = HTTPValidationError>(
+ params?: GetPlatformAppsApiV1AppsGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlatformAppsApiV1AppsGet>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetPlatformAppsApiV1AppsGetQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export type createPlatformAppApiV1AppsPostResponse201 = {
+  data: ApiResponsePlatformAppPublic
+  status: 201
+}
+
+export type createPlatformAppApiV1AppsPostResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type createPlatformAppApiV1AppsPostResponseSuccess = (createPlatformAppApiV1AppsPostResponse201) & {
+  headers: Headers;
+};
+export type createPlatformAppApiV1AppsPostResponseError = (createPlatformAppApiV1AppsPostResponse422) & {
+  headers: Headers;
+};
+
+export type createPlatformAppApiV1AppsPostResponse = (createPlatformAppApiV1AppsPostResponseSuccess | createPlatformAppApiV1AppsPostResponseError)
+
+export const getCreatePlatformAppApiV1AppsPostUrl = () => {
+
+
+
+
+  return `/api/v1/apps`
+}
+
+/**
+ * @summary Create Platform App
+ */
+export const createPlatformAppApiV1AppsPost = async (platformAppCreate: PlatformAppCreate, options?: RequestInit): Promise<createPlatformAppApiV1AppsPostResponse> => {
+
+  return orvalFetch<createPlatformAppApiV1AppsPostResponse>(getCreatePlatformAppApiV1AppsPostUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(platformAppCreate)
+  }
+);}
+
+
+
+
+export const getCreatePlatformAppApiV1AppsPostMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPlatformAppApiV1AppsPost>>, TError,{data: PlatformAppCreate}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createPlatformAppApiV1AppsPost>>, TError,{data: PlatformAppCreate}, TContext> => {
+
+const mutationKey = ['createPlatformAppApiV1AppsPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPlatformAppApiV1AppsPost>>, {data: PlatformAppCreate}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createPlatformAppApiV1AppsPost(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreatePlatformAppApiV1AppsPostMutationResult = NonNullable<Awaited<ReturnType<typeof createPlatformAppApiV1AppsPost>>>
+    export type CreatePlatformAppApiV1AppsPostMutationBody = PlatformAppCreate
+    export type CreatePlatformAppApiV1AppsPostMutationError = HTTPValidationError
+
+    /**
+ * @summary Create Platform App
+ */
+export const useCreatePlatformAppApiV1AppsPost = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPlatformAppApiV1AppsPost>>, TError,{data: PlatformAppCreate}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createPlatformAppApiV1AppsPost>>,
+        TError,
+        {data: PlatformAppCreate},
+        TContext
+      > => {
+      return useMutation(getCreatePlatformAppApiV1AppsPostMutationOptions(options), queryClient);
+    }
+
+export type updatePlatformAppApiV1AppsAppIdPatchResponse200 = {
+  data: ApiResponsePlatformAppPublic
+  status: 200
+}
+
+export type updatePlatformAppApiV1AppsAppIdPatchResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type updatePlatformAppApiV1AppsAppIdPatchResponseSuccess = (updatePlatformAppApiV1AppsAppIdPatchResponse200) & {
+  headers: Headers;
+};
+export type updatePlatformAppApiV1AppsAppIdPatchResponseError = (updatePlatformAppApiV1AppsAppIdPatchResponse422) & {
+  headers: Headers;
+};
+
+export type updatePlatformAppApiV1AppsAppIdPatchResponse = (updatePlatformAppApiV1AppsAppIdPatchResponseSuccess | updatePlatformAppApiV1AppsAppIdPatchResponseError)
+
+export const getUpdatePlatformAppApiV1AppsAppIdPatchUrl = (appId: string,) => {
+
+
+
+
+  return `/api/v1/apps/${appId}`
+}
+
+/**
+ * @summary Update Platform App
+ */
+export const updatePlatformAppApiV1AppsAppIdPatch = async (appId: string,
+    platformAppUpdate: PlatformAppUpdate, options?: RequestInit): Promise<updatePlatformAppApiV1AppsAppIdPatchResponse> => {
+
+  return orvalFetch<updatePlatformAppApiV1AppsAppIdPatchResponse>(getUpdatePlatformAppApiV1AppsAppIdPatchUrl(appId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(platformAppUpdate)
+  }
+);}
+
+
+
+
+export const getUpdatePlatformAppApiV1AppsAppIdPatchMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePlatformAppApiV1AppsAppIdPatch>>, TError,{appId: string;data: PlatformAppUpdate}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updatePlatformAppApiV1AppsAppIdPatch>>, TError,{appId: string;data: PlatformAppUpdate}, TContext> => {
+
+const mutationKey = ['updatePlatformAppApiV1AppsAppIdPatch'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updatePlatformAppApiV1AppsAppIdPatch>>, {appId: string;data: PlatformAppUpdate}> = (props) => {
+          const {appId,data} = props ?? {};
+
+          return  updatePlatformAppApiV1AppsAppIdPatch(appId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdatePlatformAppApiV1AppsAppIdPatchMutationResult = NonNullable<Awaited<ReturnType<typeof updatePlatformAppApiV1AppsAppIdPatch>>>
+    export type UpdatePlatformAppApiV1AppsAppIdPatchMutationBody = PlatformAppUpdate
+    export type UpdatePlatformAppApiV1AppsAppIdPatchMutationError = HTTPValidationError
+
+    /**
+ * @summary Update Platform App
+ */
+export const useUpdatePlatformAppApiV1AppsAppIdPatch = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePlatformAppApiV1AppsAppIdPatch>>, TError,{appId: string;data: PlatformAppUpdate}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updatePlatformAppApiV1AppsAppIdPatch>>,
+        TError,
+        {appId: string;data: PlatformAppUpdate},
+        TContext
+      > => {
+      return useMutation(getUpdatePlatformAppApiV1AppsAppIdPatchMutationOptions(options), queryClient);
+    }
+
+export type updatePlatformAppStatusApiV1AppsAppIdStatusPatchResponse200 = {
+  data: ApiResponsePlatformAppPublic
+  status: 200
+}
+
+export type updatePlatformAppStatusApiV1AppsAppIdStatusPatchResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type updatePlatformAppStatusApiV1AppsAppIdStatusPatchResponseSuccess = (updatePlatformAppStatusApiV1AppsAppIdStatusPatchResponse200) & {
+  headers: Headers;
+};
+export type updatePlatformAppStatusApiV1AppsAppIdStatusPatchResponseError = (updatePlatformAppStatusApiV1AppsAppIdStatusPatchResponse422) & {
+  headers: Headers;
+};
+
+export type updatePlatformAppStatusApiV1AppsAppIdStatusPatchResponse = (updatePlatformAppStatusApiV1AppsAppIdStatusPatchResponseSuccess | updatePlatformAppStatusApiV1AppsAppIdStatusPatchResponseError)
+
+export const getUpdatePlatformAppStatusApiV1AppsAppIdStatusPatchUrl = (appId: string,) => {
+
+
+
+
+  return `/api/v1/apps/${appId}/status`
+}
+
+/**
+ * @summary Update Platform App Status
+ */
+export const updatePlatformAppStatusApiV1AppsAppIdStatusPatch = async (appId: string,
+    platformAppStatusUpdate: PlatformAppStatusUpdate, options?: RequestInit): Promise<updatePlatformAppStatusApiV1AppsAppIdStatusPatchResponse> => {
+
+  return orvalFetch<updatePlatformAppStatusApiV1AppsAppIdStatusPatchResponse>(getUpdatePlatformAppStatusApiV1AppsAppIdStatusPatchUrl(appId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(platformAppStatusUpdate)
+  }
+);}
+
+
+
+
+export const getUpdatePlatformAppStatusApiV1AppsAppIdStatusPatchMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePlatformAppStatusApiV1AppsAppIdStatusPatch>>, TError,{appId: string;data: PlatformAppStatusUpdate}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updatePlatformAppStatusApiV1AppsAppIdStatusPatch>>, TError,{appId: string;data: PlatformAppStatusUpdate}, TContext> => {
+
+const mutationKey = ['updatePlatformAppStatusApiV1AppsAppIdStatusPatch'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updatePlatformAppStatusApiV1AppsAppIdStatusPatch>>, {appId: string;data: PlatformAppStatusUpdate}> = (props) => {
+          const {appId,data} = props ?? {};
+
+          return  updatePlatformAppStatusApiV1AppsAppIdStatusPatch(appId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdatePlatformAppStatusApiV1AppsAppIdStatusPatchMutationResult = NonNullable<Awaited<ReturnType<typeof updatePlatformAppStatusApiV1AppsAppIdStatusPatch>>>
+    export type UpdatePlatformAppStatusApiV1AppsAppIdStatusPatchMutationBody = PlatformAppStatusUpdate
+    export type UpdatePlatformAppStatusApiV1AppsAppIdStatusPatchMutationError = HTTPValidationError
+
+    /**
+ * @summary Update Platform App Status
+ */
+export const useUpdatePlatformAppStatusApiV1AppsAppIdStatusPatch = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePlatformAppStatusApiV1AppsAppIdStatusPatch>>, TError,{appId: string;data: PlatformAppStatusUpdate}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updatePlatformAppStatusApiV1AppsAppIdStatusPatch>>,
+        TError,
+        {appId: string;data: PlatformAppStatusUpdate},
+        TContext
+      > => {
+      return useMutation(getUpdatePlatformAppStatusApiV1AppsAppIdStatusPatchMutationOptions(options), queryClient);
+    }
 
 export type getOperationLogsApiV1AuditOperationLogsGetResponse200 = {
   data: ApiResponsePageOperationLogPublic

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import auditSource from "./audit.tsx?raw";
+import appsSource from "./apps.tsx?raw";
 import departmentsSource from "./departments.tsx?raw";
 import dictionariesSource from "./dictionaries.tsx?raw";
 import filesSource from "./files.tsx?raw";
@@ -10,6 +11,7 @@ import usersSource from "./users.tsx?raw";
 
 const routePermissions = [
   ["index.tsx", indexSource, "menu:dashboard"],
+  ["apps.tsx", appsSource, "menu:apps"],
   ["users.tsx", usersSource, "menu:users"],
   ["roles.tsx", rolesSource, "menu:roles"],
   ["departments.tsx", departmentsSource, "menu:departments"],

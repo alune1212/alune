@@ -8,6 +8,7 @@ from app.core.config import get_settings
 from app.core.exceptions import register_exception_handlers
 from app.core.logging import configure_logging
 from app.db.session import dispose_engine
+from app.modules.apps.router import router as apps_router
 from app.modules.audit.router import router as audit_router
 from app.modules.auth.router import router as auth_router
 from app.modules.departments.router import router as departments_router
@@ -44,6 +45,7 @@ def create_app() -> FastAPI:
     )
 
     register_exception_handlers(application)
+    application.include_router(apps_router, prefix="/api/v1")
     application.include_router(audit_router, prefix="/api/v1")
     application.include_router(auth_router, prefix="/api/v1")
     application.include_router(departments_router, prefix="/api/v1")

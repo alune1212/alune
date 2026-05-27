@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 from app.core.config import get_settings
 from app.db.base import Base
+from app.modules.apps.models import PlatformApp
 from app.modules.audit.models import LoginLog, OperationLog
 from app.modules.auth.models import User
 from app.modules.departments.models import Department
@@ -36,6 +37,7 @@ _registered_models = (
     DictionaryType,
     FileAttachment,
     Permission,
+    PlatformApp,
     Role,
     SystemInfo,
 )

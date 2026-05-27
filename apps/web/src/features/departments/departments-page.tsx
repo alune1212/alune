@@ -166,7 +166,7 @@ export function DepartmentsPage() {
       },
       {
         accessorKey: "parent_id",
-        header: "上级部门",
+        header: "上级空间",
         cell: ({ row }) => row.original.parent_id ?? "-",
       },
       {
@@ -222,14 +222,14 @@ export function DepartmentsPage() {
         <h1 className="text-2xl font-semibold tracking-normal text-slate-950">
           {uiCopy.modules.departments}
         </h1>
-        <p className="mt-2 text-sm text-slate-600">用于账号分配的部门记录。</p>
+        <p className="mt-2 text-sm text-slate-600">用于协作者分组和访问边界的空间记录。</p>
       </section>
 
       <Card>
         <CardHeader>
-          <CardTitle>创建部门</CardTitle>
+          <CardTitle>创建空间</CardTitle>
           <CardDescription>
-            添加部门记录。存在子部门或用户时不能删除。
+            添加空间记录。存在子空间或用户时不能删除。
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
@@ -260,8 +260,8 @@ export function DepartmentsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>部门树</CardTitle>
-          <CardDescription>展示上下级部门关系。</CardDescription>
+          <CardTitle>空间树</CardTitle>
+          <CardDescription>展示上下级空间关系。</CardDescription>
         </CardHeader>
         <CardContent>
           <DepartmentTree nodes={departmentTree} />
@@ -270,9 +270,9 @@ export function DepartmentsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>部门列表</CardTitle>
+          <CardTitle>空间列表</CardTitle>
           <CardDescription>
-            {departmentsPage?.total ?? 0} 个部门
+            {departmentsPage?.total ?? 0} 个空间
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

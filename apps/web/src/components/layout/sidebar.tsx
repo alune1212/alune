@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Building2, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { getVisibleNavigationItems } from "@/config/navigation";
@@ -26,12 +26,12 @@ export function Sidebar() {
       <div className="flex h-16 items-center justify-between border-b border-slate-200 px-4">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex size-9 items-center justify-center rounded-md bg-slate-950 text-white">
-            <Building2 className="size-5" />
+            <Sparkles className="size-5" />
           </div>
           {!isCollapsed ? (
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">{platformName}</p>
-              <p className="truncate text-xs text-slate-500">内部管理</p>
+              <p className="truncate text-xs text-slate-500">个人平台</p>
             </div>
           ) : null}
         </div>

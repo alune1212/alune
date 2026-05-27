@@ -1,6 +1,7 @@
 import {
   BookOpen,
   FileText,
+  Grid2X2,
   LayoutDashboard,
   ListChecks,
   Network,
@@ -24,6 +25,12 @@ export const navigationItems: NavigationItem[] = [
     to: "/",
     icon: LayoutDashboard,
     permission: "menu:dashboard",
+  },
+  {
+    label: uiCopy.modules.apps,
+    to: "/apps",
+    icon: Grid2X2,
+    permission: "menu:apps",
   },
   {
     label: uiCopy.modules.users,

@@ -4,12 +4,13 @@ const adminUsername = process.env.E2E_ADMIN_USERNAME ?? "admin";
 const adminPassword = process.env.E2E_ADMIN_PASSWORD ?? "change-this-password";
 
 const internalPages = [
-  { label: "Users", heading: "Users" },
-  { label: "Roles", heading: "Roles" },
-  { label: "Departments", heading: "Departments" },
-  { label: "Audit", heading: "Audit" },
-  { label: "Dictionaries", heading: "Dictionaries" },
-  { label: "Files", heading: "Files" }
+  { label: "应用中心", heading: "应用中心" },
+  { label: "用户管理", heading: "用户管理" },
+  { label: "角色权限", heading: "角色权限" },
+  { label: "空间管理", heading: "空间管理" },
+  { label: "操作日志", heading: "操作日志" },
+  { label: "配置字典", heading: "配置字典" },
+  { label: "文件资源", heading: "文件资源" },
 ] as const;
 
 test.describe("admin smoke", () => {
@@ -23,15 +24,15 @@ test.describe("admin smoke", () => {
     await page.goto("/users");
 
     await expect(page).toHaveURL(/\/login$/u);
-    await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "登录" })).toBeVisible();
   });
 
-  test("logs in and navigates through internal system pages", async ({ page }) => {
-    await page.getByLabel("Username").fill(adminUsername);
-    await page.getByLabel("Password").fill(adminPassword);
-    await page.getByRole("button", { name: "Sign in" }).click();
+  test("logs in and navigates through platform pages", async ({ page }) => {
+    await page.getByLabel("用户名").fill(adminUsername);
+    await page.getByLabel("密码").fill(adminPassword);
+    await page.getByRole("button", { name: "登录" }).click();
 
-    await expect(page.getByRole("heading", { name: "alune-platform" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Alune Hub" })).toBeVisible();
     await expect(page.getByText("API").first()).toBeVisible();
 
     for (const internalPage of internalPages) {

@@ -1,1 +1,1 @@
-export const platformName = "alune-platform";
+export const platformName = "Alune Hub";

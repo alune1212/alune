@@ -6,12 +6,13 @@ describe("navigation permissions", () => {
   it("shows only menu items allowed by permissions", () => {
     const visibleItems = getVisibleNavigationItems(["menu:dashboard"]);
 
-    expect(visibleItems.map((item) => item.label)).toEqual(["仪表盘"]);
+    expect(visibleItems.map((item) => item.label)).toEqual(["首页"]);
   });
 
-  it("shows all default MVP menu items for an administrator", () => {
+  it("shows all Alune Hub menu items for an administrator", () => {
     const visibleItems = getVisibleNavigationItems([
       "menu:dashboard",
+      "menu:apps",
       "menu:users",
       "menu:roles",
       "menu:departments",
@@ -21,13 +22,14 @@ describe("navigation permissions", () => {
     ]);
 
     expect(visibleItems.map((item) => item.label)).toEqual([
-      "仪表盘",
+      "首页",
+      "应用中心",
       "用户管理",
-      "角色管理",
-      "部门管理",
-      "审计日志",
-      "字典管理",
-      "文件管理",
+      "角色权限",
+      "空间管理",
+      "操作日志",
+      "配置字典",
+      "文件资源",
     ]);
   });
 });

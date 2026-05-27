@@ -10,6 +10,11 @@ from app.modules.auth.repository import get_user_by_username
 from app.modules.auth.security import get_password_hash
 from app.modules.departments.models import Department
 from app.modules.departments.repository import get_department_by_code
+from app.modules.dictionaries.models import DictionaryItem, DictionaryType
+from app.modules.dictionaries.repository import (
+    get_dictionary_item_by_type_and_value,
+    get_dictionary_type_by_code,
+)
 from app.modules.permissions.models import Permission, Role
 from app.modules.permissions.registry import ADMIN_ROLE_CODE, ADMIN_ROLE_NAME, DEFAULT_PERMISSIONS
 from app.modules.permissions.repository import (
@@ -21,7 +26,15 @@ from app.modules.permissions.repository import (
 
 logger = logging.getLogger(__name__)
 DEFAULT_DEPARTMENT_CODE = "headquarters"
-DEFAULT_DEPARTMENT_NAME = "Headquarters"
+DEFAULT_DEPARTMENT_NAME = "Default Space"
+APP_CATEGORY_DICTIONARY_CODE = "app_category"
+APP_CATEGORY_DICTIONARY_NAME = "App category"
+DEFAULT_APP_CATEGORIES = (
+    ("tool", "工具", 10),
+    ("automation", "自动化", 20),
+    ("resource", "资料", 30),
+    ("system", "系统", 40),
+)
 
 
 async def seed_default_rbac(session: AsyncSession) -> Role:
@@ -61,13 +74,43 @@ async def seed_default_department(session: AsyncSession) -> Department:
     department = Department(
         code=DEFAULT_DEPARTMENT_CODE,
         name=DEFAULT_DEPARTMENT_NAME,
-        description="Default root department for the internal system foundation.",
+        description="Default space for Alune Hub collaborators.",
         sort_order=0,
         is_active=True,
     )
     session.add(department)
     await session.flush()
     return department
+
+
+async def seed_default_app_categories(session: AsyncSession) -> None:
+    dictionary_type = await get_dictionary_type_by_code(session, APP_CATEGORY_DICTIONARY_CODE)
+    if dictionary_type is None:
+        dictionary_type = DictionaryType(
+            code=APP_CATEGORY_DICTIONARY_CODE,
+            name=APP_CATEGORY_DICTIONARY_NAME,
+            description="Default categories for Alune Hub app entries.",
+            is_system=True,
+        )
+        session.add(dictionary_type)
+        await session.flush()
+
+    for value, label, sort_order in DEFAULT_APP_CATEGORIES:
+        existing_item = await get_dictionary_item_by_type_and_value(
+            session,
+            type_id=dictionary_type.id,
+            value=value,
+        )
+        if existing_item is None:
+            session.add(
+                DictionaryItem(
+                    type_id=dictionary_type.id,
+                    label=label,
+                    value=value,
+                    sort_order=sort_order,
+                    is_active=True,
+                )
+            )
 
 
 async def seed_first_superuser() -> None:
@@ -81,6 +124,7 @@ async def seed_first_superuser() -> None:
     async with AsyncSessionLocal() as session:
         admin_role = await seed_default_rbac(session)
         root_department = await seed_default_department(session)
+        await seed_default_app_categories(session)
         existing_user = await get_user_by_username(session, settings.first_superuser_username)
         if existing_user is not None:
             if existing_user.department_id is None:

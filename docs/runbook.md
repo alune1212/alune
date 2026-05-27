@@ -80,10 +80,11 @@ The seed command is idempotent by username. It refuses the placeholder password 
 - the default `admin` role
 - default menu permissions
 - default action permissions
-- a default root department
+- a default root space, stored in the existing `departments` table
+- the system `app_category` dictionary type with default app categories
 - user/role and role/permission links
 
-Run the seed command again after permission registry changes. It is idempotent and syncs newly added permission codes such as `action:users:update_roles`, `action:dictionaries:update`, `action:roles:create`, `action:roles:update`, and `action:roles:delete`.
+Run the seed command again after permission registry or system dictionary changes. It is idempotent and syncs newly added permission codes such as `menu:apps`, `action:apps:read`, `action:apps:create`, `action:apps:update`, and `action:apps:manage_status`.
 
 ## Start Local Development Servers
 
@@ -151,12 +152,15 @@ curl -s -X POST http://localhost:8000/api/v1/auth/login \
   -d "username=admin&password=change-this-password"
 docker compose exec -T postgres psql -U app -d company_admin -c "select code, type from permissions order by code;"
 docker compose exec -T postgres psql -U app -d company_admin -c "select code, name from departments order by code;"
-docker compose exec -T postgres psql -U app -d company_admin -c "select code from permissions where code in ('menu:audit','menu:dictionaries','menu:files') order by code;"
+docker compose exec -T postgres psql -U app -d company_admin -c "select code from permissions where code in ('menu:apps','menu:audit','menu:dictionaries','menu:files') order by code;"
 docker compose exec -T postgres psql -U app -d company_admin -c "select code from permissions where code = 'action:users:update_roles';"
 docker compose exec -T postgres psql -U app -d company_admin -c "select code from permissions where code = 'action:dictionaries:update';"
 docker compose exec -T postgres psql -U app -d company_admin -c "select code from permissions where code in ('action:roles:create','action:roles:update','action:roles:delete') order by code;"
+docker compose exec -T postgres psql -U app -d company_admin -c "select code from permissions where code like 'action:apps:%' order by code;"
+docker compose exec -T postgres psql -U app -d company_admin -c "select value, label from dictionary_items where type_id in (select id from dictionary_types where code = 'app_category') order by sort_order;"
 curl -s "http://localhost:8000/api/v1/audit/login-logs?started_at=2026-01-01T00:00:00&ended_at=2026-12-31T23:59:59" -H "Authorization: Bearer <token>"
 curl -s "http://localhost:8000/api/v1/audit/login-logs/export" -H "Authorization: Bearer <token>" -o login-logs.csv
+curl -s "http://localhost:8000/api/v1/apps?page=1&page_size=20" -H "Authorization: Bearer <token>"
 ```
 
 Expected DB health success:
@@ -178,6 +182,8 @@ UV_CACHE_DIR=.uv-cache pnpm typecheck
 UV_CACHE_DIR=.uv-cache pnpm test
 pnpm build
 UV_CACHE_DIR=.uv-cache pnpm api-client:generate
+pnpm --filter @alune/api-client typecheck
+pnpm --filter @alune/api-client test
 docker compose config
 docker compose --profile app config
 pnpm db:upgrade
@@ -198,7 +204,7 @@ pnpm --filter @alune/api-client test
 
 The generation command writes `packages/api-client/openapi/openapi.json` through `apps/api/app/scripts/export_openapi.py`, then Orval writes `packages/api-client/src/generated/api.ts`. The export script normalizes multipart binary fields to `format: binary` so generated upload bodies use `Blob`. Dashboard health, auth entry points, internal-system read queries, and user/role/department/dictionary JSON write actions already use generated hooks. The root compatibility client in `packages/api-client/src/index.ts` is now limited to runtime configuration, audit CSV export, file upload, file download, and the types needed by those binary/CSV boundaries.
 
-Generated requests use `packages/api-client/src/orval-fetch.ts` and the runtime configuration in `packages/api-client/src/runtime-config.ts` so they follow the same API base URL behavior as the compatibility client. The web app initializes this from `VITE_API_BASE_URL`; normal JSON reads/writes should use `@alune/api-client/generated`. CSV export and file download helpers still return `Blob`, and file upload still exposes the current page-facing helper while delegating to the generated multipart request.
+Generated requests use `packages/api-client/src/orval-fetch.ts` and the runtime configuration in `packages/api-client/src/runtime-config.ts` so they follow the same API base URL behavior as the compatibility client. The web app initializes this from `VITE_API_BASE_URL`; normal JSON reads/writes, including App Center reads/writes, should use `@alune/api-client/generated`. CSV export and file download helpers still return `Blob`, and file upload still exposes the current page-facing helper while delegating to the generated multipart request.
 
 By default the web client uses same-origin relative URLs, so Docker Web serves API calls through Nginx at `/api/` and proxies to the API container. For local Vite development, keep using `VITE_API_BASE_URL=http://localhost:8000` when the API runs on a separate port.
 
@@ -228,11 +234,11 @@ In constrained Codex sandbox sessions, launching Chromium may fail with a macOS 
 
 ## Playwright Smoke Tests
 
-The stage 6G-P smoke suite lives in `apps/web/e2e/admin-smoke.spec.ts` and covers:
+The Playwright smoke suite lives in `apps/web/e2e/admin-smoke.spec.ts` and covers:
 
-- protected internal routes redirecting to `/login` when unauthenticated;
+- protected platform routes redirecting to `/login` when unauthenticated;
 - successful login with a seeded administrator;
-- navigation through Dashboard, Users, Roles, Departments, Audit, Dictionaries, and Files.
+- navigation through 首页, 应用中心, 用户管理, 角色权限, 空间管理, 操作日志, 配置字典, and 文件资源.
 
 Prepare a dedicated local e2e administrator:
 
@@ -311,7 +317,7 @@ The Python audit script exports the backend uv lockfile to a temporary requireme
 
 ## Feature Readiness Gate
 
-Before starting a company-specific business module, read `docs/feature-readiness.md` and `docs/feature-module-checklist.md`. Stage 6G-U resolves the previous npm audit `lodash` finding with a pnpm override, stage 6G-V defines the required scope, backend, migration, permission, audit, API client, frontend, test, documentation, and verification gates, and stage 6G-W completes the current security and deployment hardening pass. Re-run npm and Python audits before the first business module PR.
+Before starting the next personal-platform module, read `docs/feature-readiness.md` and `docs/feature-module-checklist.md`. Stage 6H completes the Alune Hub personal-platform positioning pass, and stage 7A adds App Center V1 as a registration/navigation module only. Re-run npm and Python audits before the next feature PR, and keep script execution, task scheduling, dynamic plugin loading, approval flows, payroll, and reports out of scope unless a narrow module brief explicitly introduces them.
 
 ## Troubleshooting
 

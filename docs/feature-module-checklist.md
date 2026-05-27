@@ -1,16 +1,16 @@
 # Feature Module Checklist
 
-Last reviewed: 2026-05-26
+Last reviewed: 2026-05-27
 
-Current stage: 6G-W
+Current stage: 7A
 
-Use this checklist before starting any company-specific business module. A module is not ready to implement until the scope, data model, permissions, audit events, API contract, frontend surface, tests, and verification commands are all written down.
+Use this checklist before starting any new Alune Hub personal-platform module. A module is not ready to implement until the scope, data model, permissions, audit events, API contract, frontend surface, tests, and verification commands are all written down.
 
 ## Scope Gate
 
 Write a short module brief before touching code:
 
-- Module name, owner-facing purpose, and the first user workflow.
+- Module name, user-facing purpose, and the first user workflow.
 - Explicitly excluded workflows for this iteration.
 - Data entities and whether each entity is new or reuses an existing table.
 - Required import, export, attachment, reporting, or approval behavior. If none are required, say so.
@@ -18,7 +18,7 @@ Write a short module brief before touching code:
 - Audit expectations for every mutating action.
 - Minimum test plan and manual smoke path.
 
-Keep the first module small. Do not create a generic workflow engine, report engine, or approval engine before a real module needs it.
+Keep each module small. Do not create a generic workflow engine, report engine, approval engine, script executor, scheduler, or dynamic plugin runtime before a real module needs it.
 
 ## Backend Checklist
 
@@ -60,7 +60,7 @@ Add permissions in `apps/api/app/modules/permissions/registry.py`:
 - One menu permission: `menu:<module>`.
 - Read permission: `action:<module>:read`.
 - Mutating permissions as needed: `action:<module>:create`, `action:<module>:update`, `action:<module>:delete`.
-- Extra action permissions only when they represent a real business boundary, such as `action:<module>:export`, `action:<module>:approve`, or `action:<module>:upload`.
+- Extra action permissions only when they represent a real product boundary, such as `action:<module>:export`, `action:<module>:share`, or `action:<module>:upload`.
 
 Apply permissions in routers with `require_permission(...)`. Add the menu item in `apps/web/src/config/navigation.ts` only after the backend permission exists.
 
@@ -72,7 +72,7 @@ After changing the registry:
 
 ## Audit Checklist
 
-Every mutating business route must write an operation log with `record_operation_log`:
+Every mutating route must write an operation log with `record_operation_log`:
 
 - Use stable `action` names such as `create`, `update`, `delete`, `submit`, `approve`, or `export`.
 - Use a stable `resource_type`, usually the module name.
@@ -117,7 +117,7 @@ Avoid building a generic CRUD framework before at least two business modules pro
 
 ## Test Checklist
 
-Minimum tests for a first business module:
+Minimum tests for a new personal-platform module:
 
 - Backend route tests for list/detail and each mutation.
 - Backend permission tests for at least one read route and one mutating route.
@@ -142,7 +142,7 @@ Do not duplicate full implementation details across every file. Put operational 
 
 ## Verification Checklist
 
-Before merging a business module, run:
+Before merging a feature module, run:
 
 ```bash
 UV_CACHE_DIR=.uv-cache pnpm lint
@@ -168,11 +168,11 @@ FIRST_SUPERUSER_PASSWORD=change-this-password UV_CACHE_DIR=.uv-cache pnpm db:see
 
 If the module changes browser-critical behavior, run the actual Playwright smoke suite against local API/Web.
 
-## Ready For Stage 7A
+## Ready For Next Stage
 
-Stage 7A can start only when:
+The next stage can start only when:
 
 1. This checklist is committed.
 2. `docs/feature-readiness.md` says the platform is ready for feature development.
 3. npm and Python security audits still report no known vulnerabilities.
-4. The first business module has a written scope brief following the scope gate above.
+4. The next personal-platform module has a written scope brief following the scope gate above.

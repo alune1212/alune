@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## 项目概述
 
-alune-platform 是公司内部管理系统 MVP，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础和阶段 6G-W 内部系统底座交互、存储、上传扫描、前端测试、Orval API client 生成、内部系统读写 generated hooks 迁移、API client 兼容层收缩、Playwright 登录/导航冒烟测试、GitHub Actions CI、Dependabot 依赖更新可见性、轻量安全审计基线、功能开发前就绪检查、npm audit remediation、安全与部署硬化与业务模块开发准入清单。
+alune-platform 当前产品定位为 Alune Hub，是偏个人平台中枢的私有工作台，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础、平台管理底座、文件与字典能力、上传扫描、前端测试、Orval API client 生成、generated hooks 迁移、API client 兼容层收缩、Playwright 登录/导航冒烟测试、GitHub Actions CI、Dependabot 依赖更新可见性、轻量安全审计基线、功能开发前就绪检查、安全与部署硬化、Stage 6H 个人平台定位调整，以及 Stage 7A 应用中心 V1。
 
 ## Quick Start
 
@@ -111,12 +111,13 @@ alune-platform/
 - **入口**: `app/main.py` - 使用 lifespan 管理引擎生命周期
 - **配置**: `app/core/config.py` - pydantic-settings，支持 `.env` 文件
 - **数据库**: `app/db/session.py` - asyncpg 驱动，`get_db_session` 依赖注入
-- **迁移**: `alembic/` + `alembic.ini` - 迁移创建 `system_info`、`users`、`roles`、`permissions`、关联表、`departments`、日志表、字典表和文件附件元数据；env.py 中不需要 `_registered_models` 变量，import 模型即可让 Alembic 通过 `Base.metadata` 自动发现
+- **迁移**: `alembic/` + `alembic.ini` - 迁移创建 `system_info`、`users`、`roles`、`permissions`、关联表、`departments`、日志表、字典表、文件附件元数据和 `platform_apps`；env.py import 模型让 Alembic 通过 `Base.metadata` 自动发现
 - **基类**: `app/db/base.py` - `Base` + `TimestampMixin`（`created_at`/`updated_at`）
 - **认证**: `app/modules/auth/` - 用户表、密码哈希、JWT 登录、当前用户依赖
 - **权限**: `app/modules/permissions/` - 角色、权限、关联表、默认权限、权限校验依赖
-- **内部系统**: `app/modules/users/`、`app/modules/roles/`、`app/modules/departments/` - 用户创建/启停/批量启停/资料编辑/密码重置、用户角色分配、用户角色/部门过滤、角色增删改守卫、角色权限配置、部门树、部门更新/删除规则
-- **基础模块**: `app/modules/audit/`、`app/modules/dictionaries/`、`app/modules/files/` - 登录/操作日志筛选分页/日期过滤/CSV 导出、字典类型/字典项维护守卫、本地文件上传下载、上传策略（含扫描前大小预检）、文件存储后端工厂和上传扫描 hook；文件下载文件名已做安全过滤防止 HTTP header 注入
+- **平台管理**: `app/modules/users/`、`app/modules/roles/`、`app/modules/departments/` - 用户创建/启停/批量启停/资料编辑/密码重置、用户角色分配、用户角色/空间过滤、角色增删改守卫、角色权限配置、空间树、空间更新/删除规则；`departments` 仍是当前技术命名
+- **应用中心**: `app/modules/apps/` - App Center V1，提供应用登记、搜索筛选、创建、编辑、启停、权限校验和操作日志；V1 只做登记与导航，不执行脚本、任务调度或动态插件加载
+- **基础模块**: `app/modules/audit/`、`app/modules/dictionaries/`、`app/modules/files/` - 登录/操作日志筛选分页/日期过滤/CSV 导出、字典类型/字典项维护守卫、应用分类字典、本地文件上传下载、上传策略（含扫描前大小预检）、文件存储后端工厂和上传扫描 hook；文件下载文件名已做安全过滤防止 HTTP header 注入
 - **模块化**: `app/modules/<feature>/router.py` - 每个功能模块独立路由
 - **统一响应**: `app/common/response.py` - `ApiResponse[DataT]` 泛型模型
 - **异常处理**: `app/core/exceptions.py` - 全局异常处理器
@@ -130,11 +131,11 @@ alune-platform/
 - **布局**: `src/components/layout/` - AppShell > Sidebar + Topbar
 - **功能模块**: `src/features/<feature>/` - 按功能划分页面
 - **导航配置**: `src/config/navigation.ts` - 共享导航项
-- **认证前端**: `src/features/auth/` - 登录页（含会话过期提示）、AuthProvider、token storage（401 自动清除）、受保护路由（`RequirePermission` 已接入内部系统路由权限校验）
-- **内部系统前端**: `src/features/users/`、`src/features/roles/`、`src/features/departments/`、`src/features/audit/`、`src/features/dictionaries/`、`src/features/files/`；用户页面包含角色/部门过滤、批量启停确认和结果反馈，角色页面包含角色增删改、权限搜索、按类型分组配置和搜索空状态，审计页面包含日期过滤和 CSV 导出，字典页面包含类型/字典项维护
+- **认证前端**: `src/features/auth/` - Alune Hub 登录页（含会话过期提示）、AuthProvider、token storage（401 自动清除）、受保护路由（`RequirePermission` 已接入平台路由权限校验）
+- **平台前端**: `src/features/apps/`、`src/features/users/`、`src/features/roles/`、`src/features/departments/`、`src/features/audit/`、`src/features/dictionaries/`、`src/features/files/`；应用中心页面包含应用卡片/列表、搜索筛选、创建、编辑、启停和入口打开，用户页面包含角色/空间过滤、批量启停确认和结果反馈，角色页面包含角色增删改、权限搜索、按类型分组配置和搜索空状态，操作日志页面包含日期过滤和 CSV 导出，配置字典页面包含类型/字典项维护
 - **表单验证**: 项目使用 Zod v4，必须用 `@hookform/resolvers/standard-schema` 的 `standardSchemaResolver`，不能用 `zodResolver`（仅支持 Zod v3）
 - **菜单权限**: `src/config/navigation.ts` - 根据 `/api/v1/auth/me` 返回的权限码过滤菜单
-- **API client**: `packages/api-client/src/index.ts` - 当前兼容 client（users、roles、departments、audit、dictionaries、files 等内部系统页面仍在使用），其中 JSON 请求和 multipart 上传已委托给生成 request；CSV 导出和文件下载保留 `Blob` 返回，同时复用生成 URL helper；dashboard health 和 auth 前端入口已直接使用 `@alune/api-client/generated` hooks；`packages/api-client/src/generated/api.ts` 是 Orval 从 FastAPI OpenAPI 生成的 types/request functions/React Query hooks；`packages/api-client/src/runtime-config.ts` 默认使用同源相对 API 路径，可由 `VITE_API_BASE_URL` 覆盖；`packages/api-client/src/orval-fetch.ts` 是生成 client 的自定义 fetcher
+- **API client**: `packages/api-client/src/index.ts` - 当前兼容 client 保留 runtime 配置、CSV 导出、文件上传、文件下载和二进制边界能力；常规 JSON 读写，包括应用中心，使用 `@alune/api-client/generated` hooks；`packages/api-client/src/generated/api.ts` 是 Orval 从 FastAPI OpenAPI 生成的 types/request functions/React Query hooks；`packages/api-client/src/runtime-config.ts` 默认使用同源相对 API 路径，可由 `VITE_API_BASE_URL` 覆盖；`packages/api-client/src/orval-fetch.ts` 是生成 client 的自定义 fetcher
 - **Shared constants**: `packages/shared/src/index.ts` - 当前导出 `platformName`
 - **路径别名**: `@/*` -> `./src/*`
 
@@ -191,12 +192,12 @@ alune-platform/
 
 - **后端**: pytest + pytest-asyncio，测试在 `app/tests/`
 - **前端**: Vitest + Testing Library，测试文件 `*.test.ts` / `*.test.tsx`
-- **前端交互覆盖**: 用户批量状态、角色权限搜索、字典类型创建、部门树和创建、审计导出过滤、文件上传
-- **Playwright 冒烟覆盖**: `apps/web/e2e/admin-smoke.spec.ts` 覆盖未登录跳转、管理员登录和内部系统导航；常用命令为 `E2E_BASE_URL=http://localhost:5173 E2E_ADMIN_USERNAME=e2e_admin E2E_ADMIN_PASSWORD=change-this-password pnpm --filter @alune/web e2e`
+- **前端交互覆盖**: 应用中心创建/编辑/启停、用户批量状态、角色权限搜索、字典类型创建、空间树和创建、操作日志导出过滤、文件上传
+- **Playwright 冒烟覆盖**: `apps/web/e2e/admin-smoke.spec.ts` 覆盖未登录跳转、管理员登录和平台导航；常用命令为 `E2E_BASE_URL=http://localhost:5173 E2E_ADMIN_USERNAME=e2e_admin E2E_ADMIN_PASSWORD=change-this-password pnpm --filter @alune/web e2e`
 - **CI**: `.github/workflows/ci.yml` 的默认 `quality` job 跑 API client 生成一致性、lint、typecheck、test、build 和 Docker Compose 配置校验；`playwright-smoke` 是手动 workflow_dispatch job。
 - **Dependabot**: `.github/dependabot.yml` 每周检查 npm/pnpm、uv、Docker、Docker Compose 和 GitHub Actions，并按生态分组 PR。
 - **Security audit**: `pnpm security:audit` 跑 npm 和 Python 依赖审计；Python 路径由 `scripts/security-audit-python.sh` 导出 uv lockfile 后调用 `uvx pip-audit`。当前不在默认 CI 中阻塞构建。
-- **Feature readiness**: `docs/feature-readiness.md` 记录进入业务功能开发前的准入条件；`docs/feature-module-checklist.md` 记录业务模块开发清单。阶段 7A 可以开始第一个小型业务模块的范围说明，但编码前必须先写清楚实体、权限、审计事件、API、页面和测试计划。
+- **Feature readiness**: `docs/feature-readiness.md` 记录进入下一轮个人平台功能开发前的准入条件；`docs/feature-module-checklist.md` 记录模块开发清单。阶段 7B 可以开始下一个小型个人模块的范围说明，但编码前必须先写清楚实体、权限、审计事件、API、页面和测试计划。
 - **API 测试**: 使用 httpx AsyncClient + ASGITransport
 - **浏览器测试**: Playwright `1.60.0` 已安装 Chromium `1223` 和 `chromium_headless_shell-1223`。如果 Codex 沙箱内启动 Chromium 出现 macOS Mach port 权限错误，改到沙箱外执行浏览器检查。
 
@@ -205,11 +206,11 @@ alune-platform/
 - `README.md`：新人快速启动。
 - `docs/architecture.md`：架构、数据流、API surface。
 - `docs/runbook.md`：本地运行、Docker、冒烟检查和排障。
-- `docs/feature-module-checklist.md`：业务模块开发前准入清单。
+- `docs/feature-module-checklist.md`：个人平台模块开发前准入清单。
 - `docs/feature-readiness.md`：功能开发前准入检查、阻塞项和后续阶段。
 - `docs/handoff.md`：当前阶段完成情况和下一阶段。
 - `AGENTS.md`：Codex/其他 agent 项目约定。
 
 ## 当前阶段边界
 
-已完成阶段 0、1、2、3、4、5、6A、6B、6C、6D、6E、阶段 6F、阶段 6G-A、阶段 6G-B、阶段 6G-C、阶段 6G-D、阶段 6G-E、阶段 6G-F、阶段 6G-G、阶段 6G-H、阶段 6G-I、阶段 6G-J、阶段 6G-K、阶段 6G-L、阶段 6G-M、阶段 6G-N、阶段 6G-O、阶段 6G-P、阶段 6G-Q、阶段 6G-R、阶段 6G-S、阶段 6G-T、阶段 6G-U、阶段 6G-V 和阶段 6G-W（安全与部署硬化）的最小 MVP。不包含：复杂组织架构、审批、报表和公司业务模块。下一阶段建议：进入阶段 7A，先选择第一个小型业务模块并写范围说明。
+已完成阶段 0、1、2、3、4、5、6A、6B、6C、6D、6E、阶段 6F、阶段 6G-A 至 6G-W、阶段 6H（个人平台定位调整）和阶段 7A（应用中心 V1）的最小 MVP。不包含：复杂组织架构、审批、报表、公司业务模块、脚本执行、任务调度或动态插件加载。下一阶段建议：进入阶段 7B，先选择一个小型个人平台模块并写范围说明。
