@@ -1,6 +1,6 @@
 # alune-platform
 
-Alune Knowledge 个人/小团队 RAG 知识库平台 MVP。当前阶段包含最小可运行 monorepo、FastAPI 后端、Vite React 前端、PostgreSQL + pgvector、Redis、本地登录、权限基础、知识库、文档入库、文档切片/向量索引、单轮知识问答、引用溯源、操作日志、配置字典和文件存储。遗留应用中心 API 暂保留但不再作为主导航入口；平台不执行脚本、不加载动态插件。
+Alune Knowledge 个人/小团队 RAG 知识库平台 MVP。当前阶段包含最小可运行 monorepo、FastAPI 后端、Vite React 前端、PostgreSQL + pgvector、Redis、本地登录、权限基础、知识库与成员管理、文档入库、文档切片/向量索引、失败文档重新索引、多知识库单轮问答、引用溯源、操作日志、配置字典和文件存储。遗留应用中心 API 暂保留但不再作为主导航入口；平台不执行脚本、不加载动态插件。
 
 ## 技术栈
 
@@ -246,7 +246,7 @@ E2E_BASE_URL=http://localhost:15173 E2E_ADMIN_USERNAME=e2e_admin E2E_ADMIN_PASSW
 - 文件上传会在扫描前先做大小检查；文件下载响应会清理并编码文件名，避免 `Content-Disposition` 头注入。
 - 应用中心 V1 只负责应用登记、筛选、启停和入口导航，不执行脚本、任务调度或动态插件加载。
 
-进入下一轮功能开发前先阅读 [Feature Readiness](docs/feature-readiness.md) 和 [Feature Module Checklist](docs/feature-module-checklist.md)。阶段 7B 应先选择一个小型个人平台模块，并写清楚范围、权限、审计事件、API、页面和测试计划。
+进入下一轮功能开发前先阅读 [Feature Readiness](docs/feature-readiness.md) 和 [Feature Module Checklist](docs/feature-module-checklist.md)。阶段 7C 已完成 RAG MVP 的成员管理、重新索引和多知识库问答补强；后续新模块仍应先写清楚范围、权限、审计事件、API、页面和测试计划。
 
 ## Security Audit
 

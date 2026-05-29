@@ -15,8 +15,11 @@ import { useAuth } from "@/features/auth/auth-provider";
 import {
   useCreateKnowledgeBaseApiV1KnowledgeBasesPost,
   useDeleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDelete,
+  useGetKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGet,
   useGetKnowledgeBasesApiV1KnowledgeBasesGet,
   useUpdateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatch,
+  useUpdateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPut,
+  type KnowledgeBaseMemberUpdate,
   type KnowledgeBasePublic,
 } from "@alune/api-client/generated";
 
@@ -27,6 +30,15 @@ export function KnowledgeBasesPage() {
   const [description, setDescription] = useState("");
   const [editingBase, setEditingBase] = useState<KnowledgeBasePublic | null>(
     null,
+  );
+  const [memberBase, setMemberBase] = useState<KnowledgeBasePublic | null>(
+    null,
+  );
+  const [memberUserId, setMemberUserId] = useState("");
+  const [memberRole, setMemberRole] =
+    useState<KnowledgeBaseMemberUpdate["role"]>("viewer");
+  const [addedMembers, setAddedMembers] = useState<KnowledgeBaseMemberUpdate[]>(
+    [],
   );
 
   const request = useMemo(
@@ -44,6 +56,55 @@ export function KnowledgeBasesPage() {
   const basesPage =
     basesQuery.data?.status === 200 ? basesQuery.data.data.data : undefined;
   const bases = basesPage?.items ?? [];
+  const membersQuery =
+    useGetKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGet(
+      memberBase?.id ?? "",
+      {
+        query: {
+          queryKey: ["knowledge-base-members", memberBase?.id],
+          enabled: memberBase !== null,
+        },
+        request,
+      },
+    );
+  const members = useMemo(
+    () =>
+      membersQuery.data?.status === 200 ? membersQuery.data.data.data : [],
+    [membersQuery.data],
+  );
+  const memberDrafts = useMemo(
+    () => [
+      ...members.map((member) => ({
+        user_id: member.user_id,
+        role: member.role,
+      })),
+      ...addedMembers,
+    ],
+    [addedMembers, members],
+  );
+
+  function openMembers(knowledgeBase: KnowledgeBasePublic) {
+    setMemberBase(knowledgeBase);
+    setAddedMembers([]);
+    setMemberUserId("");
+    setMemberRole("viewer");
+  }
+
+  function closeMembers() {
+    setMemberBase(null);
+    setAddedMembers([]);
+    setMemberUserId("");
+    setMemberRole("viewer");
+  }
+
+  function currentMemberDrafts(): KnowledgeBaseMemberUpdate[] {
+    return members
+      .map((member) => ({
+        user_id: member.user_id,
+        role: member.role,
+      }))
+      .concat(addedMembers);
+  }
 
   function resetForm() {
     setName("");
@@ -78,6 +139,16 @@ export function KnowledgeBasesPage() {
       },
       request,
     });
+  const updateMembersMutation =
+    useUpdateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPut({
+      mutation: {
+        onSuccess: () =>
+          queryClient.invalidateQueries({
+            queryKey: ["knowledge-base-members", memberBase?.id],
+          }),
+      },
+      request,
+    });
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
   function submitKnowledgeBase() {
@@ -95,6 +166,33 @@ export function KnowledgeBasesPage() {
     setEditingBase(knowledgeBase);
     setName(knowledgeBase.name);
     setDescription(knowledgeBase.description ?? "");
+  }
+
+  function addMember() {
+    if (!memberUserId) {
+      return;
+    }
+    if (
+      currentMemberDrafts().some((member) => member.user_id === memberUserId)
+    ) {
+      return;
+    }
+    setAddedMembers([
+      ...addedMembers,
+      { user_id: memberUserId, role: memberRole },
+    ]);
+    setMemberUserId("");
+    setMemberRole("viewer");
+  }
+
+  function saveMembers() {
+    if (!memberBase) {
+      return;
+    }
+    updateMembersMutation.mutate({
+      knowledgeBaseId: memberBase.id,
+      data: { members: currentMemberDrafts() },
+    });
   }
 
   return (
@@ -188,6 +286,13 @@ export function KnowledgeBasesPage() {
                     <Button
                       type="button"
                       variant="outline"
+                      onClick={() => openMembers(knowledgeBase)}
+                    >
+                      管理成员
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
                       onClick={() =>
                         deleteMutation.mutate({
                           knowledgeBaseId: knowledgeBase.id,
@@ -203,6 +308,72 @@ export function KnowledgeBasesPage() {
           )}
         </CardContent>
       </Card>
+
+      {memberBase ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>成员管理</CardTitle>
+            <CardDescription>{memberBase.name}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-3 md:grid-cols-[1fr_160px_auto]">
+              <Input
+                value={memberUserId}
+                onChange={(event) => setMemberUserId(event.target.value)}
+                placeholder="用户 ID"
+              />
+              <select
+                aria-label="成员角色"
+                className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm"
+                value={memberRole}
+                onChange={(event) =>
+                  setMemberRole(
+                    event.target.value as KnowledgeBaseMemberUpdate["role"],
+                  )
+                }
+              >
+                <option value="owner">owner</option>
+                <option value="editor">editor</option>
+                <option value="viewer">viewer</option>
+              </select>
+              <Button
+                type="button"
+                onClick={addMember}
+                disabled={!memberUserId}
+              >
+                添加成员
+              </Button>
+            </div>
+
+            <div className="space-y-2">
+              {memberDrafts.map((member) => (
+                <div
+                  key={member.user_id}
+                  className="flex items-center justify-between rounded-md border border-slate-200 px-3 py-2 text-sm"
+                >
+                  <span>{member.user_id}</span>
+                  <span className="text-slate-500">{member.role}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                onClick={saveMembers}
+                disabled={
+                  memberDrafts.length === 0 || updateMembersMutation.isPending
+                }
+              >
+                保存成员
+              </Button>
+              <Button type="button" variant="outline" onClick={closeMembers}>
+                关闭
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   );
 }

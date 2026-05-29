@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## 项目概述
 
-alune-platform 当前产品定位为 Alune Knowledge，是个人/小团队 RAG 知识库平台，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL + pgvector、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础、平台管理底座、文件与字典能力、上传扫描、知识库、文档入库、文档切片/向量索引、OpenAI 兼容 AI 配置、单轮知识问答与引用溯源、前端测试、Orval API client 生成、generated hooks 迁移、API client 兼容层收缩、Playwright 登录/导航冒烟测试、GitHub Actions CI、Dependabot 依赖更新可见性、轻量安全审计基线、功能开发前就绪检查、安全与部署硬化、Stage 6H 个人平台定位调整、Stage 7A 应用中心 V1，以及 Stage 7B RAG 知识库平台定位。
+alune-platform 当前产品定位为 Alune Knowledge，是个人/小团队 RAG 知识库平台，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL + pgvector、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础、平台管理底座、文件与字典能力、上传扫描、知识库、成员管理、文档入库、文档切片/向量索引、文档重新索引、OpenAI 兼容 AI 配置、多知识库单轮问答与引用溯源、前端测试、Orval API client 生成、generated hooks 迁移、API client 兼容层收缩、Playwright 登录/导航冒烟测试、GitHub Actions CI、Dependabot 依赖更新可见性、轻量安全审计基线、功能开发前就绪检查、安全与部署硬化、Stage 6H 个人平台定位调整、Stage 7A 应用中心 V1、Stage 7B RAG 知识库平台定位，以及 Stage 7C RAG MVP 补强。
 
 ## Quick Start
 
@@ -193,12 +193,12 @@ alune-platform/
 
 - **后端**: pytest + pytest-asyncio（`asyncio_mode = "auto"`，async 测试函数无需 `@pytest.mark.asyncio` 装饰器），测试在 `app/tests/`
 - **前端**: Vitest + Testing Library，测试文件 `*.test.ts` / `*.test.tsx`
-- **前端交互覆盖**: 应用中心创建/编辑/启停、用户批量状态、角色权限搜索、字典类型创建、空间树和创建、操作日志导出过滤、文件上传
+- **前端交互覆盖**: RAG 成员管理、文档重新索引、多知识库问答提交、应用中心创建/编辑/启停、用户批量状态、角色权限搜索、字典类型创建、空间树和创建、操作日志导出过滤、文件上传
 - **Playwright 冒烟覆盖**: `apps/web/e2e/admin-smoke.spec.ts` 覆盖未登录跳转、管理员登录和平台导航；常用命令为 `E2E_BASE_URL=http://localhost:5173 E2E_ADMIN_USERNAME=e2e_admin E2E_ADMIN_PASSWORD=change-this-password pnpm --filter @alune/web e2e`
 - **CI**: `.github/workflows/ci.yml` 的默认 `quality` job 跑 API client 生成一致性、lint、typecheck、test、build 和 Docker Compose 配置校验；`playwright-smoke` 是手动 workflow_dispatch job。
 - **Dependabot**: `.github/dependabot.yml` 每周检查 npm/pnpm、uv、Docker、Docker Compose 和 GitHub Actions，并按生态分组 PR。
 - **Security audit**: `pnpm security:audit` 跑 npm 和 Python 依赖审计；Python 路径由 `scripts/security-audit-python.sh` 导出 uv lockfile 后调用 `uvx pip-audit`。当前不在默认 CI 中阻塞构建。
-- **Feature readiness**: `docs/feature-readiness.md` 记录进入下一轮个人平台功能开发前的准入条件；`docs/feature-module-checklist.md` 记录模块开发清单。阶段 7B 可以开始下一个小型个人模块的范围说明，但编码前必须先写清楚实体、权限、审计事件、API、页面和测试计划。
+- **Feature readiness**: `docs/feature-readiness.md` 记录进入下一轮个人平台功能开发前的准入条件；`docs/feature-module-checklist.md` 记录模块开发清单。阶段 7C 已完成 RAG MVP 的成员管理、重新索引和多知识库问答补强；后续编码前必须先写清楚实体、权限、审计事件、API、页面和测试计划。
 - **API 测试**: 使用 httpx AsyncClient + ASGITransport
 - **浏览器测试**: Playwright `1.60.0` 已安装 Chromium `1223` 和 `chromium_headless_shell-1223`。如果 Codex 沙箱内启动 Chromium 出现 macOS Mach port 权限错误，改到沙箱外执行浏览器检查。
 
@@ -214,4 +214,4 @@ alune-platform/
 
 ## 当前阶段边界
 
-已完成阶段 0、1、2、3、4、5、6A、6B、6C、6D、6E、阶段 6F、阶段 6G-A 至 6G-W、阶段 6H（个人平台定位调整）和阶段 7A（应用中心 V1）的最小 MVP。不包含：复杂组织架构、审批、报表、公司企业流程、脚本执行、任务调度或动态插件加载。下一阶段建议：进入阶段 7B，先选择一个小型个人平台模块并写范围说明。
+已完成阶段 0、1、2、3、4、5、6A、6B、6C、6D、6E、阶段 6F、阶段 6G-A 至 6G-W、阶段 6H（个人平台定位调整）、阶段 7A（应用中心 V1）、阶段 7B（RAG 知识库平台定位）和阶段 7C（RAG MVP 补强）。不包含：复杂组织架构、审批、报表、公司企业流程、脚本执行、任务调度或动态插件加载。下一阶段建议：进入阶段 7D，围绕 PDF 解析、检索调优和回答质量样例做窄范围 RAG 质量补强。

@@ -15,6 +15,7 @@ import { useAuth } from "@/features/auth/auth-provider";
 import {
   useDeleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDelete,
   useGetKnowledgeBasesApiV1KnowledgeBasesGet,
+  useIndexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPost,
   useListKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGet,
   useUploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPost,
 } from "@alune/api-client/generated";
@@ -85,6 +86,14 @@ export function DocumentsPage() {
     );
   const deleteMutation =
     useDeleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDelete({
+      mutation: {
+        onSuccess: () =>
+          queryClient.invalidateQueries({ queryKey: ["knowledge-documents"] }),
+      },
+      request,
+    });
+  const indexMutation =
+    useIndexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPost({
       mutation: {
         onSuccess: () =>
           queryClient.invalidateQueries({ queryKey: ["knowledge-documents"] }),
@@ -184,15 +193,27 @@ export function DocumentsPage() {
                       </p>
                     ) : null}
                   </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() =>
-                      deleteMutation.mutate({ documentId: document.id })
-                    }
-                  >
-                    {uiCopy.common.delete}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() =>
+                        indexMutation.mutate({ documentId: document.id })
+                      }
+                      disabled={indexMutation.isPending}
+                    >
+                      重新索引
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() =>
+                        deleteMutation.mutate({ documentId: document.id })
+                      }
+                    >
+                      {uiCopy.common.delete}
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>

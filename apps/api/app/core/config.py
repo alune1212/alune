@@ -94,6 +94,9 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_production_security(self) -> Settings:
+        if self.ai_embedding_dimensions != 1536:
+            msg = "AI_EMBEDDING_DIMENSIONS must match knowledge_chunks.embedding vector(1536)"
+            raise ValueError(msg)
         if self.environment != "production":
             return self
 

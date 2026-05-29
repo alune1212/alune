@@ -99,3 +99,11 @@ def test_settings_production_accepts_secure_config(monkeypatch) -> None:
         minio_secret_key="a-real-minio-secret",
     )
     assert settings.environment == "production"
+
+
+def test_settings_rejects_embedding_dimensions_that_do_not_match_schema() -> None:
+    with pytest.raises(ValueError, match="AI_EMBEDDING_DIMENSIONS"):
+        Settings(
+            jwt_secret_key="super-secret-key-that-is-long-enough-32chars",
+            ai_embedding_dimensions=1024,
+        )

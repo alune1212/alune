@@ -1,6 +1,6 @@
 # Architecture
 
-`alune-platform` is the Alune Hub personal platform foundation. The current implementation includes the stage 6G-W security/deployment hardening baseline, stage 6H user-facing repositioning to a personal workspace, and stage 7A App Center V1. The platform provides authentication, RBAC, collaborator/user management, spaces, operation logs, configuration dictionaries, file resources, and app entry registration/navigation. App Center V1 is a registry and launcher for internal pages and external links; it does not execute scripts, load dynamic plugins, or schedule jobs.
+`alune-platform` is the Alune Knowledge personal/small-team RAG knowledge-base platform. The current implementation includes the stage 6G-W security/deployment hardening baseline, stage 6H personal-platform repositioning, stage 7A App Center V1 as a retained non-primary module, stage 7B RAG knowledge platform repositioning, and stage 7C RAG MVP hardening. The platform provides authentication, RBAC, collaborator/user management, spaces, operation logs, configuration dictionaries, file resources, knowledge bases, document indexing, member management, multi-knowledge-base Q&A, and app entry registration/navigation. App Center V1 is a registry and launcher for internal pages and external links; it does not execute scripts, load dynamic plugins, or schedule jobs.
 
 ## Monorepo Layout
 
@@ -45,7 +45,7 @@ Important modules:
 - `app/modules/auth/` implements the login MVP: `users` model, password hashing, JWT creation, current-user dependency, and auth router.
 - `app/modules/permissions/` implements the RBAC baseline: roles, permissions, association tables, default permission registry, permission queries, and `require_permission`.
 - `app/modules/apps/` implements retained App Center entries under `/api/v1/apps`, backed by `platform_apps` and `app_category` dictionary values. It is no longer the primary RAG navigation path.
-- `app/modules/knowledge/` implements knowledge bases, document indexing, pgvector chunk storage, OpenAI-compatible RAG question answering, and citation responses.
+- `app/modules/knowledge/` implements knowledge bases, member access, document indexing and re-indexing, pgvector chunk storage, OpenAI-compatible RAG question answering, multi-base retrieval, and citation responses.
 - `app/modules/users/`, `app/modules/roles/`, and `app/modules/departments/` implement user creation/update/password reset, batch user status updates, user role assignment, user filtering by role/space, role create/update/delete guards, role permission assignment, space trees, and space edit/delete rules. The retained technical module name is `departments`.
 - `app/modules/audit/`, `app/modules/dictionaries/`, and `app/modules/files/` implement paginated log reads with date filters and CSV export, dictionary type/item maintenance with system/delete guards, and local/MinIO file upload/download metadata with upload policy checks, a file storage backend factory, and an optional ClamAV upload scanner.
 - `alembic/` contains migration environment and versioned schema changes.
@@ -63,8 +63,8 @@ The app uses:
 - App shell layout in `src/components/layout/`.
 - Home page in `src/features/dashboard/dashboard-page.tsx`.
 - Login page and auth provider in `src/features/auth/`.
-- Apps, users, roles, spaces, audit logs, configuration dictionaries, and file resources pages in `src/features/`; apps include app entry registration/navigation, users include role/space filters plus confirmed batch status controls with result feedback, roles include guarded create/edit/delete controls plus searchable grouped permissions with empty-state feedback, audit includes date filters and CSV export, and dictionaries include type/item maintenance controls.
-- Frontend interaction tests cover app center creation/status changes, user batch status, role permission search, dictionary type creation, space tree/create flow, audit export filters, and file upload.
+- Knowledge, documents, Q&A, apps, users, roles, spaces, audit logs, configuration dictionaries, and file resources pages in `src/features/`; knowledge includes member management, documents include upload/re-index/delete status controls, Q&A supports multi-knowledge-base selection, apps include app entry registration/navigation, users include role/space filters plus confirmed batch status controls with result feedback, roles include guarded create/edit/delete controls plus searchable grouped permissions with empty-state feedback, audit includes date filters and CSV export, and dictionaries include type/item maintenance controls.
+- Frontend interaction tests cover RAG member management, document re-indexing, multi-base Q&A submission, app center creation/status changes, user batch status, role permission search, dictionary type creation, space tree/create flow, audit export filters, and file upload.
 - Playwright smoke tests in `apps/web/e2e/` cover protected-route redirect, seeded-admin login, and Alune Hub navigation.
 - Navigation permission filtering in `src/config/navigation.ts`.
 
@@ -111,7 +111,7 @@ These commands are intentionally not part of the default CI job yet.
 
 ## Feature Readiness
 
-The current readiness decision is documented in `docs/feature-readiness.md`: the security audit gate is resolved, stage 6H repositions the product as Alune Hub, and stage 7A adds App Center V1 as the first personal-platform module. Future modules should continue to start from a written scope brief and follow existing patterns for Alembic migrations, generated API client usage, permissions, audit logs, and tests.
+The current readiness decision is documented in `docs/feature-readiness.md`: the security audit gate is resolved, Alune Knowledge has a RAG MVP with member management, document re-indexing, and multi-base Q&A, and future modules should continue to start from a written scope brief and follow existing patterns for Alembic migrations, generated API client usage, permissions, audit logs, and tests.
 
 ## Runtime Data Flow
 

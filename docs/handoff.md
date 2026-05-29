@@ -46,6 +46,7 @@
 - Added stage 7A App Center V1: `/api/v1/apps`, `platform_apps`, app create/update/status APIs, app permissions, operation-log writes for create/update/enable/disable, `app_category` dictionary seed data, Orval generated hooks, `/apps` frontend page, and a homepage app-entry area for enabled apps.
 - Added stage 7B RAG knowledge platform repositioning: user-visible product name is now `Alune Knowledge`; primary navigation is homepage, knowledge bases, document center, and knowledge Q&A; `/apps` remains implemented but is no longer a primary navigation item.
 - Added stage 7B RAG backend: `knowledge_bases`, `knowledge_base_members`, `knowledge_documents`, `knowledge_chunks`, pgvector migration, OpenAI-compatible AI settings, document parsing/chunking/indexing, single-turn `/api/v1/rag/ask`, citations, member access checks, and operation logs.
+- Added stage 7C RAG MVP hardening: knowledge-base member management UI, document re-index action, multi-knowledge-base Q&A selection, and an `AI_EMBEDDING_DIMENSIONS=1536` guard matching the current pgvector schema.
 - Verified Docker dependency services with PostgreSQL and Redis healthy.
 - Verified `/api/v1/health/db` returns 200 when the API can reach Docker PostgreSQL.
 
@@ -109,7 +110,7 @@ rg -n "TODO|FIXME|create_all|print\\(" apps packages scripts --glob '!packages/a
 - Dependabot is defined in `.github/dependabot.yml` and checks npm/pnpm, uv, Docker, Docker Compose, and GitHub Actions weekly with per-ecosystem grouping.
 - Lightweight dependency audits are available through `pnpm security:audit`, `pnpm security:audit:npm`, and `pnpm security:audit:python`. These are manual for now and are not part of the default CI quality job.
 - Stage 6G-U audit output: npm audit and Python `pip-audit` both report no known vulnerabilities.
-- Stage 7A readiness output: Alune Hub has completed the personal-platform positioning pass and the App Center V1 registration/navigation module. Before coding stage 7B, choose one small personal-platform module and write its scope brief using `docs/feature-module-checklist.md`.
+- Stage 7C readiness output: Alune Knowledge has completed the RAG MVP hardening pass for member management, document re-indexing, and multi-knowledge-base Q&A selection.
 - If local dev servers already occupy 8000 or 5173, use:
 
 ```bash
@@ -118,8 +119,8 @@ API_PORT=18000 WEB_PORT=15173 docker compose --profile app up --build
 
 ## Recommended Next Phase
 
-Next stage can start scoped personal-platform feature preparation:
+Next stage can start scoped RAG quality hardening:
 
-- Stage 7B: choose the next small personal module and write its scope brief before implementation.
+- Stage 7D: harden RAG retrieval quality with scoped PDF parsing, retrieval tuning, and answer-quality fixtures before adding larger workflows.
 
 Do not start approval flows, payroll, reports, company-specific enterprise workflows, executable scripts, schedulers, or dynamic plugin loading before a narrow personal-platform module requires them.

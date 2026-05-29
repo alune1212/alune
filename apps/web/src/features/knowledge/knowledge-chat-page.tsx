@@ -20,7 +20,7 @@ import {
 export function KnowledgeChatPage() {
   const auth = useAuth();
   const [question, setQuestion] = useState("");
-  const [selectedBaseId, setSelectedBaseId] = useState("");
+  const [selectedBaseIds, setSelectedBaseIds] = useState<string[]>([]);
   const [answer, setAnswer] = useState<RAGAnswerPublic | null>(null);
   const request = useMemo(
     () => ({
@@ -37,7 +37,12 @@ export function KnowledgeChatPage() {
   const basesPage =
     basesQuery.data?.status === 200 ? basesQuery.data.data.data : undefined;
   const bases = basesPage?.items ?? [];
-  const effectiveBaseId = selectedBaseId || bases[0]?.id || "";
+  const effectiveBaseIds =
+    selectedBaseIds.length > 0
+      ? selectedBaseIds
+      : bases[0]?.id
+        ? [bases[0].id]
+        : [];
   const askMutation = useAskRagApiV1RagAskPost({
     mutation: {
       onSuccess: (response) => {
@@ -50,12 +55,23 @@ export function KnowledgeChatPage() {
   });
 
   function askQuestion() {
-    if (!question || !effectiveBaseId) {
+    if (!question || effectiveBaseIds.length === 0) {
       return;
     }
     askMutation.mutate({
-      data: { question, knowledge_base_ids: [effectiveBaseId] },
+      data: { question, knowledge_base_ids: effectiveBaseIds },
     });
+  }
+
+  function toggleKnowledgeBase(knowledgeBaseId: string) {
+    const currentSelection = effectiveBaseIds;
+    if (currentSelection.includes(knowledgeBaseId)) {
+      setSelectedBaseIds(
+        currentSelection.filter((item) => item !== knowledgeBaseId),
+      );
+      return;
+    }
+    setSelectedBaseIds([...currentSelection, knowledgeBaseId]);
   }
 
   return (
@@ -75,17 +91,21 @@ export function KnowledgeChatPage() {
           <CardDescription>第一版支持单轮问答和来源引用。</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <select
-            className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm"
-            value={effectiveBaseId}
-            onChange={(event) => setSelectedBaseId(event.target.value)}
-          >
+          <div className="grid gap-2 sm:grid-cols-2">
             {bases.map((knowledgeBase) => (
-              <option key={knowledgeBase.id} value={knowledgeBase.id}>
-                {knowledgeBase.name}
-              </option>
+              <label
+                key={knowledgeBase.id}
+                className="flex items-center gap-2 rounded-md border border-slate-200 px-3 py-2 text-sm"
+              >
+                <input
+                  type="checkbox"
+                  checked={effectiveBaseIds.includes(knowledgeBase.id)}
+                  onChange={() => toggleKnowledgeBase(knowledgeBase.id)}
+                />
+                <span>{knowledgeBase.name}</span>
+              </label>
             ))}
-          </select>
+          </div>
           <div className="grid gap-3 md:grid-cols-[1fr_auto]">
             <Input
               value={question}
@@ -95,7 +115,11 @@ export function KnowledgeChatPage() {
             <Button
               type="button"
               onClick={askQuestion}
-              disabled={!question || !effectiveBaseId || askMutation.isPending}
+              disabled={
+                !question ||
+                effectiveBaseIds.length === 0 ||
+                askMutation.isPending
+              }
             >
               提问
             </Button>
