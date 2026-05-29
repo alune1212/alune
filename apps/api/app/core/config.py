@@ -49,10 +49,20 @@ class Settings(BaseSettings):
             "image/jpeg",
             "image/png",
             "text/plain",
+            "text/markdown",
+            "application/markdown",
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         ],
     )
+    ai_base_url: str = "https://api.openai.com/v1"
+    ai_api_key: str | None = None
+    ai_chat_model: str = "gpt-4.1-mini"
+    ai_embedding_model: str = "text-embedding-3-small"
+    ai_embedding_dimensions: int = 1536
+    rag_top_k: int = 5
+    rag_chunk_size: int = 1000
+    rag_chunk_overlap: int = 150
 
     environment: Literal["development", "staging", "production"] = "development"
 

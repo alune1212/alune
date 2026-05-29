@@ -1,6 +1,9 @@
 export const uiCopy = {
   modules: {
     dashboard: "首页",
+    knowledge: "知识库",
+    documents: "文档中心",
+    ragChat: "知识问答",
     apps: "应用中心",
     users: "用户管理",
     roles: "角色权限",
@@ -53,6 +56,9 @@ export const uiCopy = {
   },
   empty: {
     apps: "暂无应用。",
+    knowledgeBases: "暂无知识库。",
+    documents: "暂无知识文档。",
+    citations: "暂无引用来源。",
     departments: "暂无空间。",
     dictionaryItems: "暂无字典项。",
     dictionaryTypes: "暂无字典类型。",
@@ -65,6 +71,8 @@ export const uiCopy = {
   },
   errors: {
     loadApps: "无法加载应用。",
+    loadKnowledgeBases: "无法加载知识库。",
+    loadDocuments: "无法加载知识文档。",
     loadDepartments: "无法加载空间。",
     loadLoginLogs: "无法加载登录日志。",
     loadOperationLogs: "无法加载操作日志。",

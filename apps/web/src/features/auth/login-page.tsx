@@ -68,12 +68,12 @@ export function LoginPage() {
       <div className="grid w-full max-w-5xl gap-8 lg:grid-cols-[1fr_24rem] lg:items-center">
         <section className="hidden lg:block">
           <div className="max-w-xl">
-            <p className="text-sm font-medium text-slate-500">个人平台</p>
+            <p className="text-sm font-medium text-slate-500">RAG 知识库平台</p>
             <h1 className="mt-3 text-4xl font-semibold tracking-normal text-slate-950">
               {platformName}
             </h1>
             <p className="mt-4 text-base leading-7 text-slate-600">
-              面向个人和协作者的私有工作台，集中管理应用入口、账号权限、空间、配置字典和文件资源。
+              面向个人和小团队的私有知识库，集中完成文档入库、索引检索、知识问答和引用溯源。
             </p>
           </div>
         </section>

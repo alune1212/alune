@@ -382,10 +382,31 @@ The default upload policy is:
 
 ```text
 MAX_UPLOAD_SIZE_BYTES=10485760
-ALLOWED_UPLOAD_CONTENT_TYPES=application/pdf,image/jpeg,image/png,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+ALLOWED_UPLOAD_CONTENT_TYPES=application/pdf,image/jpeg,image/png,text/plain,text/markdown,application/markdown,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
 ```
 
 Oversized files return `413`. Disallowed content types return `400`.
+
+### RAG Knowledge Base
+
+The Docker PostgreSQL service uses the pgvector image so Alembic can create the `vector` extension and the `knowledge_chunks.embedding` column.
+
+Knowledge document upload supports PDF, DOCX, TXT, and Markdown in the RAG parser. Image OCR, scanned PDF OCR, spreadsheet extraction, background queues, approval flows, and dynamic plugin execution are outside the current MVP boundary.
+
+AI settings:
+
+```text
+AI_BASE_URL=https://api.openai.com/v1
+AI_API_KEY=
+AI_CHAT_MODEL=gpt-4.1-mini
+AI_EMBEDDING_MODEL=text-embedding-3-small
+AI_EMBEDDING_DIMENSIONS=1536
+RAG_TOP_K=5
+RAG_CHUNK_SIZE=1000
+RAG_CHUNK_OVERLAP=150
+```
+
+If `AI_API_KEY` is empty, knowledge base and document management still work, but document indexing and `/api/v1/rag/ask` return an AI configuration error.
 
 Stage 6G-B supports both local storage and MinIO through the storage backend factory. Stage 6G-C adds ClamAV scanning behind the upload scanner factory:
 

@@ -9,10 +9,12 @@ describe("navigation permissions", () => {
     expect(visibleItems.map((item) => item.label)).toEqual(["首页"]);
   });
 
-  it("shows all Alune Hub menu items for an administrator", () => {
+  it("shows all Alune Knowledge menu items for an administrator", () => {
     const visibleItems = getVisibleNavigationItems([
       "menu:dashboard",
-      "menu:apps",
+      "menu:knowledge",
+      "menu:documents",
+      "menu:rag_chat",
       "menu:users",
       "menu:roles",
       "menu:departments",
@@ -23,7 +25,9 @@ describe("navigation permissions", () => {
 
     expect(visibleItems.map((item) => item.label)).toEqual([
       "首页",
-      "应用中心",
+      "知识库",
+      "文档中心",
+      "知识问答",
       "用户管理",
       "角色权限",
       "空间管理",

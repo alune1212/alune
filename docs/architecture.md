@@ -44,7 +44,8 @@ Important modules:
 - `app/modules/system/models.py` defines the `system_info` table model.
 - `app/modules/auth/` implements the login MVP: `users` model, password hashing, JWT creation, current-user dependency, and auth router.
 - `app/modules/permissions/` implements the RBAC baseline: roles, permissions, association tables, default permission registry, permission queries, and `require_permission`.
-- `app/modules/apps/` implements Alune Hub App Center entries under `/api/v1/apps`, backed by `platform_apps` and `app_category` dictionary values.
+- `app/modules/apps/` implements retained App Center entries under `/api/v1/apps`, backed by `platform_apps` and `app_category` dictionary values. It is no longer the primary RAG navigation path.
+- `app/modules/knowledge/` implements knowledge bases, document indexing, pgvector chunk storage, OpenAI-compatible RAG question answering, and citation responses.
 - `app/modules/users/`, `app/modules/roles/`, and `app/modules/departments/` implement user creation/update/password reset, batch user status updates, user role assignment, user filtering by role/space, role create/update/delete guards, role permission assignment, space trees, and space edit/delete rules. The retained technical module name is `departments`.
 - `app/modules/audit/`, `app/modules/dictionaries/`, and `app/modules/files/` implement paginated log reads with date filters and CSV export, dictionary type/item maintenance with system/delete guards, and local/MinIO file upload/download metadata with upload policy checks, a file storage backend factory, and an optional ClamAV upload scanner.
 - `alembic/` contains migration environment and versioned schema changes.
@@ -170,51 +171,63 @@ The `api` service stores uploaded file binaries under `/app/uploads`, backed by 
 
 The FastAPI root path `/` is intentionally not part of the API surface. Use `/docs`, `/openapi.json`, or the versioned `/api/v1/...` routes below.
 
-| Method | Path                                   | Purpose                                                                                            |
-| ------ | -------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| GET    | `/api/v1/health`                       | Confirm API process is alive.                                                                      |
-| GET    | `/api/v1/health/db`                    | Run `SELECT 1` through SQLAlchemy AsyncSession. Returns 503 if PostgreSQL is unavailable.          |
-| POST   | `/api/v1/auth/login`                   | OAuth2 password login. Returns a JWT access token.                                                 |
-| GET    | `/api/v1/auth/me`                      | Returns the current active user and permission codes from a Bearer token.                          |
-| GET    | `/api/v1/apps`                         | Returns paginated App Center entries with search/category/status filters.                          |
-| POST   | `/api/v1/apps`                         | Creates an App Center entry.                                                                       |
-| PATCH  | `/api/v1/apps/{app_id}`                | Updates an App Center entry.                                                                       |
-| PATCH  | `/api/v1/apps/{app_id}/status`         | Enables or disables an App Center entry.                                                          |
-| GET    | `/api/v1/users`                        | Returns paginated user records for administrators. Supports `q`, `department_id`, and `role_code`. |
-| POST   | `/api/v1/users`                        | Creates a user account.                                                                            |
-| PATCH  | `/api/v1/users/bulk-status`            | Enables or disables multiple users and records one audit log entry.                                |
-| PATCH  | `/api/v1/users/{user_id}`              | Updates user account state.                                                                        |
-| PATCH  | `/api/v1/users/{user_id}/password`     | Resets a user password.                                                                            |
-| GET    | `/api/v1/users/{user_id}/roles`        | Returns role codes assigned to one user.                                                           |
-| PUT    | `/api/v1/users/{user_id}/roles`        | Replaces role codes assigned to one user.                                                          |
-| GET    | `/api/v1/roles`                        | Returns role records for administrators.                                                           |
-| POST   | `/api/v1/roles`                        | Creates non-system role records.                                                                   |
-| GET    | `/api/v1/roles/permissions`            | Returns all permission records.                                                                    |
-| GET    | `/api/v1/roles/{role_id}/permissions`  | Returns permission codes assigned to one role.                                                     |
-| PATCH  | `/api/v1/roles/{role_id}`              | Updates non-system roles.                                                                          |
-| DELETE | `/api/v1/roles/{role_id}`              | Deletes non-system roles only when no users are assigned.                                          |
-| PUT    | `/api/v1/roles/{role_id}/permissions`  | Replaces permission codes assigned to one role.                                                    |
-| GET    | `/api/v1/departments`                  | Returns paginated space records; technical path remains `departments`.                             |
-| GET    | `/api/v1/departments/tree`             | Returns a nested space tree; technical path remains `departments`.                                 |
-| POST   | `/api/v1/departments`                  | Creates a space record; technical path remains `departments`.                                      |
-| PATCH  | `/api/v1/departments/{department_id}`  | Updates space fields; technical path remains `departments`.                                        |
-| DELETE | `/api/v1/departments/{department_id}`  | Deletes spaces only when no child spaces or users are assigned.                                    |
-| GET    | `/api/v1/audit/operation-logs`         | Returns paginated/filterable operation logs with optional date range.                              |
-| GET    | `/api/v1/audit/operation-logs/export`  | Exports operation logs as CSV with `q`, `status`, `started_at`, and `ended_at` filters.            |
-| GET    | `/api/v1/audit/login-logs`             | Returns paginated/filterable login logs with optional date range.                                  |
-| GET    | `/api/v1/audit/login-logs/export`      | Exports login logs as CSV with `q`, `status`, `started_at`, and `ended_at` filters.                |
-| GET    | `/api/v1/dictionaries/types`           | Returns dictionary types.                                                                          |
-| POST   | `/api/v1/dictionaries/types`           | Creates a dictionary type.                                                                         |
-| PATCH  | `/api/v1/dictionaries/types/{type_id}` | Updates non-system dictionary types.                                                               |
-| DELETE | `/api/v1/dictionaries/types/{type_id}` | Deletes non-system dictionary types only when no items exist.                                      |
-| GET    | `/api/v1/dictionaries/items`           | Returns dictionary items.                                                                          |
-| POST   | `/api/v1/dictionaries/items`           | Creates a dictionary item.                                                                         |
-| PATCH  | `/api/v1/dictionaries/items/{item_id}` | Updates or enables/disables a dictionary item.                                                     |
-| DELETE | `/api/v1/dictionaries/items/{item_id}` | Deletes a dictionary item.                                                                         |
-| GET    | `/api/v1/files`                        | Returns paginated file attachment metadata.                                                        |
-| POST   | `/api/v1/files`                        | Creates file attachment metadata.                                                                  |
-| POST   | `/api/v1/files/upload`                 | Uploads local file content and creates attachment metadata.                                        |
-| GET    | `/api/v1/files/{file_id}/download`     | Downloads stored file content.                                                                     |
+| Method | Path                                            | Purpose                                                                                            |
+| ------ | ----------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| GET    | `/api/v1/health`                                | Confirm API process is alive.                                                                      |
+| GET    | `/api/v1/health/db`                             | Run `SELECT 1` through SQLAlchemy AsyncSession. Returns 503 if PostgreSQL is unavailable.          |
+| POST   | `/api/v1/auth/login`                            | OAuth2 password login. Returns a JWT access token.                                                 |
+| GET    | `/api/v1/auth/me`                               | Returns the current active user and permission codes from a Bearer token.                          |
+| GET    | `/api/v1/apps`                                  | Returns paginated App Center entries with search/category/status filters.                          |
+| POST   | `/api/v1/apps`                                  | Creates an App Center entry.                                                                       |
+| PATCH  | `/api/v1/apps/{app_id}`                         | Updates an App Center entry.                                                                       |
+| PATCH  | `/api/v1/apps/{app_id}/status`                  | Enables or disables an App Center entry.                                                           |
+| GET    | `/api/v1/knowledge-bases`                       | Returns paginated RAG knowledge bases.                                                             |
+| POST   | `/api/v1/knowledge-bases`                       | Creates a knowledge base and owner member.                                                         |
+| PATCH  | `/api/v1/knowledge-bases/{id}`                  | Updates knowledge base metadata.                                                                   |
+| DELETE | `/api/v1/knowledge-bases/{id}`                  | Disables a knowledge base.                                                                         |
+| GET    | `/api/v1/knowledge-bases/{id}/members`          | Returns owner-managed knowledge base members.                                                      |
+| PUT    | `/api/v1/knowledge-bases/{id}/members`          | Replaces knowledge base members.                                                                   |
+| GET    | `/api/v1/knowledge-bases/{id}/documents`        | Returns documents in a knowledge base.                                                             |
+| POST   | `/api/v1/knowledge-bases/{id}/documents/upload` | Uploads, parses, chunks, embeds, and indexes a document.                                           |
+| GET    | `/api/v1/knowledge-documents/{id}`              | Returns one knowledge document.                                                                    |
+| POST   | `/api/v1/knowledge-documents/{id}/index`        | Re-indexes a stored knowledge document.                                                            |
+| DELETE | `/api/v1/knowledge-documents/{id}`              | Marks a knowledge document deleted/failed.                                                         |
+| POST   | `/api/v1/rag/ask`                               | Runs single-turn RAG over selected knowledge bases and returns citations.                          |
+| GET    | `/api/v1/users`                                 | Returns paginated user records for administrators. Supports `q`, `department_id`, and `role_code`. |
+| POST   | `/api/v1/users`                                 | Creates a user account.                                                                            |
+| PATCH  | `/api/v1/users/bulk-status`                     | Enables or disables multiple users and records one audit log entry.                                |
+| PATCH  | `/api/v1/users/{user_id}`                       | Updates user account state.                                                                        |
+| PATCH  | `/api/v1/users/{user_id}/password`              | Resets a user password.                                                                            |
+| GET    | `/api/v1/users/{user_id}/roles`                 | Returns role codes assigned to one user.                                                           |
+| PUT    | `/api/v1/users/{user_id}/roles`                 | Replaces role codes assigned to one user.                                                          |
+| GET    | `/api/v1/roles`                                 | Returns role records for administrators.                                                           |
+| POST   | `/api/v1/roles`                                 | Creates non-system role records.                                                                   |
+| GET    | `/api/v1/roles/permissions`                     | Returns all permission records.                                                                    |
+| GET    | `/api/v1/roles/{role_id}/permissions`           | Returns permission codes assigned to one role.                                                     |
+| PATCH  | `/api/v1/roles/{role_id}`                       | Updates non-system roles.                                                                          |
+| DELETE | `/api/v1/roles/{role_id}`                       | Deletes non-system roles only when no users are assigned.                                          |
+| PUT    | `/api/v1/roles/{role_id}/permissions`           | Replaces permission codes assigned to one role.                                                    |
+| GET    | `/api/v1/departments`                           | Returns paginated space records; technical path remains `departments`.                             |
+| GET    | `/api/v1/departments/tree`                      | Returns a nested space tree; technical path remains `departments`.                                 |
+| POST   | `/api/v1/departments`                           | Creates a space record; technical path remains `departments`.                                      |
+| PATCH  | `/api/v1/departments/{department_id}`           | Updates space fields; technical path remains `departments`.                                        |
+| DELETE | `/api/v1/departments/{department_id}`           | Deletes spaces only when no child spaces or users are assigned.                                    |
+| GET    | `/api/v1/audit/operation-logs`                  | Returns paginated/filterable operation logs with optional date range.                              |
+| GET    | `/api/v1/audit/operation-logs/export`           | Exports operation logs as CSV with `q`, `status`, `started_at`, and `ended_at` filters.            |
+| GET    | `/api/v1/audit/login-logs`                      | Returns paginated/filterable login logs with optional date range.                                  |
+| GET    | `/api/v1/audit/login-logs/export`               | Exports login logs as CSV with `q`, `status`, `started_at`, and `ended_at` filters.                |
+| GET    | `/api/v1/dictionaries/types`                    | Returns dictionary types.                                                                          |
+| POST   | `/api/v1/dictionaries/types`                    | Creates a dictionary type.                                                                         |
+| PATCH  | `/api/v1/dictionaries/types/{type_id}`          | Updates non-system dictionary types.                                                               |
+| DELETE | `/api/v1/dictionaries/types/{type_id}`          | Deletes non-system dictionary types only when no items exist.                                      |
+| GET    | `/api/v1/dictionaries/items`                    | Returns dictionary items.                                                                          |
+| POST   | `/api/v1/dictionaries/items`                    | Creates a dictionary item.                                                                         |
+| PATCH  | `/api/v1/dictionaries/items/{item_id}`          | Updates or enables/disables a dictionary item.                                                     |
+| DELETE | `/api/v1/dictionaries/items/{item_id}`          | Deletes a dictionary item.                                                                         |
+| GET    | `/api/v1/files`                                 | Returns paginated file attachment metadata.                                                        |
+| POST   | `/api/v1/files`                                 | Creates file attachment metadata.                                                                  |
+| POST   | `/api/v1/files/upload`                          | Uploads local file content and creates attachment metadata.                                        |
+| GET    | `/api/v1/files/{file_id}/download`              | Downloads stored file content.                                                                     |
 
 ## Current Database Schema
 
@@ -228,6 +241,10 @@ The FastAPI root path `/` is intentionally not part of the API surface. Use `/do
 | `role_permissions`                      | Role-to-permission assignments.                                             |
 | `departments`                           | Space hierarchy and user assignment target; technical table name retained.  |
 | `platform_apps`                         | Alune Hub App Center entries for internal pages and external links.         |
+| `knowledge_bases`                       | RAG knowledge base metadata and active state.                               |
+| `knowledge_base_members`                | Per-knowledge-base owner/editor/viewer access.                              |
+| `knowledge_documents`                   | Uploaded knowledge documents and parse/index status.                        |
+| `knowledge_chunks`                      | Text chunks, metadata, hashes, and pgvector embeddings for retrieval.       |
 | `operation_logs`                        | Operation log foundation.                                                   |
 | `login_logs`                            | Login log foundation.                                                       |
 | `dictionary_types` / `dictionary_items` | Configuration dictionary foundation.                                        |

@@ -1,4 +1,4 @@
-import { Activity, Database, FileText, Grid2X2, ShieldCheck } from "lucide-react";
+import { BookOpen, Database, FileText, MessageSquareText } from "lucide-react";
 
 import {
   Card,
@@ -10,39 +10,42 @@ import {
 import { useMemo } from "react";
 
 import { uiCopy } from "@/config/ui-copy";
-import { getPlatformAppPage } from "@/features/apps/app-response";
 import { useAuth } from "@/features/auth/auth-provider";
 import {
-  useGetPlatformAppsApiV1AppsGet,
+  useGetKnowledgeBasesApiV1KnowledgeBasesGet,
   useHealthCheckApiV1HealthGet,
 } from "@alune/api-client/generated";
 import { platformName } from "@alune/shared";
 
 const summaryCards = [
   {
-    title: uiCopy.modules.users,
+    title: uiCopy.modules.knowledge,
     value: "就绪",
-    description: "账号与协作者目录已连接后端",
-    icon: Activity,
+    description: "创建私有知识集合并管理访问范围",
+    icon: BookOpen,
   },
   {
-    title: uiCopy.modules.roles,
+    title: uiCopy.modules.documents,
     value: "就绪",
-    description: "管理员可维护平台访问权限",
-    icon: ShieldCheck,
-  },
-  {
-    title: uiCopy.modules.departments,
-    value: "就绪",
-    description: "空间记录可用于协作者分配",
+    description: "上传文档后解析、切片并生成索引",
     icon: FileText,
+  },
+  {
+    title: uiCopy.modules.ragChat,
+    value: "就绪",
+    description: "基于检索命中的片段生成带引用回答",
+    icon: MessageSquareText,
   },
 ];
 
 export function DashboardPage() {
   const auth = useAuth();
   const request = useMemo(
-    () => ({ headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined }),
+    () => ({
+      headers: auth.token
+        ? { Authorization: `Bearer ${auth.token}` }
+        : undefined,
+    }),
     [auth.token],
   );
   const healthQuery = useHealthCheckApiV1HealthGet({
@@ -50,13 +53,14 @@ export function DashboardPage() {
       refetchInterval: 30_000,
     },
   });
-  const appsQuery = useGetPlatformAppsApiV1AppsGet(
+  const basesQuery = useGetKnowledgeBasesApiV1KnowledgeBasesGet(
     { is_active: true, page: 1, page_size: 6 },
-    { query: { queryKey: ["apps"] }, request },
+    { query: { queryKey: ["knowledge-bases"] }, request },
   );
   const healthStatus = healthQuery.data?.data.data;
-  const appPage = getPlatformAppPage(appsQuery.data?.data);
-  const apps = appPage?.items ?? [];
+  const basesPage =
+    basesQuery.data?.status === 200 ? basesQuery.data.data.data : undefined;
+  const bases = basesPage?.items ?? [];
 
   let healthLabel: string;
   let badgeColor: string;
@@ -83,7 +87,8 @@ export function DashboardPage() {
             {platformName}
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-            面向个人与协作者的私有工作台，集中管理应用入口、权限、空间、配置和文件资源。
+            面向个人和小团队的私有 RAG
+            知识库，集中完成文档入库、索引检索、知识问答和引用溯源。
           </p>
         </div>
         <div className="inline-flex w-fit items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm">
@@ -114,26 +119,26 @@ export function DashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>应用入口</CardTitle>
-          <CardDescription>常用工具和平台内功能的快速入口。</CardDescription>
+          <CardTitle>知识库入口</CardTitle>
+          <CardDescription>最近可用于检索问答的知识库。</CardDescription>
         </CardHeader>
         <CardContent>
-          {apps.length === 0 ? (
+          {bases.length === 0 ? (
             <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-6 text-center text-sm text-slate-500">
-              {uiCopy.empty.apps}
+              {uiCopy.empty.knowledgeBases}
             </p>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {apps.map((app) => (
+              {bases.map((knowledgeBase) => (
                 <a
-                  key={app.id}
-                  href={app.entry_url}
+                  key={knowledgeBase.id}
+                  href="/knowledge-bases"
                   className="flex items-center gap-3 rounded-md border border-slate-200 bg-white px-3 py-3 text-sm hover:bg-slate-50"
-                  target={app.entry_type === "external" ? "_blank" : undefined}
-                  rel={app.entry_type === "external" ? "noopener,noreferrer" : undefined}
                 >
-                  <Grid2X2 className="size-4 text-slate-500" />
-                  <span className="font-medium text-slate-950">{app.name}</span>
+                  <BookOpen className="size-4 text-slate-500" />
+                  <span className="font-medium text-slate-950">
+                    {knowledgeBase.name}
+                  </span>
                 </a>
               ))}
             </div>
@@ -144,9 +149,7 @@ export function DashboardPage() {
       <Card>
         <CardHeader>
           <CardTitle>系统状态</CardTitle>
-          <CardDescription>
-            平台接口服务的基础可用性。
-          </CardDescription>
+          <CardDescription>平台接口服务的基础可用性。</CardDescription>
         </CardHeader>
         <CardContent>
           {healthQuery.isError ? (
@@ -157,9 +160,7 @@ export function DashboardPage() {
             <dl className="grid gap-3 text-sm sm:grid-cols-3">
               <div>
                 <dt className="text-slate-500">服务</dt>
-                <dd className="mt-1 font-medium text-slate-950">
-                  接口服务
-                </dd>
+                <dd className="mt-1 font-medium text-slate-950">接口服务</dd>
               </div>
               <div>
                 <dt className="text-slate-500">状态</dt>

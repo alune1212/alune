@@ -15,6 +15,11 @@ from app.modules.departments.router import router as departments_router
 from app.modules.dictionaries.router import router as dictionaries_router
 from app.modules.files.router import router as files_router
 from app.modules.health.router import router as health_router
+from app.modules.knowledge.router import (
+    knowledge_bases_router,
+    knowledge_documents_router,
+    rag_router,
+)
 from app.modules.roles.router import router as roles_router
 from app.modules.users.router import router as users_router
 
@@ -52,6 +57,9 @@ def create_app() -> FastAPI:
     application.include_router(dictionaries_router, prefix="/api/v1")
     application.include_router(files_router, prefix="/api/v1")
     application.include_router(health_router, prefix="/api/v1")
+    application.include_router(knowledge_bases_router, prefix="/api/v1")
+    application.include_router(knowledge_documents_router, prefix="/api/v1")
+    application.include_router(rag_router, prefix="/api/v1")
     application.include_router(roles_router, prefix="/api/v1")
     application.include_router(users_router, prefix="/api/v1")
 

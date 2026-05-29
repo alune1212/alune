@@ -31,7 +31,7 @@ export function Sidebar() {
           {!isCollapsed ? (
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">{platformName}</p>
-              <p className="truncate text-xs text-slate-500">个人平台</p>
+              <p className="truncate text-xs text-slate-500">知识库平台</p>
             </div>
           ) : null}
         </div>

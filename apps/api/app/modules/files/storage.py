@@ -28,6 +28,8 @@ def _sanitize_filename(filename: str) -> str:
 class FileStorage(Protocol):
     async def save(self, upload: UploadFile, *, max_size_bytes: int = 0) -> StoredUpload: ...
 
+    async def read_bytes(self, *, storage_path: str) -> bytes: ...
+
     async def download_response(
         self,
         *,
@@ -173,6 +175,15 @@ class LocalFileStorage:
         safe_filename = _sanitize_filename(filename)
         return FileResponse(path=file_path, filename=safe_filename, media_type=content_type)
 
+    async def read_bytes(self, *, storage_path: str) -> bytes:
+        file_path = self.resolve(storage_path)
+        if not await asyncio.to_thread(file_path.is_file):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="文件内容不存在",
+            )
+        return await asyncio.to_thread(file_path.read_bytes)
+
     def resolve(self, storage_path: str) -> Path:
         resolved_path = (self.root / storage_path).resolve()
         if resolved_path != self.root and self.root not in resolved_path.parents:
@@ -266,6 +277,38 @@ class MinioFileStorage:
         safe_filename = _sanitize_filename(filename)
         headers = {"Content-Disposition": f"attachment; filename*=UTF-8''{quote(safe_filename)}"}
         return StreamingResponse(iter_object(), media_type=content_type, headers=headers)
+
+    async def read_bytes(self, *, storage_path: str) -> bytes:
+        try:
+            minio_response = await asyncio.to_thread(
+                self.client.get_object,
+                self.bucket,
+                storage_path,
+            )
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="文件内容不存在",
+            ) from exc
+
+        def read_object() -> bytes:
+            try:
+                stream = getattr(minio_response, "stream", None)
+                if not callable(stream):
+                    raise HTTPException(
+                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        detail="文件存储响应无效",
+                    )
+                return b"".join(stream(_CHUNK_SIZE))
+            finally:
+                close = getattr(minio_response, "close", None)
+                if callable(close):
+                    close()
+                release_conn = getattr(minio_response, "release_conn", None)
+                if callable(release_conn):
+                    release_conn()
+
+        return await asyncio.to_thread(read_object)
 
 
 def create_minio_client(

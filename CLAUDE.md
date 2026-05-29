@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## 项目概述
 
-alune-platform 当前产品定位为 Alune Hub，是偏个人平台中枢的私有工作台，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础、平台管理底座、文件与字典能力、上传扫描、前端测试、Orval API client 生成、generated hooks 迁移、API client 兼容层收缩、Playwright 登录/导航冒烟测试、GitHub Actions CI、Dependabot 依赖更新可见性、轻量安全审计基线、功能开发前就绪检查、安全与部署硬化、Stage 6H 个人平台定位调整，以及 Stage 7A 应用中心 V1。
+alune-platform 当前产品定位为 Alune Knowledge，是个人/小团队 RAG 知识库平台，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL + pgvector、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础、平台管理底座、文件与字典能力、上传扫描、知识库、文档入库、文档切片/向量索引、OpenAI 兼容 AI 配置、单轮知识问答与引用溯源、前端测试、Orval API client 生成、generated hooks 迁移、API client 兼容层收缩、Playwright 登录/导航冒烟测试、GitHub Actions CI、Dependabot 依赖更新可见性、轻量安全审计基线、功能开发前就绪检查、安全与部署硬化、Stage 6H 个人平台定位调整、Stage 7A 应用中心 V1，以及 Stage 7B RAG 知识库平台定位。
 
 ## Quick Start
 
@@ -77,6 +77,7 @@ cd apps/web
 pnpm dev         # 启动开发服务器 (http://localhost:5173)
 pnpm build       # TypeScript 编译 + Vite 构建
 pnpm test        # 运行 Vitest 测试
+pnpm vitest run src/features/apps/app-list.test.tsx  # 运行单个前端测试
 pnpm e2e         # 运行 Playwright 冒烟测试，需要先启动 API/Web 并传入 e2e 管理员环境变量
 pnpm typecheck   # TypeScript 类型检查
 pnpm lint        # ESLint
@@ -135,7 +136,7 @@ alune-platform/
 - **平台前端**: `src/features/apps/`、`src/features/users/`、`src/features/roles/`、`src/features/departments/`、`src/features/audit/`、`src/features/dictionaries/`、`src/features/files/`；应用中心页面包含应用卡片/列表、搜索筛选、创建、编辑、启停和入口打开，用户页面包含角色/空间过滤、批量启停确认和结果反馈，角色页面包含角色增删改、权限搜索、按类型分组配置和搜索空状态，操作日志页面包含日期过滤和 CSV 导出，配置字典页面包含类型/字典项维护
 - **表单验证**: 项目使用 Zod v4，必须用 `@hookform/resolvers/standard-schema` 的 `standardSchemaResolver`，不能用 `zodResolver`（仅支持 Zod v3）
 - **菜单权限**: `src/config/navigation.ts` - 根据 `/api/v1/auth/me` 返回的权限码过滤菜单
-- **API client**: `packages/api-client/src/index.ts` - 当前兼容 client 保留 runtime 配置、CSV 导出、文件上传、文件下载和二进制边界能力；常规 JSON 读写，包括应用中心，使用 `@alune/api-client/generated` hooks；`packages/api-client/src/generated/api.ts` 是 Orval 从 FastAPI OpenAPI 生成的 types/request functions/React Query hooks；`packages/api-client/src/runtime-config.ts` 默认使用同源相对 API 路径，可由 `VITE_API_BASE_URL` 覆盖；`packages/api-client/src/orval-fetch.ts` 是生成 client 的自定义 fetcher
+- **API client**: `packages/api-client/src/index.ts` - 当前兼容 client 保留 runtime 配置、CSV 导出、文件上传、文件下载和二进制边界能力；常规 JSON 读写，包括应用中心，使用 `@alune/api-client/generated` hooks；`packages/api-client/src/generated/api.ts` 是 Orval 从 FastAPI OpenAPI 生成的 types/request functions/React Query hooks；`packages/api-client/src/runtime-config.ts` 默认使用同源相对 API 路径，可由 `VITE_API_BASE_URL` 覆盖；`packages/api-client/src/orval-fetch.ts` 是生成 client 的自定义 fetcher；Orval 配置在 `packages/api-client/orval.config.ts`
 - **Shared constants**: `packages/shared/src/index.ts` - 当前导出 `platformName`
 - **路径别名**: `@/*` -> `./src/*`
 
@@ -190,7 +191,7 @@ alune-platform/
 
 ## 测试
 
-- **后端**: pytest + pytest-asyncio，测试在 `app/tests/`
+- **后端**: pytest + pytest-asyncio（`asyncio_mode = "auto"`，async 测试函数无需 `@pytest.mark.asyncio` 装饰器），测试在 `app/tests/`
 - **前端**: Vitest + Testing Library，测试文件 `*.test.ts` / `*.test.tsx`
 - **前端交互覆盖**: 应用中心创建/编辑/启停、用户批量状态、角色权限搜索、字典类型创建、空间树和创建、操作日志导出过滤、文件上传
 - **Playwright 冒烟覆盖**: `apps/web/e2e/admin-smoke.spec.ts` 覆盖未登录跳转、管理员登录和平台导航；常用命令为 `E2E_BASE_URL=http://localhost:5173 E2E_ADMIN_USERNAME=e2e_admin E2E_ADMIN_PASSWORD=change-this-password pnpm --filter @alune/web e2e`

@@ -114,6 +114,53 @@ export interface ApiResponseHealthStatus {
   error?: string | null;
 }
 
+export interface KnowledgeBasePublic {
+  id: string;
+  name: string;
+  description: string | null;
+  is_active: boolean;
+  created_by_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApiResponseKnowledgeBasePublic {
+  success: boolean;
+  data: KnowledgeBasePublic;
+  message?: string;
+  error?: string | null;
+}
+
+export type KnowledgeDocumentPublicStatus = typeof KnowledgeDocumentPublicStatus[keyof typeof KnowledgeDocumentPublicStatus];
+
+
+export const KnowledgeDocumentPublicStatus = {
+  uploaded: 'uploaded',
+  indexed: 'indexed',
+  failed: 'failed',
+} as const;
+
+export interface KnowledgeDocumentPublic {
+  id: string;
+  knowledge_base_id: string;
+  file_attachment_id: string;
+  title: string;
+  source_type: string;
+  status: KnowledgeDocumentPublicStatus;
+  error_message: string | null;
+  chunk_count: number;
+  created_by_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApiResponseKnowledgeDocumentPublic {
+  success: boolean;
+  data: KnowledgeDocumentPublic;
+  message?: string;
+  error?: string | null;
+}
+
 export interface PageDepartmentPublic {
   items: DepartmentPublic[];
   page: number;
@@ -138,6 +185,34 @@ export interface PageFileAttachmentPublic {
 export interface ApiResponsePageFileAttachmentPublic {
   success: boolean;
   data: PageFileAttachmentPublic;
+  message?: string;
+  error?: string | null;
+}
+
+export interface PageKnowledgeBasePublic {
+  items: KnowledgeBasePublic[];
+  page: number;
+  page_size: number;
+  total: number;
+}
+
+export interface ApiResponsePageKnowledgeBasePublic {
+  success: boolean;
+  data: PageKnowledgeBasePublic;
+  message?: string;
+  error?: string | null;
+}
+
+export interface PageKnowledgeDocumentPublic {
+  items: KnowledgeDocumentPublic[];
+  page: number;
+  page_size: number;
+  total: number;
+}
+
+export interface ApiResponsePageKnowledgeDocumentPublic {
+  success: boolean;
+  data: PageKnowledgeDocumentPublic;
   message?: string;
   error?: string | null;
 }
@@ -278,6 +353,27 @@ export interface ApiResponsePlatformAppPublic {
   error?: string | null;
 }
 
+export interface RAGCitationPublic {
+  chunk_id: string;
+  document_id: string;
+  document_title: string;
+  chunk_index: number;
+  content: string;
+  score: number;
+}
+
+export interface RAGAnswerPublic {
+  answer: string;
+  citations: RAGCitationPublic[];
+}
+
+export interface ApiResponseRAGAnswerPublic {
+  success: boolean;
+  data: RAGAnswerPublic;
+  message?: string;
+  error?: string | null;
+}
+
 export interface RolePermissionPublic {
   role_id: string;
   permission_codes: string[];
@@ -395,6 +491,31 @@ export interface ApiResponseListDictionaryTypePublic {
   error?: string | null;
 }
 
+export type KnowledgeBaseMemberPublicRole = typeof KnowledgeBaseMemberPublicRole[keyof typeof KnowledgeBaseMemberPublicRole];
+
+
+export const KnowledgeBaseMemberPublicRole = {
+  owner: 'owner',
+  editor: 'editor',
+  viewer: 'viewer',
+} as const;
+
+export interface KnowledgeBaseMemberPublic {
+  id: string;
+  knowledge_base_id: string;
+  user_id: string;
+  role: KnowledgeBaseMemberPublicRole;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApiResponseListKnowledgeBaseMemberPublic {
+  success: boolean;
+  data: KnowledgeBaseMemberPublic[];
+  message?: string;
+  error?: string | null;
+}
+
 export interface PermissionPublic {
   id: string;
   code: string;
@@ -427,6 +548,10 @@ export interface BodyLoginApiV1AuthLoginPost {
 }
 
 export interface BodyUploadFileAttachmentApiV1FilesUploadPost {
+  upload: Blob;
+}
+
+export interface BodyUploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPost {
   upload: Blob;
 }
 
@@ -540,6 +665,39 @@ export interface HTTPValidationError {
   detail?: ValidationError[];
 }
 
+export interface KnowledgeBaseCreate {
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  name: string;
+  description?: string | null;
+}
+
+export type KnowledgeBaseMemberUpdateRole = typeof KnowledgeBaseMemberUpdateRole[keyof typeof KnowledgeBaseMemberUpdateRole];
+
+
+export const KnowledgeBaseMemberUpdateRole = {
+  owner: 'owner',
+  editor: 'editor',
+  viewer: 'viewer',
+} as const;
+
+export interface KnowledgeBaseMemberUpdate {
+  user_id: string;
+  role: KnowledgeBaseMemberUpdateRole;
+}
+
+export interface KnowledgeBaseMembersUpdate {
+  members: KnowledgeBaseMemberUpdate[];
+}
+
+export interface KnowledgeBaseUpdate {
+  name?: string | null;
+  description?: string | null;
+  is_active?: boolean | null;
+}
+
 export type PlatformAppCreateEntryType = typeof PlatformAppCreateEntryType[keyof typeof PlatformAppCreateEntryType];
 
 
@@ -591,6 +749,19 @@ export interface PlatformAppUpdate {
   icon?: string | null;
   sort_order?: number | null;
   is_active?: boolean | null;
+}
+
+export interface RAGAskRequest {
+  /**
+     * @minLength 1
+     * @maxLength 2000
+     */
+  question: string;
+  /**
+     * @minItems 1
+     * @maxItems 10
+     */
+  knowledge_base_ids: string[];
 }
 
 export interface RoleCreate {
@@ -748,6 +919,33 @@ page_size?: number;
 
 export type GetFileAttachmentsApiV1FilesGetParams = {
 q?: string | null;
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+page_size?: number;
+};
+
+export type GetKnowledgeBasesApiV1KnowledgeBasesGetParams = {
+q?: string | null;
+is_active?: boolean | null;
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+page_size?: number;
+};
+
+export type ListKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetParams = {
+status?: string | null;
 /**
  * @minimum 1
  */
@@ -3821,6 +4019,1345 @@ export function useDatabaseHealthCheckApiV1HealthDbGet<TData = Awaited<ReturnTyp
 
 
 
+
+export type getKnowledgeBasesApiV1KnowledgeBasesGetResponse200 = {
+  data: ApiResponsePageKnowledgeBasePublic
+  status: 200
+}
+
+export type getKnowledgeBasesApiV1KnowledgeBasesGetResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type getKnowledgeBasesApiV1KnowledgeBasesGetResponseSuccess = (getKnowledgeBasesApiV1KnowledgeBasesGetResponse200) & {
+  headers: Headers;
+};
+export type getKnowledgeBasesApiV1KnowledgeBasesGetResponseError = (getKnowledgeBasesApiV1KnowledgeBasesGetResponse422) & {
+  headers: Headers;
+};
+
+export type getKnowledgeBasesApiV1KnowledgeBasesGetResponse = (getKnowledgeBasesApiV1KnowledgeBasesGetResponseSuccess | getKnowledgeBasesApiV1KnowledgeBasesGetResponseError)
+
+export const getGetKnowledgeBasesApiV1KnowledgeBasesGetUrl = (params?: GetKnowledgeBasesApiV1KnowledgeBasesGetParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/knowledge-bases?${stringifiedParams}` : `/api/v1/knowledge-bases`
+}
+
+/**
+ * @summary Get Knowledge Bases
+ */
+export const getKnowledgeBasesApiV1KnowledgeBasesGet = async (params?: GetKnowledgeBasesApiV1KnowledgeBasesGetParams, options?: RequestInit): Promise<getKnowledgeBasesApiV1KnowledgeBasesGetResponse> => {
+
+  return orvalFetch<getKnowledgeBasesApiV1KnowledgeBasesGetResponse>(getGetKnowledgeBasesApiV1KnowledgeBasesGetUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetKnowledgeBasesApiV1KnowledgeBasesGetQueryKey = (params?: GetKnowledgeBasesApiV1KnowledgeBasesGetParams,) => {
+    return [
+    `/api/v1/knowledge-bases`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetKnowledgeBasesApiV1KnowledgeBasesGetQueryOptions = <TData = Awaited<ReturnType<typeof getKnowledgeBasesApiV1KnowledgeBasesGet>>, TError = HTTPValidationError>(params?: GetKnowledgeBasesApiV1KnowledgeBasesGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeBasesApiV1KnowledgeBasesGet>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetKnowledgeBasesApiV1KnowledgeBasesGetQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getKnowledgeBasesApiV1KnowledgeBasesGet>>> = ({ signal }) => getKnowledgeBasesApiV1KnowledgeBasesGet(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeBasesApiV1KnowledgeBasesGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetKnowledgeBasesApiV1KnowledgeBasesGetQueryResult = NonNullable<Awaited<ReturnType<typeof getKnowledgeBasesApiV1KnowledgeBasesGet>>>
+export type GetKnowledgeBasesApiV1KnowledgeBasesGetQueryError = HTTPValidationError
+
+
+export function useGetKnowledgeBasesApiV1KnowledgeBasesGet<TData = Awaited<ReturnType<typeof getKnowledgeBasesApiV1KnowledgeBasesGet>>, TError = HTTPValidationError>(
+ params: undefined |  GetKnowledgeBasesApiV1KnowledgeBasesGetParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeBasesApiV1KnowledgeBasesGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKnowledgeBasesApiV1KnowledgeBasesGet>>,
+          TError,
+          Awaited<ReturnType<typeof getKnowledgeBasesApiV1KnowledgeBasesGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKnowledgeBasesApiV1KnowledgeBasesGet<TData = Awaited<ReturnType<typeof getKnowledgeBasesApiV1KnowledgeBasesGet>>, TError = HTTPValidationError>(
+ params?: GetKnowledgeBasesApiV1KnowledgeBasesGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeBasesApiV1KnowledgeBasesGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKnowledgeBasesApiV1KnowledgeBasesGet>>,
+          TError,
+          Awaited<ReturnType<typeof getKnowledgeBasesApiV1KnowledgeBasesGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKnowledgeBasesApiV1KnowledgeBasesGet<TData = Awaited<ReturnType<typeof getKnowledgeBasesApiV1KnowledgeBasesGet>>, TError = HTTPValidationError>(
+ params?: GetKnowledgeBasesApiV1KnowledgeBasesGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeBasesApiV1KnowledgeBasesGet>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get Knowledge Bases
+ */
+
+export function useGetKnowledgeBasesApiV1KnowledgeBasesGet<TData = Awaited<ReturnType<typeof getKnowledgeBasesApiV1KnowledgeBasesGet>>, TError = HTTPValidationError>(
+ params?: GetKnowledgeBasesApiV1KnowledgeBasesGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeBasesApiV1KnowledgeBasesGet>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetKnowledgeBasesApiV1KnowledgeBasesGetQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export type createKnowledgeBaseApiV1KnowledgeBasesPostResponse201 = {
+  data: ApiResponseKnowledgeBasePublic
+  status: 201
+}
+
+export type createKnowledgeBaseApiV1KnowledgeBasesPostResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type createKnowledgeBaseApiV1KnowledgeBasesPostResponseSuccess = (createKnowledgeBaseApiV1KnowledgeBasesPostResponse201) & {
+  headers: Headers;
+};
+export type createKnowledgeBaseApiV1KnowledgeBasesPostResponseError = (createKnowledgeBaseApiV1KnowledgeBasesPostResponse422) & {
+  headers: Headers;
+};
+
+export type createKnowledgeBaseApiV1KnowledgeBasesPostResponse = (createKnowledgeBaseApiV1KnowledgeBasesPostResponseSuccess | createKnowledgeBaseApiV1KnowledgeBasesPostResponseError)
+
+export const getCreateKnowledgeBaseApiV1KnowledgeBasesPostUrl = () => {
+
+
+
+
+  return `/api/v1/knowledge-bases`
+}
+
+/**
+ * @summary Create Knowledge Base
+ */
+export const createKnowledgeBaseApiV1KnowledgeBasesPost = async (knowledgeBaseCreate: KnowledgeBaseCreate, options?: RequestInit): Promise<createKnowledgeBaseApiV1KnowledgeBasesPostResponse> => {
+
+  return orvalFetch<createKnowledgeBaseApiV1KnowledgeBasesPostResponse>(getCreateKnowledgeBaseApiV1KnowledgeBasesPostUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(knowledgeBaseCreate)
+  }
+);}
+
+
+
+
+export const getCreateKnowledgeBaseApiV1KnowledgeBasesPostMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createKnowledgeBaseApiV1KnowledgeBasesPost>>, TError,{data: KnowledgeBaseCreate}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createKnowledgeBaseApiV1KnowledgeBasesPost>>, TError,{data: KnowledgeBaseCreate}, TContext> => {
+
+const mutationKey = ['createKnowledgeBaseApiV1KnowledgeBasesPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createKnowledgeBaseApiV1KnowledgeBasesPost>>, {data: KnowledgeBaseCreate}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createKnowledgeBaseApiV1KnowledgeBasesPost(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateKnowledgeBaseApiV1KnowledgeBasesPostMutationResult = NonNullable<Awaited<ReturnType<typeof createKnowledgeBaseApiV1KnowledgeBasesPost>>>
+    export type CreateKnowledgeBaseApiV1KnowledgeBasesPostMutationBody = KnowledgeBaseCreate
+    export type CreateKnowledgeBaseApiV1KnowledgeBasesPostMutationError = HTTPValidationError
+
+    /**
+ * @summary Create Knowledge Base
+ */
+export const useCreateKnowledgeBaseApiV1KnowledgeBasesPost = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createKnowledgeBaseApiV1KnowledgeBasesPost>>, TError,{data: KnowledgeBaseCreate}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createKnowledgeBaseApiV1KnowledgeBasesPost>>,
+        TError,
+        {data: KnowledgeBaseCreate},
+        TContext
+      > => {
+      return useMutation(getCreateKnowledgeBaseApiV1KnowledgeBasesPostMutationOptions(options), queryClient);
+    }
+
+export type getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGetResponse200 = {
+  data: ApiResponseKnowledgeBasePublic
+  status: 200
+}
+
+export type getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGetResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGetResponseSuccess = (getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGetResponse200) & {
+  headers: Headers;
+};
+export type getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGetResponseError = (getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGetResponse422) & {
+  headers: Headers;
+};
+
+export type getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGetResponse = (getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGetResponseSuccess | getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGetResponseError)
+
+export const getGetKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGetUrl = (knowledgeBaseId: string,) => {
+
+
+
+
+  return `/api/v1/knowledge-bases/${knowledgeBaseId}`
+}
+
+/**
+ * @summary Get Knowledge Base
+ */
+export const getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGet = async (knowledgeBaseId: string, options?: RequestInit): Promise<getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGetResponse> => {
+
+  return orvalFetch<getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGetResponse>(getGetKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGetUrl(knowledgeBaseId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGetQueryKey = (knowledgeBaseId: string,) => {
+    return [
+    `/api/v1/knowledge-bases/${knowledgeBaseId}`
+    ] as const;
+    }
+
+
+export const getGetKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGetQueryOptions = <TData = Awaited<ReturnType<typeof getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGet>>, TError = HTTPValidationError>(knowledgeBaseId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGet>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGetQueryKey(knowledgeBaseId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGet>>> = ({ signal }) => getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGet(knowledgeBaseId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: knowledgeBaseId !== null && knowledgeBaseId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGetQueryResult = NonNullable<Awaited<ReturnType<typeof getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGet>>>
+export type GetKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGetQueryError = HTTPValidationError
+
+
+export function useGetKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGet<TData = Awaited<ReturnType<typeof getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGet>>, TError = HTTPValidationError>(
+ knowledgeBaseId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGet>>,
+          TError,
+          Awaited<ReturnType<typeof getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGet<TData = Awaited<ReturnType<typeof getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGet>>, TError = HTTPValidationError>(
+ knowledgeBaseId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGet>>,
+          TError,
+          Awaited<ReturnType<typeof getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGet<TData = Awaited<ReturnType<typeof getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGet>>, TError = HTTPValidationError>(
+ knowledgeBaseId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGet>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get Knowledge Base
+ */
+
+export function useGetKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGet<TData = Awaited<ReturnType<typeof getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGet>>, TError = HTTPValidationError>(
+ knowledgeBaseId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGet>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdGetQueryOptions(knowledgeBaseId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export type updateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatchResponse200 = {
+  data: ApiResponseKnowledgeBasePublic
+  status: 200
+}
+
+export type updateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatchResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type updateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatchResponseSuccess = (updateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatchResponse200) & {
+  headers: Headers;
+};
+export type updateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatchResponseError = (updateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatchResponse422) & {
+  headers: Headers;
+};
+
+export type updateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatchResponse = (updateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatchResponseSuccess | updateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatchResponseError)
+
+export const getUpdateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatchUrl = (knowledgeBaseId: string,) => {
+
+
+
+
+  return `/api/v1/knowledge-bases/${knowledgeBaseId}`
+}
+
+/**
+ * @summary Update Knowledge Base
+ */
+export const updateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatch = async (knowledgeBaseId: string,
+    knowledgeBaseUpdate: KnowledgeBaseUpdate, options?: RequestInit): Promise<updateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatchResponse> => {
+
+  return orvalFetch<updateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatchResponse>(getUpdateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatchUrl(knowledgeBaseId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(knowledgeBaseUpdate)
+  }
+);}
+
+
+
+
+export const getUpdateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatchMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatch>>, TError,{knowledgeBaseId: string;data: KnowledgeBaseUpdate}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatch>>, TError,{knowledgeBaseId: string;data: KnowledgeBaseUpdate}, TContext> => {
+
+const mutationKey = ['updateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatch'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatch>>, {knowledgeBaseId: string;data: KnowledgeBaseUpdate}> = (props) => {
+          const {knowledgeBaseId,data} = props ?? {};
+
+          return  updateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatch(knowledgeBaseId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatchMutationResult = NonNullable<Awaited<ReturnType<typeof updateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatch>>>
+    export type UpdateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatchMutationBody = KnowledgeBaseUpdate
+    export type UpdateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatchMutationError = HTTPValidationError
+
+    /**
+ * @summary Update Knowledge Base
+ */
+export const useUpdateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatch = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatch>>, TError,{knowledgeBaseId: string;data: KnowledgeBaseUpdate}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatch>>,
+        TError,
+        {knowledgeBaseId: string;data: KnowledgeBaseUpdate},
+        TContext
+      > => {
+      return useMutation(getUpdateKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdPatchMutationOptions(options), queryClient);
+    }
+
+export type deleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDeleteResponse200 = {
+  data: ApiResponseKnowledgeBasePublic
+  status: 200
+}
+
+export type deleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDeleteResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type deleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDeleteResponseSuccess = (deleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDeleteResponse200) & {
+  headers: Headers;
+};
+export type deleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDeleteResponseError = (deleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDeleteResponse422) & {
+  headers: Headers;
+};
+
+export type deleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDeleteResponse = (deleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDeleteResponseSuccess | deleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDeleteResponseError)
+
+export const getDeleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDeleteUrl = (knowledgeBaseId: string,) => {
+
+
+
+
+  return `/api/v1/knowledge-bases/${knowledgeBaseId}`
+}
+
+/**
+ * @summary Delete Knowledge Base
+ */
+export const deleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDelete = async (knowledgeBaseId: string, options?: RequestInit): Promise<deleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDeleteResponse> => {
+
+  return orvalFetch<deleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDeleteResponse>(getDeleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDeleteUrl(knowledgeBaseId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDeleteMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDelete>>, TError,{knowledgeBaseId: string}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDelete>>, TError,{knowledgeBaseId: string}, TContext> => {
+
+const mutationKey = ['deleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDelete'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDelete>>, {knowledgeBaseId: string}> = (props) => {
+          const {knowledgeBaseId} = props ?? {};
+
+          return  deleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDelete(knowledgeBaseId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof deleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDelete>>>
+
+    export type DeleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDeleteMutationError = HTTPValidationError
+
+    /**
+ * @summary Delete Knowledge Base
+ */
+export const useDeleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDelete = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDelete>>, TError,{knowledgeBaseId: string}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDelete>>,
+        TError,
+        {knowledgeBaseId: string},
+        TContext
+      > => {
+      return useMutation(getDeleteKnowledgeBaseApiV1KnowledgeBasesKnowledgeBaseIdDeleteMutationOptions(options), queryClient);
+    }
+
+export type getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGetResponse200 = {
+  data: ApiResponseListKnowledgeBaseMemberPublic
+  status: 200
+}
+
+export type getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGetResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGetResponseSuccess = (getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGetResponse200) & {
+  headers: Headers;
+};
+export type getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGetResponseError = (getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGetResponse422) & {
+  headers: Headers;
+};
+
+export type getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGetResponse = (getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGetResponseSuccess | getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGetResponseError)
+
+export const getGetKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGetUrl = (knowledgeBaseId: string,) => {
+
+
+
+
+  return `/api/v1/knowledge-bases/${knowledgeBaseId}/members`
+}
+
+/**
+ * @summary Get Knowledge Base Members
+ */
+export const getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGet = async (knowledgeBaseId: string, options?: RequestInit): Promise<getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGetResponse> => {
+
+  return orvalFetch<getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGetResponse>(getGetKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGetUrl(knowledgeBaseId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGetQueryKey = (knowledgeBaseId: string,) => {
+    return [
+    `/api/v1/knowledge-bases/${knowledgeBaseId}/members`
+    ] as const;
+    }
+
+
+export const getGetKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGetQueryOptions = <TData = Awaited<ReturnType<typeof getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGet>>, TError = HTTPValidationError>(knowledgeBaseId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGet>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGetQueryKey(knowledgeBaseId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGet>>> = ({ signal }) => getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGet(knowledgeBaseId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: knowledgeBaseId !== null && knowledgeBaseId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGetQueryResult = NonNullable<Awaited<ReturnType<typeof getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGet>>>
+export type GetKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGetQueryError = HTTPValidationError
+
+
+export function useGetKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGet<TData = Awaited<ReturnType<typeof getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGet>>, TError = HTTPValidationError>(
+ knowledgeBaseId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGet>>,
+          TError,
+          Awaited<ReturnType<typeof getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGet<TData = Awaited<ReturnType<typeof getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGet>>, TError = HTTPValidationError>(
+ knowledgeBaseId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGet>>,
+          TError,
+          Awaited<ReturnType<typeof getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGet<TData = Awaited<ReturnType<typeof getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGet>>, TError = HTTPValidationError>(
+ knowledgeBaseId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGet>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get Knowledge Base Members
+ */
+
+export function useGetKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGet<TData = Awaited<ReturnType<typeof getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGet>>, TError = HTTPValidationError>(
+ knowledgeBaseId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGet>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersGetQueryOptions(knowledgeBaseId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export type updateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPutResponse200 = {
+  data: ApiResponseListKnowledgeBaseMemberPublic
+  status: 200
+}
+
+export type updateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPutResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type updateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPutResponseSuccess = (updateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPutResponse200) & {
+  headers: Headers;
+};
+export type updateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPutResponseError = (updateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPutResponse422) & {
+  headers: Headers;
+};
+
+export type updateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPutResponse = (updateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPutResponseSuccess | updateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPutResponseError)
+
+export const getUpdateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPutUrl = (knowledgeBaseId: string,) => {
+
+
+
+
+  return `/api/v1/knowledge-bases/${knowledgeBaseId}/members`
+}
+
+/**
+ * @summary Update Knowledge Base Members
+ */
+export const updateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPut = async (knowledgeBaseId: string,
+    knowledgeBaseMembersUpdate: KnowledgeBaseMembersUpdate, options?: RequestInit): Promise<updateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPutResponse> => {
+
+  return orvalFetch<updateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPutResponse>(getUpdateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPutUrl(knowledgeBaseId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(knowledgeBaseMembersUpdate)
+  }
+);}
+
+
+
+
+export const getUpdateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPutMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPut>>, TError,{knowledgeBaseId: string;data: KnowledgeBaseMembersUpdate}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPut>>, TError,{knowledgeBaseId: string;data: KnowledgeBaseMembersUpdate}, TContext> => {
+
+const mutationKey = ['updateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPut'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPut>>, {knowledgeBaseId: string;data: KnowledgeBaseMembersUpdate}> = (props) => {
+          const {knowledgeBaseId,data} = props ?? {};
+
+          return  updateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPut(knowledgeBaseId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPutMutationResult = NonNullable<Awaited<ReturnType<typeof updateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPut>>>
+    export type UpdateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPutMutationBody = KnowledgeBaseMembersUpdate
+    export type UpdateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPutMutationError = HTTPValidationError
+
+    /**
+ * @summary Update Knowledge Base Members
+ */
+export const useUpdateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPut = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPut>>, TError,{knowledgeBaseId: string;data: KnowledgeBaseMembersUpdate}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPut>>,
+        TError,
+        {knowledgeBaseId: string;data: KnowledgeBaseMembersUpdate},
+        TContext
+      > => {
+      return useMutation(getUpdateKnowledgeBaseMembersApiV1KnowledgeBasesKnowledgeBaseIdMembersPutMutationOptions(options), queryClient);
+    }
+
+export type listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetResponse200 = {
+  data: ApiResponsePageKnowledgeDocumentPublic
+  status: 200
+}
+
+export type listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetResponseSuccess = (listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetResponse200) & {
+  headers: Headers;
+};
+export type listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetResponseError = (listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetResponse422) & {
+  headers: Headers;
+};
+
+export type listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetResponse = (listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetResponseSuccess | listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetResponseError)
+
+export const getListKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetUrl = (knowledgeBaseId: string,
+    params?: ListKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/knowledge-bases/${knowledgeBaseId}/documents?${stringifiedParams}` : `/api/v1/knowledge-bases/${knowledgeBaseId}/documents`
+}
+
+/**
+ * @summary List Knowledge Documents
+ */
+export const listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGet = async (knowledgeBaseId: string,
+    params?: ListKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetParams, options?: RequestInit): Promise<listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetResponse> => {
+
+  return orvalFetch<listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetResponse>(getListKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetUrl(knowledgeBaseId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetQueryKey = (knowledgeBaseId: string,
+    params?: ListKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetParams,) => {
+    return [
+    `/api/v1/knowledge-bases/${knowledgeBaseId}/documents`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetQueryOptions = <TData = Awaited<ReturnType<typeof listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGet>>, TError = HTTPValidationError>(knowledgeBaseId: string,
+    params?: ListKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGet>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetQueryKey(knowledgeBaseId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGet>>> = ({ signal }) => listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGet(knowledgeBaseId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: knowledgeBaseId !== null && knowledgeBaseId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetQueryResult = NonNullable<Awaited<ReturnType<typeof listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGet>>>
+export type ListKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetQueryError = HTTPValidationError
+
+
+export function useListKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGet<TData = Awaited<ReturnType<typeof listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGet>>, TError = HTTPValidationError>(
+ knowledgeBaseId: string,
+    params: undefined |  ListKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGet>>,
+          TError,
+          Awaited<ReturnType<typeof listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGet<TData = Awaited<ReturnType<typeof listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGet>>, TError = HTTPValidationError>(
+ knowledgeBaseId: string,
+    params?: ListKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGet>>,
+          TError,
+          Awaited<ReturnType<typeof listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGet<TData = Awaited<ReturnType<typeof listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGet>>, TError = HTTPValidationError>(
+ knowledgeBaseId: string,
+    params?: ListKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGet>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List Knowledge Documents
+ */
+
+export function useListKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGet<TData = Awaited<ReturnType<typeof listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGet>>, TError = HTTPValidationError>(
+ knowledgeBaseId: string,
+    params?: ListKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGet>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListKnowledgeDocumentsApiV1KnowledgeBasesKnowledgeBaseIdDocumentsGetQueryOptions(knowledgeBaseId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export type uploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPostResponse201 = {
+  data: ApiResponseKnowledgeDocumentPublic
+  status: 201
+}
+
+export type uploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPostResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type uploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPostResponseSuccess = (uploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPostResponse201) & {
+  headers: Headers;
+};
+export type uploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPostResponseError = (uploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPostResponse422) & {
+  headers: Headers;
+};
+
+export type uploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPostResponse = (uploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPostResponseSuccess | uploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPostResponseError)
+
+export const getUploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPostUrl = (knowledgeBaseId: string,) => {
+
+
+
+
+  return `/api/v1/knowledge-bases/${knowledgeBaseId}/documents/upload`
+}
+
+/**
+ * @summary Upload Knowledge Document
+ */
+export const uploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPost = async (knowledgeBaseId: string,
+    bodyUploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPost: BodyUploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPost, options?: RequestInit): Promise<uploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPostResponse> => {
+    const formData = new FormData();
+formData.append(`upload`, bodyUploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPost.upload);
+
+  return orvalFetch<uploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPostResponse>(getUploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPostUrl(knowledgeBaseId),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+export const getUploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPostMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPost>>, TError,{knowledgeBaseId: string;data: BodyUploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPost}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof uploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPost>>, TError,{knowledgeBaseId: string;data: BodyUploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPost}, TContext> => {
+
+const mutationKey = ['uploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPost>>, {knowledgeBaseId: string;data: BodyUploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPost}> = (props) => {
+          const {knowledgeBaseId,data} = props ?? {};
+
+          return  uploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPost(knowledgeBaseId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPostMutationResult = NonNullable<Awaited<ReturnType<typeof uploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPost>>>
+    export type UploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPostMutationBody = BodyUploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPost
+    export type UploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPostMutationError = HTTPValidationError
+
+    /**
+ * @summary Upload Knowledge Document
+ */
+export const useUploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPost = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPost>>, TError,{knowledgeBaseId: string;data: BodyUploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPost}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof uploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPost>>,
+        TError,
+        {knowledgeBaseId: string;data: BodyUploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPost},
+        TContext
+      > => {
+      return useMutation(getUploadKnowledgeDocumentApiV1KnowledgeBasesKnowledgeBaseIdDocumentsUploadPostMutationOptions(options), queryClient);
+    }
+
+export type getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGetResponse200 = {
+  data: ApiResponseKnowledgeDocumentPublic
+  status: 200
+}
+
+export type getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGetResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGetResponseSuccess = (getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGetResponse200) & {
+  headers: Headers;
+};
+export type getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGetResponseError = (getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGetResponse422) & {
+  headers: Headers;
+};
+
+export type getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGetResponse = (getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGetResponseSuccess | getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGetResponseError)
+
+export const getGetKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGetUrl = (documentId: string,) => {
+
+
+
+
+  return `/api/v1/knowledge-documents/${documentId}`
+}
+
+/**
+ * @summary Get Knowledge Document
+ */
+export const getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGet = async (documentId: string, options?: RequestInit): Promise<getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGetResponse> => {
+
+  return orvalFetch<getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGetResponse>(getGetKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGetUrl(documentId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGetQueryKey = (documentId: string,) => {
+    return [
+    `/api/v1/knowledge-documents/${documentId}`
+    ] as const;
+    }
+
+
+export const getGetKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGetQueryOptions = <TData = Awaited<ReturnType<typeof getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGet>>, TError = HTTPValidationError>(documentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGet>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGetQueryKey(documentId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGet>>> = ({ signal }) => getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGet(documentId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: documentId !== null && documentId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGetQueryResult = NonNullable<Awaited<ReturnType<typeof getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGet>>>
+export type GetKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGetQueryError = HTTPValidationError
+
+
+export function useGetKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGet<TData = Awaited<ReturnType<typeof getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGet>>, TError = HTTPValidationError>(
+ documentId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGet>>,
+          TError,
+          Awaited<ReturnType<typeof getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGet<TData = Awaited<ReturnType<typeof getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGet>>, TError = HTTPValidationError>(
+ documentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGet>>,
+          TError,
+          Awaited<ReturnType<typeof getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGet<TData = Awaited<ReturnType<typeof getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGet>>, TError = HTTPValidationError>(
+ documentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGet>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get Knowledge Document
+ */
+
+export function useGetKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGet<TData = Awaited<ReturnType<typeof getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGet>>, TError = HTTPValidationError>(
+ documentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGet>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdGetQueryOptions(documentId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export type deleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDeleteResponse200 = {
+  data: ApiResponseKnowledgeDocumentPublic
+  status: 200
+}
+
+export type deleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDeleteResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type deleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDeleteResponseSuccess = (deleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDeleteResponse200) & {
+  headers: Headers;
+};
+export type deleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDeleteResponseError = (deleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDeleteResponse422) & {
+  headers: Headers;
+};
+
+export type deleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDeleteResponse = (deleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDeleteResponseSuccess | deleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDeleteResponseError)
+
+export const getDeleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDeleteUrl = (documentId: string,) => {
+
+
+
+
+  return `/api/v1/knowledge-documents/${documentId}`
+}
+
+/**
+ * @summary Delete Knowledge Document
+ */
+export const deleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDelete = async (documentId: string, options?: RequestInit): Promise<deleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDeleteResponse> => {
+
+  return orvalFetch<deleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDeleteResponse>(getDeleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDeleteUrl(documentId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDeleteMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDelete>>, TError,{documentId: string}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDelete>>, TError,{documentId: string}, TContext> => {
+
+const mutationKey = ['deleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDelete'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDelete>>, {documentId: string}> = (props) => {
+          const {documentId} = props ?? {};
+
+          return  deleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDelete(documentId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof deleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDelete>>>
+
+    export type DeleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDeleteMutationError = HTTPValidationError
+
+    /**
+ * @summary Delete Knowledge Document
+ */
+export const useDeleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDelete = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDelete>>, TError,{documentId: string}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDelete>>,
+        TError,
+        {documentId: string},
+        TContext
+      > => {
+      return useMutation(getDeleteKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdDeleteMutationOptions(options), queryClient);
+    }
+
+export type indexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPostResponse200 = {
+  data: ApiResponseKnowledgeDocumentPublic
+  status: 200
+}
+
+export type indexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPostResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type indexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPostResponseSuccess = (indexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPostResponse200) & {
+  headers: Headers;
+};
+export type indexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPostResponseError = (indexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPostResponse422) & {
+  headers: Headers;
+};
+
+export type indexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPostResponse = (indexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPostResponseSuccess | indexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPostResponseError)
+
+export const getIndexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPostUrl = (documentId: string,) => {
+
+
+
+
+  return `/api/v1/knowledge-documents/${documentId}/index`
+}
+
+/**
+ * @summary Index Knowledge Document
+ */
+export const indexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPost = async (documentId: string, options?: RequestInit): Promise<indexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPostResponse> => {
+
+  return orvalFetch<indexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPostResponse>(getIndexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPostUrl(documentId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getIndexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPostMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof indexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPost>>, TError,{documentId: string}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof indexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPost>>, TError,{documentId: string}, TContext> => {
+
+const mutationKey = ['indexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof indexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPost>>, {documentId: string}> = (props) => {
+          const {documentId} = props ?? {};
+
+          return  indexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPost(documentId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type IndexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPostMutationResult = NonNullable<Awaited<ReturnType<typeof indexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPost>>>
+
+    export type IndexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPostMutationError = HTTPValidationError
+
+    /**
+ * @summary Index Knowledge Document
+ */
+export const useIndexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPost = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof indexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPost>>, TError,{documentId: string}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof indexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPost>>,
+        TError,
+        {documentId: string},
+        TContext
+      > => {
+      return useMutation(getIndexKnowledgeDocumentApiV1KnowledgeDocumentsDocumentIdIndexPostMutationOptions(options), queryClient);
+    }
+
+export type askRagApiV1RagAskPostResponse200 = {
+  data: ApiResponseRAGAnswerPublic
+  status: 200
+}
+
+export type askRagApiV1RagAskPostResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type askRagApiV1RagAskPostResponseSuccess = (askRagApiV1RagAskPostResponse200) & {
+  headers: Headers;
+};
+export type askRagApiV1RagAskPostResponseError = (askRagApiV1RagAskPostResponse422) & {
+  headers: Headers;
+};
+
+export type askRagApiV1RagAskPostResponse = (askRagApiV1RagAskPostResponseSuccess | askRagApiV1RagAskPostResponseError)
+
+export const getAskRagApiV1RagAskPostUrl = () => {
+
+
+
+
+  return `/api/v1/rag/ask`
+}
+
+/**
+ * @summary Ask Rag
+ */
+export const askRagApiV1RagAskPost = async (rAGAskRequest: RAGAskRequest, options?: RequestInit): Promise<askRagApiV1RagAskPostResponse> => {
+
+  return orvalFetch<askRagApiV1RagAskPostResponse>(getAskRagApiV1RagAskPostUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(rAGAskRequest)
+  }
+);}
+
+
+
+
+export const getAskRagApiV1RagAskPostMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof askRagApiV1RagAskPost>>, TError,{data: RAGAskRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof askRagApiV1RagAskPost>>, TError,{data: RAGAskRequest}, TContext> => {
+
+const mutationKey = ['askRagApiV1RagAskPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof askRagApiV1RagAskPost>>, {data: RAGAskRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  askRagApiV1RagAskPost(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AskRagApiV1RagAskPostMutationResult = NonNullable<Awaited<ReturnType<typeof askRagApiV1RagAskPost>>>
+    export type AskRagApiV1RagAskPostMutationBody = RAGAskRequest
+    export type AskRagApiV1RagAskPostMutationError = HTTPValidationError
+
+    /**
+ * @summary Ask Rag
+ */
+export const useAskRagApiV1RagAskPost = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof askRagApiV1RagAskPost>>, TError,{data: RAGAskRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof askRagApiV1RagAskPost>>,
+        TError,
+        {data: RAGAskRequest},
+        TContext
+      > => {
+      return useMutation(getAskRagApiV1RagAskPostMutationOptions(options), queryClient);
+    }
 
 export type getRolesApiV1RolesGetResponse200 = {
   data: ApiResponseListRolePublic

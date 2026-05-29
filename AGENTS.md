@@ -4,19 +4,19 @@ Project guidance for Codex and other AI agents working in this repository.
 
 ## Current Scope
 
-`alune-platform` is the Alune Hub personal platform MVP. The current codebase covers only:
+`alune-platform` is the Alune Knowledge personal/small-team RAG knowledge base MVP. The current codebase covers only:
 
 - pnpm workspace + Turborepo monorepo wiring.
 - FastAPI backend health endpoints.
 - Vite React personal workspace shell.
-- PostgreSQL 18 and Redis 8 through Docker Compose.
+- PostgreSQL 18 with pgvector and Redis 8 through Docker Compose.
 - API/Web Docker images for a complete MVP stack.
 - Alembic migration baseline with the `system_info` table.
 - Login MVP with `users`, password hashing, JWT login, `/auth/me`, frontend login, and a protected dashboard.
 - Permission baseline with roles, permissions, user-role links, role-permission links, backend permission dependency, and frontend menu filtering.
-- Stage 6G-W platform foundation, Stage 6H personal-platform repositioning, and Stage 7A App Center V1 with user create/enable/disable/batch-status confirmation and result feedback/edit/password reset, user role assignment, user role/space filters, role create/update/delete guards, searchable grouped role permission assignment with empty-state feedback, space tree/update/delete rules, audit log filtering/pagination/date range/CSV export, dictionary type/item maintenance guards, local and MinIO file upload/download, upload policy checks with size pre-check before scan, download filename sanitization, file storage backend factory, ClamAV upload scanner adapter, app entry registration/navigation, frontend interaction tests, Orval API client generation from FastAPI OpenAPI, generated-client migration for frontend reads/writes, multipart binary type normalization, a narrowed root API client compatibility layer for runtime configuration, CSV export, file upload, and file download, Playwright smoke coverage for login and navigation, GitHub Actions CI quality gates, Dependabot dependency update visibility, manual npm/Python dependency security audit scripts, an `ENVIRONMENT` setting with production credential validation, superuser management permission guard including self-superuser-status change prevention, self-disable prevention, space delete concurrency fix on the retained `departments` technical module, role permission clear fix, 401-triggered token cleanup and session-expired notice on frontend, `RequirePermission` attached to protected routes for route-level access control, and Docker Web Nginx proxying `/api/` to the API container so production browsers do not call localhost.
+- Stage 6G-W platform foundation, Stage 6H personal-platform repositioning, Stage 7A App Center V1 retained as a non-primary module, and Stage 7B RAG knowledge platform repositioning with user create/enable/disable/batch-status confirmation and result feedback/edit/password reset, user role assignment, user role/space filters, role create/update/delete guards, searchable grouped role permission assignment with empty-state feedback, space tree/update/delete rules, audit log filtering/pagination/date range/CSV export, dictionary type/item maintenance guards, local and MinIO file upload/download, upload policy checks with size pre-check before scan, download filename sanitization, file storage backend factory, ClamAV upload scanner adapter, knowledge bases, knowledge documents, pgvector chunks, OpenAI-compatible AI settings, single-turn RAG Q&A with citations, frontend interaction tests, Orval API client generation from FastAPI OpenAPI, generated-client migration for frontend reads/writes, multipart binary type normalization, a narrowed root API client compatibility layer for runtime configuration, CSV export, file upload, and file download, Playwright smoke coverage for login and navigation, GitHub Actions CI quality gates, Dependabot dependency update visibility, manual npm/Python dependency security audit scripts, an `ENVIRONMENT` setting with production credential validation, superuser management permission guard including self-superuser-status change prevention, self-disable prevention, space delete concurrency fix on the retained `departments` technical module, role permission clear fix, 401-triggered token cleanup and session-expired notice on frontend, `RequirePermission` attached to protected routes for route-level access control, and Docker Web Nginx proxying `/api/` to the API container so production browsers do not call localhost.
 
-Do not add script execution, dynamic plugin loading, approval flows, reports, payroll, or company-specific enterprise workflows unless the user explicitly asks for that phase.
+Do not add OCR, script execution, dynamic plugin loading, approval flows, reports, payroll, or company-specific enterprise workflows unless the user explicitly asks for that phase.
 
 ## Key Commands
 
@@ -80,6 +80,19 @@ With that alternate Docker mapping, use `http://localhost:15173` for Web and `ht
   - `POST /api/v1/apps`
   - `PATCH /api/v1/apps/{app_id}`
   - `PATCH /api/v1/apps/{app_id}/status`
+  - `GET /api/v1/knowledge-bases`
+  - `POST /api/v1/knowledge-bases`
+  - `GET /api/v1/knowledge-bases/{knowledge_base_id}`
+  - `PATCH /api/v1/knowledge-bases/{knowledge_base_id}`
+  - `DELETE /api/v1/knowledge-bases/{knowledge_base_id}`
+  - `GET /api/v1/knowledge-bases/{knowledge_base_id}/members`
+  - `PUT /api/v1/knowledge-bases/{knowledge_base_id}/members`
+  - `GET /api/v1/knowledge-bases/{knowledge_base_id}/documents`
+  - `POST /api/v1/knowledge-bases/{knowledge_base_id}/documents/upload`
+  - `GET /api/v1/knowledge-documents/{document_id}`
+  - `POST /api/v1/knowledge-documents/{document_id}/index`
+  - `DELETE /api/v1/knowledge-documents/{document_id}`
+  - `POST /api/v1/rag/ask`
   - `GET /api/v1/users`
   - `POST /api/v1/users`
   - `PATCH /api/v1/users/bulk-status`
@@ -123,11 +136,13 @@ With that alternate Docker mapping, use `http://localhost:15173` for Web and `ht
 - Current auth table: `users`.
 - Current permission tables: `roles`, `permissions`, `user_roles`, `role_permissions`.
 - Current platform tables: `departments` (displayed as spaces), `platform_apps`, `operation_logs`, `login_logs`, `dictionary_types`, `dictionary_items`, `file_attachments`.
+- Current RAG tables: `knowledge_bases`, `knowledge_base_members`, `knowledge_documents`, `knowledge_chunks`.
 - Local file storage defaults to `.local/uploads`; Docker app profile mounts `api_uploads` at `/app/uploads`.
 - Upload policy is configured by `MAX_UPLOAD_SIZE_BYTES` and `ALLOWED_UPLOAD_CONTENT_TYPES`.
 - File storage backend is configured by `FILE_STORAGE_BACKEND`; `local` and `minio` are implemented. MinIO uses `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`, and `MINIO_SECURE`.
 - `minio-init` is a one-shot Compose bucket initializer. `Exited (0)` is normal and the stopped container can be removed; it is recreated when the `minio-init` service is started again.
 - Upload scanning is configured by `UPLOAD_SCANNER_ENABLED`; the default is no-op, and `UPLOAD_SCANNER_BACKEND=clamav` scans through clamd using `CLAMAV_HOST`, `CLAMAV_PORT`, and `CLAMAV_TIMEOUT_SECONDS`.
+- RAG AI integration is OpenAI-compatible and configured by `AI_BASE_URL`, `AI_API_KEY`, `AI_CHAT_MODEL`, `AI_EMBEDDING_MODEL`, `AI_EMBEDDING_DIMENSIONS`, `RAG_TOP_K`, `RAG_CHUNK_SIZE`, and `RAG_CHUNK_OVERLAP`.
 - Playwright package version is `1.60.0` in the current install; matching Chromium browser binaries are installed under `/Users/alune/Library/Caches/ms-playwright/chromium-1223` and `/Users/alune/Library/Caches/ms-playwright/chromium_headless_shell-1223`.
 - If Chromium launch fails inside Codex with a macOS Mach port permission error, rerun browser checks outside the sandbox.
 - Frontend entry: `apps/web/src/app/main.tsx`.

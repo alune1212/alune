@@ -16,6 +16,12 @@ from app.modules.auth.models import User
 from app.modules.departments.models import Department
 from app.modules.dictionaries.models import DictionaryItem, DictionaryType
 from app.modules.files.models import FileAttachment
+from app.modules.knowledge.models import (
+    KnowledgeBase,
+    KnowledgeBaseMember,
+    KnowledgeChunk,
+    KnowledgeDocument,
+)
 from app.modules.permissions.models import Permission, Role
 from app.modules.system.models import SystemInfo
 
@@ -36,6 +42,10 @@ _registered_models = (
     DictionaryItem,
     DictionaryType,
     FileAttachment,
+    KnowledgeBase,
+    KnowledgeBaseMember,
+    KnowledgeChunk,
+    KnowledgeDocument,
     Permission,
     PlatformApp,
     Role,

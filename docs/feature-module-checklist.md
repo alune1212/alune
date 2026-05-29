@@ -1,8 +1,8 @@
 # Feature Module Checklist
 
-Last reviewed: 2026-05-27
+Last reviewed: 2026-05-28
 
-Current stage: 7A
+Current stage: 7B
 
 Use this checklist before starting any new Alune Hub personal-platform module. A module is not ready to implement until the scope, data model, permissions, audit events, API contract, frontend surface, tests, and verification commands are all written down.
 

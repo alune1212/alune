@@ -4,7 +4,9 @@ const adminUsername = process.env.E2E_ADMIN_USERNAME ?? "e2e_admin";
 const adminPassword = process.env.E2E_ADMIN_PASSWORD ?? "change-this-password";
 
 const internalPages = [
-  { label: "应用中心", heading: "应用中心" },
+  { label: "知识库", heading: "知识库" },
+  { label: "文档中心", heading: "文档中心" },
+  { label: "知识问答", heading: "知识问答" },
   { label: "用户管理", heading: "用户管理" },
   { label: "角色权限", heading: "角色权限" },
   { label: "空间管理", heading: "空间管理" },
@@ -32,7 +34,9 @@ test.describe("admin smoke", () => {
     await page.getByLabel("密码").fill(adminPassword);
     await page.getByRole("button", { name: "登录" }).click();
 
-    await expect(page.getByRole("heading", { name: "Alune Hub" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Alune Knowledge" }),
+    ).toBeVisible();
     await expect(page.getByText("接口服务").first()).toBeVisible();
 
     for (const internalPage of internalPages) {

@@ -1,11 +1,12 @@
 # alune-platform
 
-Alune Hub 个人平台中枢 MVP。当前阶段包含最小可运行 monorepo、FastAPI 后端、Vite React 前端、PostgreSQL、Redis、本地登录、权限基础、空间/协作者管理、操作日志、配置字典、文件资源，以及阶段 7A 的应用中心 V1。应用中心用于登记和导航平台内功能与外部工具入口，不执行脚本、不加载动态插件。
+Alune Knowledge 个人/小团队 RAG 知识库平台 MVP。当前阶段包含最小可运行 monorepo、FastAPI 后端、Vite React 前端、PostgreSQL + pgvector、Redis、本地登录、权限基础、知识库、文档入库、文档切片/向量索引、单轮知识问答、引用溯源、操作日志、配置字典和文件存储。遗留应用中心 API 暂保留但不再作为主导航入口；平台不执行脚本、不加载动态插件。
 
 ## 技术栈
 
 - 前端：React 19、TypeScript、Vite、Tailwind CSS v4、shadcn/ui、Radix UI、TanStack Router、TanStack Query、Zustand、Sonner、Vitest、Playwright。
 - 后端：Python 3.14、uv、FastAPI、Pydantic v2、pydantic-settings、SQLAlchemy 2.0 Async、asyncpg、Alembic、Ruff、ty、pytest。
+- RAG：pgvector、OpenAI 兼容 chat/embedding API、PDF/DOCX/TXT/Markdown 文档入库。
 - 工程化：pnpm workspace、Turborepo、Docker Compose。
 
 ## 目录结构
@@ -55,7 +56,7 @@ alune-platform/
 cp .env.example .env
 ```
 
-`ENVIRONMENT` 设为 `development`（开发环境）；生产环境需设为 `production`，此时不允许使用默认 JWT、PostgreSQL 和 MinIO 密钥，JWT 密钥至少需 32 字符。
+`ENVIRONMENT` 设为 `development`（开发环境）；生产环境需设为 `production`，此时不允许使用默认 JWT、PostgreSQL 和 MinIO 密钥，JWT 密钥至少需 32 字符。知识问答需要配置 `AI_API_KEY`；未配置时仍可使用登录、知识库和文档管理。
 
 安装前端依赖：
 
@@ -114,7 +115,7 @@ API_PORT=18000 WEB_PORT=15173 docker compose --profile app up --build
 
 完整 Docker 栈会启动：
 
-- PostgreSQL：http://localhost:5432
+- PostgreSQL + pgvector：http://localhost:5432
 - Redis：http://localhost:6379
 - API：http://localhost:8000
 - Web：http://localhost:5173
@@ -294,51 +295,68 @@ Dependabot 配置位于 `.github/dependabot.yml`，每周一上午按 `Asia/Shan
 - `login_logs` - 登录日志基础表。
 - `dictionary_types` / `dictionary_items` - 字典基础表。
 - `file_attachments` - 文件附件元数据基础表。
+- `knowledge_bases` - RAG 知识库。
+- `knowledge_base_members` - 知识库成员和 owner/editor/viewer 角色。
+- `knowledge_documents` - 知识库文档、解析/索引状态和 chunk 数。
+- `knowledge_chunks` - 文档切片、metadata 和 pgvector embedding。
 
 ## 当前 API
 
-| Method | Path                                   | 说明                                                                                                   |
-| ------ | -------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| GET    | `/api/v1/health`                       | API 存活检查                                                                                           |
-| GET    | `/api/v1/health/db`                    | PostgreSQL 连接检查；数据库不可用时返回 503                                                            |
-| POST   | `/api/v1/auth/login`                   | OAuth2 password 登录，返回 JWT access token                                                            |
-| GET    | `/api/v1/auth/me`                      | 根据 Bearer token 返回当前用户和权限码                                                                 |
-| GET    | `/api/v1/apps`                         | 应用中心分页列表，支持 `q`/`category_code`/`is_active`/`page`/`page_size`，需 `action:apps:read`       |
-| POST   | `/api/v1/apps`                         | 创建应用入口，需 `action:apps:create`                                                                  |
-| PATCH  | `/api/v1/apps/{app_id}`                | 更新应用入口，需 `action:apps:update`                                                                  |
-| PATCH  | `/api/v1/apps/{app_id}/status`         | 启用/停用应用入口，需 `action:apps:manage_status`                                                       |
-| GET    | `/api/v1/users`                        | 用户分页列表，支持 `q`/`department_id`/`role_code`/`page`/`page_size`，需 `action:users:read`          |
-| POST   | `/api/v1/users`                        | 创建用户，需 `action:users:create`                                                                     |
-| PATCH  | `/api/v1/users/bulk-status`            | 批量启用/禁用用户，需 `action:users:update`                                                            |
-| PATCH  | `/api/v1/users/{user_id}`              | 更新/启停用户，需 `action:users:update`                                                                |
-| PATCH  | `/api/v1/users/{user_id}/password`     | 重置用户密码，需 `action:users:update`                                                                 |
-| GET    | `/api/v1/users/{user_id}/roles`        | 用户角色码，需 `action:users:read`                                                                     |
-| PUT    | `/api/v1/users/{user_id}/roles`        | 更新用户角色，需 `action:users:update_roles`                                                           |
-| GET    | `/api/v1/roles`                        | 角色列表，需 `action:roles:read`                                                                       |
-| POST   | `/api/v1/roles`                        | 创建角色，需 `action:roles:create`                                                                     |
-| GET    | `/api/v1/roles/permissions`            | 权限列表，需 `action:roles:read`                                                                       |
-| GET    | `/api/v1/roles/{role_id}/permissions`  | 角色权限码，需 `action:roles:read`                                                                     |
-| PATCH  | `/api/v1/roles/{role_id}`              | 更新非系统角色，需 `action:roles:update`                                                               |
-| DELETE | `/api/v1/roles/{role_id}`              | 删除未分配用户的非系统角色，需 `action:roles:delete`                                                   |
-| PUT    | `/api/v1/roles/{role_id}/permissions`  | 更新角色权限，需 `action:roles:update_permissions`                                                     |
-| GET    | `/api/v1/departments`                  | 空间分页列表，技术路径仍为 departments，支持 `q`/`page`/`page_size`，需 `action:departments:read`      |
-| GET    | `/api/v1/departments/tree`             | 空间树，技术路径仍为 departments，需 `action:departments:read`                                         |
-| POST   | `/api/v1/departments`                  | 创建空间，技术路径仍为 departments，需 `action:departments:create`                                     |
-| PATCH  | `/api/v1/departments/{department_id}`  | 更新/启停空间，技术路径仍为 departments，需 `action:departments:update`                                |
-| DELETE | `/api/v1/departments/{department_id}`  | 删除无子空间且无用户的空间，技术路径仍为 departments，需 `action:departments:delete`                   |
-| GET    | `/api/v1/audit/operation-logs`         | 操作日志分页筛选，支持 `q`/`status`/`started_at`/`ended_at`/`page`/`page_size`，需 `action:audit:read` |
-| GET    | `/api/v1/audit/operation-logs/export`  | 导出操作日志 CSV，支持 `q`/`status`/`started_at`/`ended_at`，需 `action:audit:read`                    |
-| GET    | `/api/v1/audit/login-logs`             | 登录日志分页筛选，支持 `q`/`status`/`started_at`/`ended_at`/`page`/`page_size`，需 `action:audit:read` |
-| GET    | `/api/v1/audit/login-logs/export`      | 导出登录日志 CSV，支持 `q`/`status`/`started_at`/`ended_at`，需 `action:audit:read`                    |
-| GET    | `/api/v1/dictionaries/types`           | 字典类型列表，需 `action:dictionaries:read`                                                            |
-| POST   | `/api/v1/dictionaries/types`           | 创建字典类型，需 `action:dictionaries:create`                                                          |
-| PATCH  | `/api/v1/dictionaries/types/{type_id}` | 更新非系统字典类型，需 `action:dictionaries:update`                                                    |
-| DELETE | `/api/v1/dictionaries/types/{type_id}` | 删除无字典项的非系统字典类型，需 `action:dictionaries:update`                                          |
-| GET    | `/api/v1/dictionaries/items`           | 字典项列表，需 `action:dictionaries:read`                                                              |
-| POST   | `/api/v1/dictionaries/items`           | 创建字典项，需 `action:dictionaries:create`                                                            |
-| PATCH  | `/api/v1/dictionaries/items/{item_id}` | 更新/启停字典项，需 `action:dictionaries:update`                                                       |
-| DELETE | `/api/v1/dictionaries/items/{item_id}` | 删除字典项，需 `action:dictionaries:update`                                                            |
-| GET    | `/api/v1/files`                        | 文件分页列表，支持 `q`/`page`/`page_size`，需 `action:files:read`                                      |
-| POST   | `/api/v1/files`                        | 创建文件元数据，需 `action:files:create`                                                               |
-| POST   | `/api/v1/files/upload`                 | 上传文件内容并创建元数据，需 `action:files:create`                                                     |
-| GET    | `/api/v1/files/{file_id}/download`     | 下载文件内容，需 `action:files:read`                                                                   |
+| Method | Path                                            | 说明                                                                                                   |
+| ------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| GET    | `/api/v1/health`                                | API 存活检查                                                                                           |
+| GET    | `/api/v1/health/db`                             | PostgreSQL 连接检查；数据库不可用时返回 503                                                            |
+| POST   | `/api/v1/auth/login`                            | OAuth2 password 登录，返回 JWT access token                                                            |
+| GET    | `/api/v1/auth/me`                               | 根据 Bearer token 返回当前用户和权限码                                                                 |
+| GET    | `/api/v1/apps`                                  | 应用中心分页列表，支持 `q`/`category_code`/`is_active`/`page`/`page_size`，需 `action:apps:read`       |
+| POST   | `/api/v1/apps`                                  | 创建应用入口，需 `action:apps:create`                                                                  |
+| PATCH  | `/api/v1/apps/{app_id}`                         | 更新应用入口，需 `action:apps:update`                                                                  |
+| PATCH  | `/api/v1/apps/{app_id}/status`                  | 启用/停用应用入口，需 `action:apps:manage_status`                                                      |
+| GET    | `/api/v1/knowledge-bases`                       | 知识库分页列表，需 `action:knowledge_bases:read`                                                       |
+| POST   | `/api/v1/knowledge-bases`                       | 创建知识库并将创建者设为 owner，需 `action:knowledge_bases:create`                                     |
+| GET    | `/api/v1/knowledge-bases/{id}`                  | 查看知识库，需全局读权限和知识库成员权限                                                               |
+| PATCH  | `/api/v1/knowledge-bases/{id}`                  | 更新知识库，需全局更新权限和 owner/editor 成员权限                                                     |
+| DELETE | `/api/v1/knowledge-bases/{id}`                  | 停用知识库，需全局删除权限和 owner 成员权限                                                            |
+| GET    | `/api/v1/knowledge-bases/{id}/members`          | 查看知识库成员，需 owner 成员权限                                                                      |
+| PUT    | `/api/v1/knowledge-bases/{id}/members`          | 替换知识库成员，需 owner 成员权限                                                                      |
+| GET    | `/api/v1/knowledge-bases/{id}/documents`        | 查看知识库文档，需 `action:knowledge_documents:read` 和成员权限                                        |
+| POST   | `/api/v1/knowledge-bases/{id}/documents/upload` | 上传并索引 PDF/DOCX/TXT/Markdown 文档，需 `action:knowledge_documents:upload`                          |
+| GET    | `/api/v1/knowledge-documents/{id}`              | 查看知识文档，需文档所属知识库成员权限                                                                 |
+| POST   | `/api/v1/knowledge-documents/{id}/index`        | 重新读取存储文件并索引，需 `action:knowledge_documents:index`                                          |
+| DELETE | `/api/v1/knowledge-documents/{id}`              | 标记删除知识文档，需 `action:knowledge_documents:delete`                                               |
+| POST   | `/api/v1/rag/ask`                               | 单轮知识问答，返回答案和引用来源，需 `action:rag:ask`                                                  |
+| GET    | `/api/v1/users`                                 | 用户分页列表，支持 `q`/`department_id`/`role_code`/`page`/`page_size`，需 `action:users:read`          |
+| POST   | `/api/v1/users`                                 | 创建用户，需 `action:users:create`                                                                     |
+| PATCH  | `/api/v1/users/bulk-status`                     | 批量启用/禁用用户，需 `action:users:update`                                                            |
+| PATCH  | `/api/v1/users/{user_id}`                       | 更新/启停用户，需 `action:users:update`                                                                |
+| PATCH  | `/api/v1/users/{user_id}/password`              | 重置用户密码，需 `action:users:update`                                                                 |
+| GET    | `/api/v1/users/{user_id}/roles`                 | 用户角色码，需 `action:users:read`                                                                     |
+| PUT    | `/api/v1/users/{user_id}/roles`                 | 更新用户角色，需 `action:users:update_roles`                                                           |
+| GET    | `/api/v1/roles`                                 | 角色列表，需 `action:roles:read`                                                                       |
+| POST   | `/api/v1/roles`                                 | 创建角色，需 `action:roles:create`                                                                     |
+| GET    | `/api/v1/roles/permissions`                     | 权限列表，需 `action:roles:read`                                                                       |
+| GET    | `/api/v1/roles/{role_id}/permissions`           | 角色权限码，需 `action:roles:read`                                                                     |
+| PATCH  | `/api/v1/roles/{role_id}`                       | 更新非系统角色，需 `action:roles:update`                                                               |
+| DELETE | `/api/v1/roles/{role_id}`                       | 删除未分配用户的非系统角色，需 `action:roles:delete`                                                   |
+| PUT    | `/api/v1/roles/{role_id}/permissions`           | 更新角色权限，需 `action:roles:update_permissions`                                                     |
+| GET    | `/api/v1/departments`                           | 空间分页列表，技术路径仍为 departments，支持 `q`/`page`/`page_size`，需 `action:departments:read`      |
+| GET    | `/api/v1/departments/tree`                      | 空间树，技术路径仍为 departments，需 `action:departments:read`                                         |
+| POST   | `/api/v1/departments`                           | 创建空间，技术路径仍为 departments，需 `action:departments:create`                                     |
+| PATCH  | `/api/v1/departments/{department_id}`           | 更新/启停空间，技术路径仍为 departments，需 `action:departments:update`                                |
+| DELETE | `/api/v1/departments/{department_id}`           | 删除无子空间且无用户的空间，技术路径仍为 departments，需 `action:departments:delete`                   |
+| GET    | `/api/v1/audit/operation-logs`                  | 操作日志分页筛选，支持 `q`/`status`/`started_at`/`ended_at`/`page`/`page_size`，需 `action:audit:read` |
+| GET    | `/api/v1/audit/operation-logs/export`           | 导出操作日志 CSV，支持 `q`/`status`/`started_at`/`ended_at`，需 `action:audit:read`                    |
+| GET    | `/api/v1/audit/login-logs`                      | 登录日志分页筛选，支持 `q`/`status`/`started_at`/`ended_at`/`page`/`page_size`，需 `action:audit:read` |
+| GET    | `/api/v1/audit/login-logs/export`               | 导出登录日志 CSV，支持 `q`/`status`/`started_at`/`ended_at`，需 `action:audit:read`                    |
+| GET    | `/api/v1/dictionaries/types`                    | 字典类型列表，需 `action:dictionaries:read`                                                            |
+| POST   | `/api/v1/dictionaries/types`                    | 创建字典类型，需 `action:dictionaries:create`                                                          |
+| PATCH  | `/api/v1/dictionaries/types/{type_id}`          | 更新非系统字典类型，需 `action:dictionaries:update`                                                    |
+| DELETE | `/api/v1/dictionaries/types/{type_id}`          | 删除无字典项的非系统字典类型，需 `action:dictionaries:update`                                          |
+| GET    | `/api/v1/dictionaries/items`                    | 字典项列表，需 `action:dictionaries:read`                                                              |
+| POST   | `/api/v1/dictionaries/items`                    | 创建字典项，需 `action:dictionaries:create`                                                            |
+| PATCH  | `/api/v1/dictionaries/items/{item_id}`          | 更新/启停字典项，需 `action:dictionaries:update`                                                       |
+| DELETE | `/api/v1/dictionaries/items/{item_id}`          | 删除字典项，需 `action:dictionaries:update`                                                            |
+| GET    | `/api/v1/files`                                 | 文件分页列表，支持 `q`/`page`/`page_size`，需 `action:files:read`                                      |
+| POST   | `/api/v1/files`                                 | 创建文件元数据，需 `action:files:create`                                                               |
+| POST   | `/api/v1/files/upload`                          | 上传文件内容并创建元数据，需 `action:files:create`                                                     |
+| GET    | `/api/v1/files/{file_id}/download`              | 下载文件内容，需 `action:files:read`                                                                   |

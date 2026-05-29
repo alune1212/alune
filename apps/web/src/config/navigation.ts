@@ -1,9 +1,9 @@
 import {
   BookOpen,
   FileText,
-  Grid2X2,
   LayoutDashboard,
   ListChecks,
+  MessageSquareText,
   Network,
   ShieldCheck,
   Users,
@@ -27,10 +27,22 @@ export const navigationItems: NavigationItem[] = [
     permission: "menu:dashboard",
   },
   {
-    label: uiCopy.modules.apps,
-    to: "/apps",
-    icon: Grid2X2,
-    permission: "menu:apps",
+    label: uiCopy.modules.knowledge,
+    to: "/knowledge-bases",
+    icon: BookOpen,
+    permission: "menu:knowledge",
+  },
+  {
+    label: uiCopy.modules.documents,
+    to: "/documents",
+    icon: FileText,
+    permission: "menu:documents",
+  },
+  {
+    label: uiCopy.modules.ragChat,
+    to: "/chat",
+    icon: MessageSquareText,
+    permission: "menu:rag_chat",
   },
   {
     label: uiCopy.modules.users,
