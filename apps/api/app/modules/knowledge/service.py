@@ -132,7 +132,9 @@ async def retrieve_citations(
     embedding: list[float],
     limit: int,
 ) -> list[RAGCitation]:
-    embedding_literal = "[" + ",".join(str(float(item)) for item in embedding) + "]"
+    from app.modules.knowledge.models import Vector as _Vector
+
+    embedding_literal = _Vector(0).bind_processor(None)(embedding)
     statement = text(
         """
         SELECT

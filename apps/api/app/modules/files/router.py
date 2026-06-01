@@ -15,7 +15,6 @@ from app.modules.files.repository import get_file_attachment_by_id, list_file_at
 from app.modules.files.schemas import FileAttachmentCreate, FileAttachmentPublic
 from app.modules.files.storage import (
     FileStorage,
-    get_file_storage,
     get_upload_scanner,
     validate_upload_policy,
 )
@@ -28,22 +27,10 @@ logger = logging.getLogger(__name__)
 
 
 def _build_file_storage(settings: Settings) -> FileStorage:
-    try:
-        return get_file_storage(
-            backend=settings.file_storage_backend,
-            local_root=settings.local_file_storage_dir,
-            minio_endpoint=settings.minio_endpoint,
-            minio_access_key=settings.minio_access_key,
-            minio_secret_key=settings.minio_secret_key,
-            minio_bucket=settings.minio_bucket,
-            minio_secure=settings.minio_secure,
-        )
-    except ValueError as exc:
-        logger.exception("Invalid file storage configuration")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="文件存储配置无效",
-        ) from exc
+    """Deprecated: use ``build_file_storage`` from ``app.modules.files.storage``."""
+    from app.modules.files.storage import build_file_storage
+
+    return build_file_storage(settings)
 
 
 @router.get(

@@ -7,9 +7,12 @@ from datetime import UTC, datetime
 from hashlib import sha256
 from io import BytesIO
 from pathlib import Path
-from typing import Protocol, cast, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, cast, runtime_checkable
 from urllib.parse import quote
 from uuid import uuid4
+
+if TYPE_CHECKING:
+    from app.core.config import Settings
 
 from fastapi import HTTPException, Response, UploadFile, status
 from starlette.responses import FileResponse, StreamingResponse
@@ -309,6 +312,32 @@ class MinioFileStorage:
                     release_conn()
 
         return await asyncio.to_thread(read_object)
+
+
+def build_file_storage(settings: Settings) -> FileStorage:
+    """Build a FileStorage instance from application settings.
+
+    This is the canonical factory; import from here instead of files.router.
+    """
+    import logging
+
+    logger = logging.getLogger(__name__)
+    try:
+        return get_file_storage(
+            backend=settings.file_storage_backend,
+            local_root=settings.local_file_storage_dir,
+            minio_endpoint=settings.minio_endpoint,
+            minio_access_key=settings.minio_access_key,
+            minio_secret_key=settings.minio_secret_key,
+            minio_bucket=settings.minio_bucket,
+            minio_secure=settings.minio_secure,
+        )
+    except ValueError as exc:
+        logger.exception("Invalid file storage configuration")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="文件存储配置无效",
+        ) from exc
 
 
 def create_minio_client(

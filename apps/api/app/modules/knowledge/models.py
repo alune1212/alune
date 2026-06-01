@@ -7,6 +7,8 @@ from sqlalchemy.types import UserDefinedType
 
 from app.db.base import Base, TimestampMixin
 
+EMBEDDING_DIMENSIONS = 1536
+
 
 class Vector(UserDefinedType):
     cache_ok = True
@@ -110,4 +112,4 @@ class KnowledgeChunk(TimestampMixin, Base):
     content: Mapped[str] = mapped_column(Text, nullable=False)
     content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     chunk_metadata: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False, default=dict)
-    embedding: Mapped[list[float]] = mapped_column(Vector(1536), nullable=False)
+    embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIMENSIONS), nullable=False)

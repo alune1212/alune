@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -37,12 +37,12 @@ export function KnowledgeChatPage() {
   const basesPage =
     basesQuery.data?.status === 200 ? basesQuery.data.data.data : undefined;
   const bases = basesPage?.items ?? [];
-  const effectiveBaseIds =
-    selectedBaseIds.length > 0
-      ? selectedBaseIds
-      : bases[0]?.id
-        ? [bases[0].id]
-        : [];
+  useEffect(() => {
+    if (selectedBaseIds.length === 0 && bases.length > 0) {
+      setSelectedBaseIds([bases[0].id]);
+    }
+  }, [bases, selectedBaseIds.length]);
+  const effectiveBaseIds = selectedBaseIds;
   const askMutation = useAskRagApiV1RagAskPost({
     mutation: {
       onSuccess: (response) => {

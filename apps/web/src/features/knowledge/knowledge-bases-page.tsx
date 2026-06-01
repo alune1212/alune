@@ -83,27 +83,20 @@ export function KnowledgeBasesPage() {
     [addedMembers, members],
   );
 
-  function openMembers(knowledgeBase: KnowledgeBasePublic) {
-    setMemberBase(knowledgeBase);
+  function resetMemberState() {
     setAddedMembers([]);
     setMemberUserId("");
     setMemberRole("viewer");
+  }
+
+  function openMembers(knowledgeBase: KnowledgeBasePublic) {
+    setMemberBase(knowledgeBase);
+    resetMemberState();
   }
 
   function closeMembers() {
     setMemberBase(null);
-    setAddedMembers([]);
-    setMemberUserId("");
-    setMemberRole("viewer");
-  }
-
-  function currentMemberDrafts(): KnowledgeBaseMemberUpdate[] {
-    return members
-      .map((member) => ({
-        user_id: member.user_id,
-        role: member.role,
-      }))
-      .concat(addedMembers);
+    resetMemberState();
   }
 
   function resetForm() {
@@ -172,9 +165,7 @@ export function KnowledgeBasesPage() {
     if (!memberUserId) {
       return;
     }
-    if (
-      currentMemberDrafts().some((member) => member.user_id === memberUserId)
-    ) {
+    if (memberDrafts.some((member) => member.user_id === memberUserId)) {
       return;
     }
     setAddedMembers([
@@ -191,7 +182,7 @@ export function KnowledgeBasesPage() {
     }
     updateMembersMutation.mutate({
       knowledgeBaseId: memberBase.id,
-      data: { members: currentMemberDrafts() },
+      data: { members: memberDrafts },
     });
   }
 

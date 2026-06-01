@@ -137,5 +137,24 @@ async def user_can_access_knowledge_base(
     return await session.scalar(statement) is not None
 
 
+async def list_accessible_knowledge_base_ids(
+    session: AsyncSession,
+    *,
+    user: User,
+    knowledge_base_ids: list[UUID],
+    roles: set[str],
+) -> set[UUID]:
+    """Return the subset of *knowledge_base_ids* that *user* can access with the given *roles*."""
+    if user.is_superuser:
+        return set(knowledge_base_ids)
+    statement = select(KnowledgeBaseMember.knowledge_base_id).where(
+        KnowledgeBaseMember.knowledge_base_id.in_(knowledge_base_ids),
+        KnowledgeBaseMember.user_id == user.id,
+        KnowledgeBaseMember.role.in_(roles),
+    )
+    result = await session.scalars(statement)
+    return set(result.all())
+
+
 async def delete_document_chunks(session: AsyncSession, *, document_id: UUID) -> None:
     await session.execute(delete(KnowledgeChunk).where(KnowledgeChunk.document_id == document_id))

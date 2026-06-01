@@ -8,8 +8,7 @@ class TextChunk:
 
 
 def chunk_text(text: str, *, chunk_size: int, chunk_overlap: int) -> list[TextChunk]:
-    normalized = "\n".join(line.strip() for line in text.splitlines())
-    normalized = "\n".join(line for line in normalized.splitlines() if line)
+    normalized = "\n".join(line.strip() for line in text.splitlines() if line.strip())
     if not normalized:
         return []
     if chunk_size <= 0:

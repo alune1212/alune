@@ -22,12 +22,12 @@ import {
 
 function statusLabel(status: string): string {
   if (status === "indexed") {
-    return "已索引";
+    return uiCopy.status.indexed;
   }
   if (status === "failed") {
-    return "失败";
+    return uiCopy.status.failed;
   }
-  return "待索引";
+  return uiCopy.status.uploaded;
 }
 
 export function DocumentsPage() {

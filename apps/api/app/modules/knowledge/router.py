@@ -11,13 +11,13 @@ from app.modules.auth.dependencies import DatabaseSession
 from app.modules.auth.models import User
 from app.modules.files.models import FileAttachment
 from app.modules.files.repository import get_file_attachment_by_id
-from app.modules.files.router import _build_file_storage
-from app.modules.files.storage import get_upload_scanner, validate_upload_policy
+from app.modules.files.storage import build_file_storage, get_upload_scanner, validate_upload_policy
 from app.modules.knowledge.models import KnowledgeBase, KnowledgeBaseMember, KnowledgeDocument
 from app.modules.knowledge.repository import (
     delete_document_chunks,
     get_knowledge_base_by_id,
     get_knowledge_document_by_id,
+    list_accessible_knowledge_base_ids,
     list_knowledge_base_members,
     list_knowledge_bases,
     replace_knowledge_base_members,
@@ -77,6 +77,26 @@ async def _ensure_knowledge_base_access(
     if not allowed:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权访问该知识库")
     return knowledge_base
+
+
+async def _ensure_document_access(
+    session: DatabaseSession,
+    *,
+    document_id: UUID,
+    current_user: User,
+    roles: set[str],
+) -> KnowledgeDocument:
+    """Fetch document by ID, raise 404 if missing, then check knowledge-base access."""
+    document = await get_knowledge_document_by_id(session, document_id)
+    if document is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="文档不存在")
+    await _ensure_knowledge_base_access(
+        session,
+        knowledge_base_id=document.knowledge_base_id,
+        current_user=current_user,
+        roles=roles,
+    )
+    return document
 
 
 @knowledge_bases_router.get(
@@ -336,7 +356,7 @@ async def upload_knowledge_document(
     )
     content = await upload.read()
     await upload.seek(0)
-    storage = _build_file_storage(settings)
+    storage = build_file_storage(settings)
     scanner = get_upload_scanner(
         enabled=settings.upload_scanner_enabled,
         backend=settings.upload_scanner_backend,
@@ -396,12 +416,9 @@ async def get_knowledge_document(
     session: DatabaseSession,
     current_user: User = ReadDocumentDependency,
 ) -> ApiResponse[KnowledgeDocumentPublic]:
-    document = await get_knowledge_document_by_id(session, document_id)
-    if document is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="文档不存在")
-    await _ensure_knowledge_base_access(
+    document = await _ensure_document_access(
         session,
-        knowledge_base_id=document.knowledge_base_id,
+        document_id=document_id,
         current_user=current_user,
         roles=READ_ROLES,
     )
@@ -418,19 +435,16 @@ async def index_knowledge_document(
     settings: Annotated[Settings, Depends(get_settings)],
     current_user: User = IndexDocumentDependency,
 ) -> ApiResponse[KnowledgeDocumentPublic]:
-    document = await get_knowledge_document_by_id(session, document_id)
-    if document is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="文档不存在")
-    await _ensure_knowledge_base_access(
+    document = await _ensure_document_access(
         session,
-        knowledge_base_id=document.knowledge_base_id,
+        document_id=document_id,
         current_user=current_user,
         roles=EDIT_ROLES,
     )
     file_attachment = await get_file_attachment_by_id(session, document.file_attachment_id)
     if file_attachment is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="文件不存在")
-    storage = _build_file_storage(settings)
+    storage = build_file_storage(settings)
     content = await storage.read_bytes(storage_path=file_attachment.storage_path)
     await index_document_content(
         session,
@@ -461,12 +475,9 @@ async def delete_knowledge_document(
     session: DatabaseSession,
     current_user: User = DeleteDocumentDependency,
 ) -> ApiResponse[KnowledgeDocumentPublic]:
-    document = await get_knowledge_document_by_id(session, document_id)
-    if document is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="文档不存在")
-    await _ensure_knowledge_base_access(
+    document = await _ensure_document_access(
         session,
-        knowledge_base_id=document.knowledge_base_id,
+        document_id=document_id,
         current_user=current_user,
         roles=EDIT_ROLES,
     )
@@ -496,13 +507,15 @@ async def ask_rag(
     settings: Annotated[Settings, Depends(get_settings)],
     current_user: User = AskRAGDependency,
 ) -> ApiResponse[RAGAnswerPublic]:
-    for knowledge_base_id in payload.knowledge_base_ids:
-        await _ensure_knowledge_base_access(
-            session,
-            knowledge_base_id=knowledge_base_id,
-            current_user=current_user,
-            roles=READ_ROLES,
-        )
+    accessible = await list_accessible_knowledge_base_ids(
+        session,
+        user=current_user,
+        knowledge_base_ids=payload.knowledge_base_ids,
+        roles=READ_ROLES,
+    )
+    if accessible != set(payload.knowledge_base_ids):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权访问该知识库")
+    action = "ask_failed"
     try:
         answer = await answer_question(
             session,
@@ -510,24 +523,15 @@ async def ask_rag(
             knowledge_base_ids=payload.knowledge_base_ids,
             settings=settings,
         )
-    except HTTPException:
+        action = "ask"
+    finally:
         await record_operation_log(
             session,
             actor_user_id=current_user.id,
-            action="ask_failed",
+            action=action,
             resource="rag",
             resource_id=None,
             detail=f"knowledge_bases={len(payload.knowledge_base_ids)}",
         )
         await session.commit()
-        raise
-    await record_operation_log(
-        session,
-        actor_user_id=current_user.id,
-        action="ask",
-        resource="rag",
-        resource_id=None,
-        detail=f"knowledge_bases={len(payload.knowledge_base_ids)}",
-    )
-    await session.commit()
     return ApiResponse(success=True, data=RAGAnswerPublic.model_validate(answer))

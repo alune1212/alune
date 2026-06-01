@@ -69,6 +69,11 @@ export const uiCopy = {
     roles: "暂无角色。",
     users: "暂无用户。",
   },
+  status: {
+    indexed: "已索引",
+    failed: "失败",
+    uploaded: "待索引",
+  },
   errors: {
     loadApps: "无法加载应用。",
     loadKnowledgeBases: "无法加载知识库。",
