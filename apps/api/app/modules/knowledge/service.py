@@ -1,3 +1,4 @@
+import asyncio
 from dataclasses import dataclass
 from hashlib import sha256
 from uuid import UUID
@@ -11,6 +12,11 @@ from app.modules.knowledge.chunker import chunk_text
 from app.modules.knowledge.models import KnowledgeChunk, KnowledgeDocument
 from app.modules.knowledge.parser import parse_document_bytes
 from app.modules.knowledge.repository import delete_document_chunks
+
+
+def _format_vector_literal(values: list[float]) -> str:
+    """Format a list of floats as a pgvector literal string, e.g. ``[0.1,0.2]``."""
+    return "[" + ",".join(str(v) for v in values) + "]"
 
 
 @dataclass(frozen=True)
@@ -57,7 +63,9 @@ async def index_document_content(
 ) -> KnowledgeDocument:
     client = ai_client or build_ai_client(settings)
     try:
-        parsed = parse_document_bytes(content, filename=filename, content_type=content_type)
+        parsed = await asyncio.to_thread(
+            parse_document_bytes, content, filename=filename, content_type=content_type
+        )
         chunks = chunk_text(
             parsed.text,
             chunk_size=settings.rag_chunk_size,
@@ -132,9 +140,7 @@ async def retrieve_citations(
     embedding: list[float],
     limit: int,
 ) -> list[RAGCitation]:
-    from app.modules.knowledge.models import Vector as _Vector
-
-    embedding_literal = _Vector(0).bind_processor(None)(embedding)
+    embedding_literal = _format_vector_literal(embedding)
     statement = text(
         """
         SELECT
@@ -148,7 +154,7 @@ async def retrieve_citations(
         JOIN knowledge_documents kd ON kd.id = kc.document_id
         WHERE kc.knowledge_base_id IN :knowledge_base_ids
           AND kd.status = 'indexed'
-        ORDER BY kc.embedding <=> CAST(:embedding AS vector)
+        ORDER BY score
         LIMIT :limit
         """
     ).bindparams(bindparam("knowledge_base_ids", expanding=True))

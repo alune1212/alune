@@ -11,7 +11,11 @@ from app.modules.auth.dependencies import DatabaseSession
 from app.modules.auth.models import User
 from app.modules.files.models import FileAttachment
 from app.modules.files.repository import get_file_attachment_by_id
-from app.modules.files.storage import build_file_storage, get_upload_scanner, validate_upload_policy
+from app.modules.files.storage import (
+    build_file_storage,
+    build_upload_scanner,
+    validate_upload_policy,
+)
 from app.modules.knowledge.models import KnowledgeBase, KnowledgeBaseMember, KnowledgeDocument
 from app.modules.knowledge.repository import (
     delete_document_chunks,
@@ -357,13 +361,7 @@ async def upload_knowledge_document(
     content = await upload.read()
     await upload.seek(0)
     storage = build_file_storage(settings)
-    scanner = get_upload_scanner(
-        enabled=settings.upload_scanner_enabled,
-        backend=settings.upload_scanner_backend,
-        clamav_host=settings.clamav_host,
-        clamav_port=settings.clamav_port,
-        clamav_timeout_seconds=settings.clamav_timeout_seconds,
-    )
+    scanner = build_upload_scanner(settings)
     stored = await validate_upload_policy(
         upload,
         storage=storage,

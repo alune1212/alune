@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import socket
 import struct
 from collections.abc import Iterator
@@ -19,6 +20,7 @@ from starlette.responses import FileResponse, StreamingResponse
 
 from app.modules.files.schemas import StoredUpload
 
+logger = logging.getLogger(__name__)
 _CHUNK_SIZE = 1024 * 1024
 
 
@@ -314,14 +316,22 @@ class MinioFileStorage:
         return await asyncio.to_thread(read_object)
 
 
+def build_upload_scanner(settings: Settings) -> UploadScanner:
+    """Build an UploadScanner instance from application settings."""
+    return get_upload_scanner(
+        enabled=settings.upload_scanner_enabled,
+        backend=settings.upload_scanner_backend,
+        clamav_host=settings.clamav_host,
+        clamav_port=settings.clamav_port,
+        clamav_timeout_seconds=settings.clamav_timeout_seconds,
+    )
+
+
 def build_file_storage(settings: Settings) -> FileStorage:
     """Build a FileStorage instance from application settings.
 
     This is the canonical factory; import from here instead of files.router.
     """
-    import logging
-
-    logger = logging.getLogger(__name__)
     try:
         return get_file_storage(
             backend=settings.file_storage_backend,
@@ -379,10 +389,6 @@ def get_file_storage(
                 " (MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, MINIO_BUCKET)"
             )
             raise ValueError(msg)
-        assert minio_endpoint is not None
-        assert minio_access_key is not None
-        assert minio_secret_key is not None
-        assert minio_bucket is not None
         client = create_minio_client(
             endpoint=minio_endpoint,
             access_key=minio_access_key,

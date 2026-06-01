@@ -1,4 +1,3 @@
-import logging
 from typing import Annotated
 from uuid import UUID
 
@@ -14,8 +13,8 @@ from app.modules.files.models import FileAttachment
 from app.modules.files.repository import get_file_attachment_by_id, list_file_attachments
 from app.modules.files.schemas import FileAttachmentCreate, FileAttachmentPublic
 from app.modules.files.storage import (
-    FileStorage,
-    get_upload_scanner,
+    build_file_storage,
+    build_upload_scanner,
     validate_upload_policy,
 )
 from app.modules.permissions.dependencies import require_permission
@@ -23,14 +22,6 @@ from app.modules.permissions.dependencies import require_permission
 router = APIRouter(prefix="/files", tags=["files"])
 CreateFileDependency = Depends(require_permission("action:files:create"))
 ReadFileDependency = Depends(require_permission("action:files:read"))
-logger = logging.getLogger(__name__)
-
-
-def _build_file_storage(settings: Settings) -> FileStorage:
-    """Deprecated: use ``build_file_storage`` from ``app.modules.files.storage``."""
-    from app.modules.files.storage import build_file_storage
-
-    return build_file_storage(settings)
 
 
 @router.get(
@@ -96,14 +87,8 @@ async def upload_file_attachment(
     upload: Annotated[UploadFile, File()],
     current_user: User = CreateFileDependency,
 ) -> ApiResponse[FileAttachmentPublic]:
-    storage = _build_file_storage(settings)
-    scanner = get_upload_scanner(
-        enabled=settings.upload_scanner_enabled,
-        backend=settings.upload_scanner_backend,
-        clamav_host=settings.clamav_host,
-        clamav_port=settings.clamav_port,
-        clamav_timeout_seconds=settings.clamav_timeout_seconds,
-    )
+    storage = build_file_storage(settings)
+    scanner = build_upload_scanner(settings)
 
     stored = await validate_upload_policy(
         upload,
@@ -143,7 +128,7 @@ async def download_file_attachment(
     if file_attachment is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="文件不存在")
 
-    storage = _build_file_storage(settings)
+    storage = build_file_storage(settings)
     return await storage.download_response(
         storage_path=file_attachment.storage_path,
         filename=file_attachment.original_filename,
