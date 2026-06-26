@@ -37,11 +37,12 @@ export function KnowledgeChatPage() {
   const basesPage =
     basesQuery.data?.status === 200 ? basesQuery.data.data.data : undefined;
   const bases = basesPage?.items ?? [];
+  const firstBaseId = bases[0]?.id;
   const effectiveBaseIds =
     selectedBaseIds.length > 0
       ? selectedBaseIds
-      : bases.length > 0
-        ? [bases[0].id]
+      : firstBaseId
+        ? [firstBaseId]
         : [];
   const askMutation = useAskRagApiV1RagAskPost({
     mutation: {

@@ -28,11 +28,6 @@
     "security:audit:npm": "pnpm audit --audit-level moderate",
     "security:audit:python": "sh scripts/security-audit-python.sh"
   },
-  "pnpm": {
-    "overrides": {
-      "lodash": "4.18.1"
-    }
-  },
   "devDependencies": {
     "prettier": "^3.6.2",
     "turbo": "^2.6.1"
