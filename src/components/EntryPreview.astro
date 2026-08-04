@@ -1,0 +1,91 @@
+---
+import ArrowLink from "./ArrowLink.astro";
+import TopicLink from "./TopicLink.astro";
+import type { EntryPreviewData } from "./types";
+
+export interface Props extends EntryPreviewData {
+  topicBaseHref?: string;
+  class?: string;
+}
+
+const {
+  id,
+  title,
+  summary,
+  href,
+  kind,
+  status,
+  date,
+  dateLabel,
+  meta,
+  topics = [],
+  cover,
+  coverAlt = "",
+  featured = false,
+  actionLabel,
+  topicBaseHref = "/journal",
+  class: className,
+} = Astro.props;
+
+const humanize = (value: string) =>
+  value
+    .replace(/[-_]+/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+
+const dateValue =
+  date instanceof Date ? date : date ? new Date(date) : undefined;
+const formattedDate =
+  dateLabel ??
+  (dateValue && !Number.isNaN(dateValue.getTime())
+    ? new Intl.DateTimeFormat("en", {
+        dateStyle: "medium",
+        timeZone: "UTC",
+      }).format(dateValue)
+    : undefined);
+const isoDate =
+  dateValue && !Number.isNaN(dateValue.getTime())
+    ? dateValue.toISOString().slice(0, 10)
+    : undefined;
+const metadata = [
+  kind ? humanize(kind) : undefined,
+  status ? humanize(status) : undefined,
+  ...(typeof meta === "string" ? [meta] : (meta ?? [])),
+].filter((value): value is string => Boolean(value));
+const resolvedActionLabel =
+  actionLabel ??
+  (kind === "project" || kind === "tool" ? "View work" : "Read entry");
+---
+
+<article
+  class:list={["entry-preview", { "is-featured": featured }, className]}
+  data-entry-id={id}
+  data-entry-kind={kind}
+>
+  {
+    cover && (
+      <div class="entry-preview__media">
+        <img src={cover} alt={coverAlt} loading="lazy" decoding="async" />
+      </div>
+    )
+  }
+  <div class="entry-preview__body">
+    <div class="entry-preview__meta" aria-label="Entry metadata">
+      {metadata.map((value) => <span>{value}</span>)}
+      {formattedDate && <time datetime={isoDate}>{formattedDate}</time>}
+    </div>
+    <h3><a href={href}>{title}</a></h3>
+    <p class="entry-preview__summary">{summary}</p>
+    {
+      topics.length > 0 && (
+        <ul class="entry-preview__topics" aria-label="Topics">
+          {topics.map((topic) => (
+            <li>
+              <TopicLink topic={topic} baseHref={topicBaseHref} />
+            </li>
+          ))}
+        </ul>
+      )
+    }
+    <ArrowLink href={href} label={resolvedActionLabel} />
+  </div>
+</article>

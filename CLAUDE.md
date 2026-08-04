@@ -1,217 +1,35 @@
-# CLAUDE.md
+# alune 交接说明
 
-This file provides guidance to Claude Code when working with code in this repository. Codex and other agents should also read `AGENTS.md`.
+`alune` 是一个单一根目录的 Astro 静态个人品牌站点。它不是旧版 RAG、后台或 monorepo 的延续；旧服务端、数据库和 Docker 资料不属于当前实现边界。
 
-## 项目概述
+## 先确认这些事实
 
-alune-platform 当前产品定位为 Alune Knowledge，是个人/小团队 RAG 知识库平台，采用 pnpm workspace + Turborepo monorepo 架构。当前阶段包含最小可运行的 FastAPI 后端、Vite React 前端、PostgreSQL + pgvector、Redis、本地依赖、Alembic 数据库迁移基线、登录 MVP、权限基础、平台管理底座、文件与字典能力、上传扫描、知识库、成员管理、文档入库、文档切片/向量索引、文档重新索引、OpenAI 兼容 AI 配置、多知识库单轮问答与引用溯源、前端测试、Orval API client 生成、generated hooks 迁移、API client 兼容层收缩、Playwright 登录/导航冒烟测试、GitHub Actions CI、Dependabot 依赖更新可见性、轻量安全审计基线、功能开发前就绪检查、安全与部署硬化、Stage 6H 个人平台定位调整、Stage 7A 应用中心 V1、Stage 7B RAG 知识库平台定位，以及 Stage 7C RAG MVP 补强。
+1. 公开导航只保留 `Studio`、`Journal`、`About`。
+2. Astro 在构建阶段读取 `src/content/`，生成静态页面到 `dist/`。
+3. 当前没有 API、数据库、登录、CMS、动态插件或 deployment workflow。
+4. 文章和品牌素材按 [CONTENT_LICENSE.md](CONTENT_LICENSE.md) 保留所有权利；代码才适用 [LICENSE](LICENSE) 的 MIT 条款。
 
-## Quick Start
+## 开发入口
 
 ```bash
-# 1. 安装依赖
 pnpm install
-pnpm --filter @alune/web exec playwright install chromium
-cd apps/api && uv sync && cd ../..
-
-# 2. 启动数据库
-pnpm docker:deps
-
-# 3. 启动开发服务器
 pnpm dev
+pnpm check
+pnpm exec playwright install chromium
+pnpm e2e
 ```
 
-访问：前端 http://localhost:5173 | 后端 http://localhost:8000/docs
+单项质量命令是 `pnpm lint`、`pnpm format:check`、`pnpm typecheck`、`pnpm test` 和 `pnpm build`。根 `package.json` 是脚本和依赖的唯一入口；不要重新引入 workspace、Python 或服务端启动命令。
 
-如果 8000 或 5173 已被本机开发服务占用，完整 Docker 栈可以换端口：
+## 内容与 UI
 
-```bash
-API_PORT=18000 WEB_PORT=15173 docker compose --profile app up --build
-```
+- 内容集合位于 `src/content/studio`、`src/content/journal`、`src/content/pages`，schema 在 `src/content.config.ts`。模板和字段说明见 [docs/content-guide.md](docs/content-guide.md)。
+- 页面路由在 `src/pages/`，复用组件在 `src/components/`，全局样式和 tokens 在 `src/styles/`。
+- 视觉判断以 [docs/design-direction.md](docs/design-direction.md) 为准：克制、编辑感、留白、清晰层级和可访问性优先，避免仪表盘式堆叠。
 
-替代端口下访问：前端 http://localhost:15173 | 后端 http://localhost:18000/docs。后端根路径 `/` 没有页面，直接打开 API 根地址返回 `{"detail":"Not Found"}` 属于正常行为。
+## 变更纪律
 
-## 常用命令
-
-### 根目录（统一调度）
-
-```bash
-pnpm dev          # 同时启动前后端开发服务器
-pnpm build        # 构建所有包
-pnpm test         # 运行所有测试
-pnpm lint         # 运行所有 lint
-pnpm typecheck    # 运行所有类型检查
-pnpm docker:deps  # 启动 PostgreSQL 和 Redis
-pnpm docker:app   # 启动完整 Docker 栈（含 API 和 Web）
-pnpm docker:down  # 停止所有 Docker 服务
-pnpm docker:logs  # 查看 Docker 服务日志
-pnpm db:upgrade   # 执行 Alembic upgrade head
-pnpm db:seed      # 创建本地管理员，需要 FIRST_SUPERUSER_PASSWORD
-UV_CACHE_DIR=.uv-cache pnpm api-client:generate  # 导出 OpenAPI 并生成前端 API client
-pnpm exec prettier --check .github/workflows/ci.yml  # 校验 GitHub Actions workflow 格式
-pnpm exec prettier --check .github/dependabot.yml  # 校验 Dependabot 配置格式
-pnpm security:audit:npm  # npm/pnpm 依赖安全审计
-UV_CACHE_DIR=.uv-cache pnpm security:audit:python  # Python 依赖安全审计
-```
-
-### 后端（apps/api）
-
-```bash
-cd apps/api
-uv sync                          # 同步依赖
-uv run fastapi dev app/main.py   # 启动开发服务器 (http://localhost:8000)
-uv run pytest                    # 运行所有测试
-uv run pytest app/tests/test_health.py::test_health_check_returns_api_status  # 运行单个测试
-uv run ruff check .              # Ruff lint
-uv run ruff format .             # Ruff format
-uv run ty check                  # 类型检查
-uv run alembic upgrade head      # 执行数据库迁移
-uv run alembic revision --autogenerate -m "message"  # 生成迁移
-FIRST_SUPERUSER_PASSWORD=change-this-password uv run python -m app.modules.auth.seed
-```
-
-### 前端（apps/web）
-
-```bash
-cd apps/web
-pnpm dev         # 启动开发服务器 (http://localhost:5173)
-pnpm build       # TypeScript 编译 + Vite 构建
-pnpm test        # 运行 Vitest 测试
-pnpm vitest run src/features/apps/app-list.test.tsx  # 运行单个前端测试
-pnpm e2e         # 运行 Playwright 冒烟测试，需要先启动 API/Web 并传入 e2e 管理员环境变量
-pnpm typecheck   # TypeScript 类型检查
-pnpm lint        # ESLint
-pnpm exec playwright --version  # 检查 Playwright CLI
-```
-
-## 架构
-
-### Monorepo 结构
-
-```
-alune-platform/
-├── apps/
-│   ├── api/          # FastAPI 后端 (Python 3.14, uv)
-│   └── web/          # Vite React 前端
-├── packages/
-│   ├── api-client/   # API 客户端（兼容层 + Orval 生成结果）
-│   ├── shared/       # 共享常量
-│   ├── eslint-config/# ESLint 配置
-│   └── tsconfig/     # TypeScript 配置
-├── infra/
-│   ├── docker/       # Dockerfile
-│   ├── nginx/        # Nginx 配置
-│   └── postgres/     # PostgreSQL Docker notes
-├── docs/             # 面向接手者的架构、运维和交接文档
-└── docker-compose.yml
-```
-
-### 后端架构 (apps/api)
-
-- **框架**: FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async
-- **入口**: `app/main.py` - 使用 lifespan 管理引擎生命周期
-- **配置**: `app/core/config.py` - pydantic-settings，支持 `.env` 文件
-- **数据库**: `app/db/session.py` - asyncpg 驱动，`get_db_session` 依赖注入
-- **迁移**: `alembic/` + `alembic.ini` - 迁移创建 `system_info`、`users`、`roles`、`permissions`、关联表、`departments`、日志表、字典表、文件附件元数据和 `platform_apps`；env.py import 模型让 Alembic 通过 `Base.metadata` 自动发现
-- **基类**: `app/db/base.py` - `Base` + `TimestampMixin`（`created_at`/`updated_at`）
-- **认证**: `app/modules/auth/` - 用户表、密码哈希、JWT 登录、当前用户依赖
-- **权限**: `app/modules/permissions/` - 角色、权限、关联表、默认权限、权限校验依赖
-- **平台管理**: `app/modules/users/`、`app/modules/roles/`、`app/modules/departments/` - 用户创建/启停/批量启停/资料编辑/密码重置、用户角色分配、用户角色/空间过滤、角色增删改守卫、角色权限配置、空间树、空间更新/删除规则；`departments` 仍是当前技术命名
-- **应用中心**: `app/modules/apps/` - App Center V1，提供应用登记、搜索筛选、创建、编辑、启停、权限校验和操作日志；V1 只做登记与导航，不执行脚本、任务调度或动态插件加载
-- **基础模块**: `app/modules/audit/`、`app/modules/dictionaries/`、`app/modules/files/` - 登录/操作日志筛选分页/日期过滤/CSV 导出、字典类型/字典项维护守卫、应用分类字典、本地文件上传下载、上传策略（含扫描前大小预检）、文件存储后端工厂和上传扫描 hook；文件下载文件名已做安全过滤防止 HTTP header 注入
-- **模块化**: `app/modules/<feature>/router.py` - 每个功能模块独立路由
-- **统一响应**: `app/common/response.py` - `ApiResponse[DataT]` 泛型模型
-- **异常处理**: `app/core/exceptions.py` - 全局异常处理器
-
-### 前端架构 (apps/web)
-
-- **框架**: React 19 + TypeScript + Vite
-- **路由**: TanStack Router（文件路由在 `src/routes/`）
-- **状态管理**: Zustand（`src/stores/`）+ TanStack Query（`src/lib/query-client.ts`）
-- **UI 组件**: shadcn/ui（`src/components/ui/`）基于 Radix UI
-- **布局**: `src/components/layout/` - AppShell > Sidebar + Topbar
-- **功能模块**: `src/features/<feature>/` - 按功能划分页面
-- **导航配置**: `src/config/navigation.ts` - 共享导航项
-- **认证前端**: `src/features/auth/` - Alune Hub 登录页（含会话过期提示）、AuthProvider、token storage（401 自动清除）、受保护路由（`RequirePermission` 已接入平台路由权限校验）
-- **平台前端**: `src/features/apps/`、`src/features/users/`、`src/features/roles/`、`src/features/departments/`、`src/features/audit/`、`src/features/dictionaries/`、`src/features/files/`；应用中心页面包含应用卡片/列表、搜索筛选、创建、编辑、启停和入口打开，用户页面包含角色/空间过滤、批量启停确认和结果反馈，角色页面包含角色增删改、权限搜索、按类型分组配置和搜索空状态，操作日志页面包含日期过滤和 CSV 导出，配置字典页面包含类型/字典项维护
-- **表单验证**: 项目使用 Zod v4，必须用 `@hookform/resolvers/standard-schema` 的 `standardSchemaResolver`，不能用 `zodResolver`（仅支持 Zod v3）
-- **菜单权限**: `src/config/navigation.ts` - 根据 `/api/v1/auth/me` 返回的权限码过滤菜单
-- **API client**: `packages/api-client/src/index.ts` - 当前兼容 client 保留 runtime 配置、CSV 导出、文件上传、文件下载和二进制边界能力；常规 JSON 读写，包括应用中心，使用 `@alune/api-client/generated` hooks；`packages/api-client/src/generated/api.ts` 是 Orval 从 FastAPI OpenAPI 生成的 types/request functions/React Query hooks；`packages/api-client/src/runtime-config.ts` 默认使用同源相对 API 路径，可由 `VITE_API_BASE_URL` 覆盖；`packages/api-client/src/orval-fetch.ts` 是生成 client 的自定义 fetcher；Orval 配置在 `packages/api-client/orval.config.ts`
-- **Shared constants**: `packages/shared/src/index.ts` - 当前导出 `platformName`
-- **路径别名**: `@/*` -> `./src/*`
-
-### Docker Compose 服务
-
-- **postgres**: PostgreSQL 18，端口 5432
-- **redis**: Redis 8，端口 6379
-- **api**: FastAPI 应用，端口 8000（profile: app）
-- **web**: Nginx 静态服务，端口 5173（profile: app）
-- **minio**: MinIO 对象存储，端口 9000/9001（profile: minio）
-- **minio-init**: 本地 Docker MinIO bucket 初始化（profile: minio）
-- **clamav**: ClamAV/clamd 上传扫描服务，端口 3310（profile: clamav）
-- PostgreSQL 18 volume 必须挂载到 `/var/lib/postgresql`，不要改回 `/var/lib/postgresql/data`
-- `minio-init` 是一次性初始化容器，`Exited (0)` 表示 bucket 初始化完成；删除该停止容器不会影响 MinIO 服务或数据卷，下次启动 `minio-init` 会重新创建。
-
-## 环境变量
-
-复制 `.env.example` 到 `.env` 并根据需要修改。关键变量：
-
-- `DATABASE_URL` - PostgreSQL 连接字符串（默认: `postgresql+asyncpg://app:app@localhost:5432/company_admin`）
-- `REDIS_URL` - Redis 连接字符串（默认: `redis://localhost:6379/0`）
-- `API_CORS_ORIGINS` - CORS 来源（逗号分隔）
-- `JWT_SECRET_KEY` - JWT 密钥（**必须修改**）
-- `VITE_API_BASE_URL` - 本地 Vite 开发时的前端 API 基础 URL覆盖；Docker Web 默认走同源 `/api/` Nginx 反代
-- `LOCAL_FILE_STORAGE_DIR` - API 本地文件上传目录（本地默认 `.local/uploads`，Docker app profile 为 `/app/uploads`）
-- `MAX_UPLOAD_SIZE_BYTES` - 上传文件大小上限
-- `ALLOWED_UPLOAD_CONTENT_TYPES` - 允许上传的 MIME 类型列表
-- `FILE_STORAGE_BACKEND` - 文件存储后端，支持 `local` 和 `minio`
-- `MINIO_ENDPOINT` / `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` / `MINIO_BUCKET` / `MINIO_SECURE` - MinIO 存储配置
-- `ENVIRONMENT` - 运行环境（`development`/`staging`/`production`），生产环境会拒绝默认 JWT 和 MinIO 密钥，JWT 密钥至少 32 字符
-- `UPLOAD_SCANNER_ENABLED` - 上传扫描开关，默认 `false`
-- `UPLOAD_SCANNER_BACKEND` / `CLAMAV_HOST` / `CLAMAV_PORT` / `CLAMAV_TIMEOUT_SECONDS` - ClamAV 扫描配置
-
-## 代码规范
-
-- **Python**: 4 空格缩进，Ruff lint + format，ty 类型检查
-- **TypeScript/React**: 2 空格缩进，ESLint，严格模式
-- **提交信息**: 使用中文
-- **通用**: LF 换行符，UTF-8 编码，尾随空格自动移除（.editorconfig）
-
-## 关键模式
-
-- **Settings 单例**: `get_settings()` 使用 `@lru_cache` 缓存，全局单例
-- **数据库连接池**: `pool_pre_ping=True` 每次连接前检测可用性，避免使用失效连接
-- **数据库建表**: 生产 schema 变更必须走 Alembic migration，不使用 `create_all`
-- **路径别名**: 前端 `@/*` 映射到 `./src/*`，在 tsconfig.app.json 和 vite.config.ts 中配置
-- **API 响应格式**: 常规端点返回 `ApiResponse[DataT]` 泛型模型；分页列表使用 `ApiResponse[Page[T]]`
-- **认证状态**: token 存储在浏览器 `localStorage`；当前用户由 TanStack Query 请求 `/api/v1/auth/me`
-- **权限状态**: `/api/v1/auth/me` 返回 `permissions: string[]`；后端可用 `require_permission("permission:code")` 做操作权限校验
-- **CurrentUser**: 定义在 `auth/dependencies.py`（`get_current_user` 之后），被 `auth/router.py` 和 `permissions/dependencies.py` 共用
-- **superuser 权限**: `list_permission_codes_for_user` 对 `is_superuser=True` 返回数据库中已登记的全部权限码
-
-## 测试
-
-- **后端**: pytest + pytest-asyncio（`asyncio_mode = "auto"`，async 测试函数无需 `@pytest.mark.asyncio` 装饰器），测试在 `app/tests/`
-- **前端**: Vitest + Testing Library，测试文件 `*.test.ts` / `*.test.tsx`
-- **前端交互覆盖**: RAG 成员管理、文档重新索引、多知识库问答提交、应用中心创建/编辑/启停、用户批量状态、角色权限搜索、字典类型创建、空间树和创建、操作日志导出过滤、文件上传
-- **Playwright 冒烟覆盖**: `apps/web/e2e/admin-smoke.spec.ts` 覆盖未登录跳转、管理员登录和平台导航；常用命令为 `E2E_BASE_URL=http://localhost:5173 E2E_ADMIN_USERNAME=e2e_admin E2E_ADMIN_PASSWORD=change-this-password pnpm --filter @alune/web e2e`
-- **CI**: `.github/workflows/ci.yml` 的默认 `quality` job 跑 API client 生成一致性、lint、typecheck、test、build 和 Docker Compose 配置校验；`playwright-smoke` 是手动 workflow_dispatch job。
-- **Dependabot**: `.github/dependabot.yml` 每周检查 npm/pnpm、uv、Docker、Docker Compose 和 GitHub Actions，并按生态分组 PR。
-- **Security audit**: `pnpm security:audit` 跑 npm 和 Python 依赖审计；Python 路径由 `scripts/security-audit-python.sh` 导出 uv lockfile 后调用 `uvx pip-audit`。当前不在默认 CI 中阻塞构建。
-- **Feature readiness**: `docs/feature-readiness.md` 记录进入下一轮个人平台功能开发前的准入条件；`docs/feature-module-checklist.md` 记录模块开发清单。阶段 7C 已完成 RAG MVP 的成员管理、重新索引和多知识库问答补强；后续编码前必须先写清楚实体、权限、审计事件、API、页面和测试计划。
-- **API 测试**: 使用 httpx AsyncClient + ASGITransport
-- **浏览器测试**: Playwright `1.60.0` 已安装 Chromium `1223` 和 `chromium_headless_shell-1223`。如果 Codex 沙箱内启动 Chromium 出现 macOS Mach port 权限错误，改到沙箱外执行浏览器检查。
-
-## 文档同步
-
-- `README.md`：新人快速启动。
-- `docs/architecture.md`：架构、数据流、API surface。
-- `docs/runbook.md`：本地运行、Docker、冒烟检查和排障。
-- `docs/feature-module-checklist.md`：个人平台模块开发前准入清单。
-- `docs/feature-readiness.md`：功能开发前准入检查、阻塞项和后续阶段。
-- `docs/handoff.md`：当前阶段完成情况和下一阶段。
-- `AGENTS.md`：Codex/其他 agent 项目约定。
-
-## 当前阶段边界
-
-已完成阶段 0、1、2、3、4、5、6A、6B、6C、6D、6E、阶段 6F、阶段 6G-A 至 6G-W、阶段 6H（个人平台定位调整）、阶段 7A（应用中心 V1）、阶段 7B（RAG 知识库平台定位）和阶段 7C（RAG MVP 补强）。不包含：复杂组织架构、审批、报表、公司企业流程、脚本执行、任务调度或动态插件加载。下一阶段建议：进入阶段 7D，围绕 PDF 解析、检索调优和回答质量样例做窄范围 RAG 质量补强。
+- 先读相关实现和测试，再做最小改动；不要覆盖其他 agent 的未完成工作。
+- 新增内容要能通过 schema、lint、类型检查和构建；涉及交互时补 Playwright 或组件测试。
+- 修改导航、内容字段、脚本、许可证或 CI 时同步 README 与 `docs/`。
+- 不新增后端、数据库、CMS、部署或网络服务，除非用户明确开启新的阶段并更新路线图。

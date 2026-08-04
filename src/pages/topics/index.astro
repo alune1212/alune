@@ -1,0 +1,45 @@
+---
+import EmptyState from "../../components/EmptyState.astro";
+import TopicList from "../../components/TopicList.astro";
+import type { TopicItem } from "../../components/types";
+import ListingLayout from "../../layouts/ListingLayout.astro";
+import { getJournalEntries, getStudioEntries } from "../../lib/collections";
+import { countTopics, topicLabel } from "../../lib/content";
+import { topicPath } from "../../lib/routes";
+
+const production = import.meta.env.PROD;
+const [studio, journal] = await Promise.all([
+  getStudioEntries({ production }),
+  getJournalEntries({ production }),
+]);
+const counts = countTopics([...studio, ...journal].map((entry) => entry.data));
+const topics: TopicItem[] = Object.entries(counts).map(([slug, count]) => ({
+  slug,
+  label: topicLabel(slug),
+  count,
+  href: topicPath(slug),
+}));
+---
+
+<ListingLayout
+  title="Topics"
+  eyebrow="INDEX / SHARED THREADS"
+  description="Shared themes connecting Studio work with Journal writing."
+  bodyClass="topics-page"
+>
+  {
+    topics.length > 0 ? (
+      <TopicList
+        topics={topics}
+        baseHref="/topics/"
+        label="All topics"
+        class="topics-index"
+      />
+    ) : (
+      <EmptyState
+        title="No topics yet."
+        message="Topics are created automatically when published Studio and Journal entries use them."
+      />
+    )
+  }
+</ListingLayout>

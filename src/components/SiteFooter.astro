@@ -1,0 +1,49 @@
+---
+interface NavItem {
+  label: string;
+  href: string;
+}
+
+export interface Props {
+  year?: number;
+  statement?: string;
+  homeHref?: string;
+  navItems?: readonly NavItem[];
+}
+
+const {
+  year = new Date().getFullYear(),
+  statement = "A quiet place for work, writing, and what comes next.",
+  homeHref = "/",
+  navItems = [
+    { label: "Studio", href: "/studio" },
+    { label: "Journal", href: "/journal" },
+    { label: "About", href: "/about" },
+  ],
+} = Astro.props;
+---
+
+<footer class="site-footer">
+  <div class="site-shell site-footer__inner">
+    <div class="site-footer__identity">
+      <a class="site-footer__wordmark" href={homeHref} aria-label="alune home"
+        >alune</a
+      >
+      <p>{statement}</p>
+    </div>
+
+    <nav class="site-footer__nav" aria-label="Footer navigation">
+      <ul>
+        {
+          navItems.map((item) => (
+            <li>
+              <a href={item.href}>{item.label}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <p class="site-footer__legal"><small>© {year} alune</small></p>
+  </div>
+</footer>

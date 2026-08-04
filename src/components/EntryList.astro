@@ -1,0 +1,47 @@
+---
+import EmptyState from "./EmptyState.astro";
+import EntryPreview from "./EntryPreview.astro";
+import type { EntryPreviewData } from "./types";
+
+export interface Props {
+  entries: readonly EntryPreviewData[];
+  label?: string;
+  topicBaseHref?: string;
+  emptyTitle?: string;
+  emptyMessage?: string;
+  emptyActionHref?: string;
+  emptyActionLabel?: string;
+  class?: string;
+}
+
+const {
+  entries,
+  label = "Entries",
+  topicBaseHref = "/journal",
+  emptyTitle = "Nothing here yet",
+  emptyMessage = "There are no published entries in this collection.",
+  emptyActionHref,
+  emptyActionLabel,
+  class: className,
+} = Astro.props;
+---
+
+{
+  entries.length > 0 ? (
+    <ul class:list={["entry-list", className]} aria-label={label}>
+      {entries.map((entry) => (
+        <li>
+          <EntryPreview {...entry} topicBaseHref={topicBaseHref} />
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <EmptyState
+      class:list={[className]}
+      title={emptyTitle}
+      message={emptyMessage}
+      actionHref={emptyActionHref}
+      actionLabel={emptyActionLabel}
+    />
+  )
+}

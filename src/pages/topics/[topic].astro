@@ -1,0 +1,58 @@
+---
+import EntryList from "../../components/EntryList.astro";
+import ListingLayout from "../../layouts/ListingLayout.astro";
+import { getJournalEntries, getStudioEntries } from "../../lib/collections";
+import { deriveUsedTopics, topicLabel } from "../../lib/content";
+import { journalViewModel, studioViewModel } from "../../lib/view-models";
+
+export async function getStaticPaths() {
+  const [studio, journal] = await Promise.all([
+    getStudioEntries({ production: import.meta.env.PROD }),
+    getJournalEntries({ production: import.meta.env.PROD }),
+  ]);
+  const topics = deriveUsedTopics(
+    [...studio, ...journal].map((entry) => entry.data),
+    {
+      production: import.meta.env.PROD,
+    },
+  );
+  return topics.map((topic) => ({ params: { topic } }));
+}
+
+const topic = Astro.params.topic ?? "";
+const [studio, journal] = await Promise.all([
+  getStudioEntries({ production: import.meta.env.PROD }),
+  getJournalEntries({ production: import.meta.env.PROD }),
+]);
+const studioItems = studio
+  .filter((entry) => entry.data.topics.includes(topic))
+  .map(studioViewModel);
+const journalItems = journal
+  .filter((entry) => entry.data.topics.includes(topic))
+  .map(journalViewModel);
+const label = topicLabel(topic);
+---
+
+<ListingLayout
+  title={label}
+  eyebrow="TOPIC / SHARED THREAD"
+  description={`Studio work and Journal writing connected by ${label}.`}
+  bodyClass="topic-page"
+>
+  <section class="topic-group" aria-labelledby="topic-studio">
+    <h2 id="topic-studio">Studio</h2>
+    <EntryList
+      entries={studioItems}
+      label={`${label} Studio entries`}
+      emptyTitle="No Studio entries in this topic."
+    />
+  </section>
+  <section class="topic-group" aria-labelledby="topic-journal">
+    <h2 id="topic-journal">Journal</h2>
+    <EntryList
+      entries={journalItems}
+      label={`${label} Journal entries`}
+      emptyTitle="No Journal entries in this topic."
+    />
+  </section>
+</ListingLayout>

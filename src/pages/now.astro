@@ -1,0 +1,43 @@
+---
+import { render } from "astro:content";
+
+import ArrowLink from "../components/ArrowLink.astro";
+import { site } from "../config/site";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getSingletonPage } from "../lib/collections";
+import { formatDate, toIsoDate } from "../lib/dates";
+
+const page = await getSingletonPage("now", {
+  production: import.meta.env.PROD,
+});
+const rendered = page ? await render(page) : undefined;
+const PageContent = rendered?.Content;
+const title = page?.data.title ?? "Now";
+const description = page?.data.summary ?? site.now.summary;
+const updatedAt =
+  page?.data.updatedAt ?? new Date(`${site.now.updatedAt}T00:00:00Z`);
+---
+
+<BaseLayout title={title} description={description} bodyClass="now-page">
+  <article class="site-shell narrative-page narrative-page--now">
+    <header class="narrative-page__header">
+      <p class="eyebrow">NOW / CURRENTLY</p>
+      <h1>{title}</h1>
+      <p>{description}</p>
+      <time datetime={toIsoDate(updatedAt)}
+        >Updated {formatDate(updatedAt)}</time
+      >
+    </header>
+
+    <div class="narrative-page__grid">
+      <div class="prose narrative-page__body">
+        {PageContent ? <PageContent /> : <p>{site.now.summary}</p>}
+      </div>
+      <aside class="narrative-page__aside">
+        <p class="eyebrow">ELSEWHERE</p>
+        <ArrowLink href="/about/" label="About" />
+        <ArrowLink href="/studio/" label="Studio" />
+      </aside>
+    </div>
+  </article>
+</BaseLayout>

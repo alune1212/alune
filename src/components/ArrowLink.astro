@@ -1,0 +1,38 @@
+---
+export interface Props {
+  href: string;
+  label?: string;
+  ariaLabel?: string;
+  external?: boolean;
+  target?: "_blank" | "_self" | "_parent" | "_top";
+  rel?: string;
+  class?: string;
+}
+
+const {
+  href,
+  label,
+  ariaLabel,
+  external = false,
+  target,
+  rel,
+  class: className,
+} = Astro.props;
+
+const targetValue = target ?? (external ? "_blank" : undefined);
+const opensInNewTab = targetValue === "_blank";
+const linkRel = opensInNewTab ? (rel ?? "noreferrer noopener") : rel;
+---
+
+<a
+  class:list={["arrow-link", className]}
+  href={href}
+  aria-label={ariaLabel}
+  target={targetValue}
+  rel={linkRel}
+  data-arrow-link
+>
+  <span><slot>{label}</slot></span>
+  <span class="arrow-link__arrow" aria-hidden="true">→</span>
+  {opensInNewTab && <span class="sr-only"> (opens in a new tab)</span>}
+</a>

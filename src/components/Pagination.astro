@@ -1,0 +1,43 @@
+---
+import { pageHref } from "../lib/pagination";
+
+export interface Props {
+  section: "studio" | "journal";
+  currentPage: number;
+  totalPages: number;
+  previousPage?: number;
+  nextPage?: number;
+}
+
+const { section, currentPage, totalPages, previousPage, nextPage } =
+  Astro.props;
+---
+
+{
+  totalPages > 1 && (
+    <nav class="pagination" aria-label={`${section} pagination`}>
+      <div>
+        {previousPage ? (
+          <a href={pageHref(section, previousPage)} rel="prev">
+            <span aria-hidden="true">←</span> Previous
+          </a>
+        ) : (
+          <span aria-hidden="true">← Previous</span>
+        )}
+      </div>
+      <p>
+        <span class="sr-only">Page </span>
+        {currentPage} / {totalPages}
+      </p>
+      <div>
+        {nextPage ? (
+          <a href={pageHref(section, nextPage)} rel="next">
+            Next <span aria-hidden="true">→</span>
+          </a>
+        ) : (
+          <span aria-hidden="true">Next →</span>
+        )}
+      </div>
+    </nav>
+  )
+}

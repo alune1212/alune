@@ -1,0 +1,65 @@
+---
+import { render, type CollectionEntry } from "astro:content";
+
+import ContentLayout from "../../layouts/ContentLayout.astro";
+import { getJournalEntries, getStudioEntries } from "../../lib/collections";
+import { journalStructuredData } from "../../lib/structured-data";
+
+export async function getStaticPaths() {
+  const entries = await getJournalEntries({ production: import.meta.env.PROD });
+  return entries.map((entry) => ({
+    params: { id: entry.id },
+    props: { entry },
+  }));
+}
+
+interface Props {
+  entry: CollectionEntry<"journal">;
+}
+
+const { entry } = Astro.props as Props;
+const { Content } = await render(entry);
+const studios = await getStudioEntries({ production: import.meta.env.PROD });
+const relatedIds = new Set(entry.data.relatedStudio);
+const relatedStudio = studios.filter((studio) => relatedIds.has(studio.id));
+---
+
+<ContentLayout
+  title={entry.data.title}
+  description={entry.data.summary}
+  kind={entry.data.kind}
+  topics={entry.data.topics}
+  publishedAt={entry.data.publishedAt}
+  updatedAt={entry.data.updatedAt}
+  backHref="/journal/"
+  backLabel="Back to Journal"
+  image={entry.data.cover}
+  structuredData={journalStructuredData(entry)}
+>
+  <Content />
+
+  <div slot="aside" class="content-facts">
+    {
+      entry.data.series && (
+        <div>
+          <p class="eyebrow">SERIES</p>
+          <p>{entry.data.series}</p>
+        </div>
+      )
+    }
+    {
+      relatedStudio.length > 0 && (
+        <div>
+          <p class="eyebrow">RELATED STUDIO</p>
+          <ul class="related-links">
+            {relatedStudio.map((studio) => (
+              <li>
+                <a href={`/studio/${studio.id}/`}>{studio.data.title}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+  </div>
+</ContentLayout>

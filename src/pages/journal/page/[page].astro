@@ -1,0 +1,40 @@
+---
+import type { CollectionEntry } from "astro:content";
+
+import EntryList from "../../../components/EntryList.astro";
+import Pagination from "../../../components/Pagination.astro";
+import ListingLayout from "../../../layouts/ListingLayout.astro";
+import { getJournalEntries } from "../../../lib/collections";
+import { PAGE_SIZE, paginate, type PageSlice } from "../../../lib/pagination";
+import { journalViewModel } from "../../../lib/view-models";
+
+export async function getStaticPaths() {
+  const entries = await getJournalEntries({ production: import.meta.env.PROD });
+  const totalPages = Math.ceil(entries.length / PAGE_SIZE);
+
+  return Array.from({ length: Math.max(0, totalPages - 1) }, (_, index) => {
+    const pageNumber = index + 2;
+    return {
+      params: { page: String(pageNumber) },
+      props: { page: paginate(entries, pageNumber) },
+    };
+  });
+}
+
+interface Props {
+  page: PageSlice<CollectionEntry<"journal">>;
+}
+
+const { page } = Astro.props;
+const items = page.items.map(journalViewModel);
+---
+
+<ListingLayout
+  title={`Journal — Page ${page.currentPage}`}
+  eyebrow="JOURNAL / ARCHIVE"
+  description="Earlier essays, notes, devlogs, and updates from the Journal archive."
+  bodyClass="journal-page"
+>
+  <EntryList entries={items} label={`Journal page ${page.currentPage}`} />
+  <Pagination section="journal" {...page} />
+</ListingLayout>

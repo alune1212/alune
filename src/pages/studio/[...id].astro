@@ -1,0 +1,104 @@
+---
+import { render, type CollectionEntry } from "astro:content";
+
+import ArrowLink from "../../components/ArrowLink.astro";
+import ContentLayout from "../../layouts/ContentLayout.astro";
+import { getJournalEntries, getStudioEntries } from "../../lib/collections";
+import { isExternalHref } from "../../lib/routes";
+import { studioStructuredData } from "../../lib/structured-data";
+
+export async function getStaticPaths() {
+  const entries = await getStudioEntries({ production: import.meta.env.PROD });
+  return entries.map((entry) => ({
+    params: { id: entry.id },
+    props: { entry },
+  }));
+}
+
+interface Props {
+  entry: CollectionEntry<"studio">;
+}
+
+const { entry } = Astro.props as Props;
+const { Content } = await render(entry);
+const journals = await getJournalEntries({ production: import.meta.env.PROD });
+const relatedIds = new Set(entry.data.relatedJournal);
+const relatedJournal = journals.filter((journal) => relatedIds.has(journal.id));
+const linkLabels = {
+  primary: "Visit project",
+  launch: "Open tool",
+  source: "View source",
+} as const;
+const links = Object.entries(entry.data.links).filter(
+  (link): link is [keyof typeof linkLabels, string] =>
+    typeof link[1] === "string",
+);
+---
+
+<ContentLayout
+  title={entry.data.title}
+  description={entry.data.summary}
+  kind={entry.data.kind}
+  status={entry.data.status}
+  topics={entry.data.topics}
+  publishedAt={entry.data.publishedAt}
+  updatedAt={entry.data.updatedAt}
+  backHref="/studio/"
+  backLabel="Back to Studio"
+  structuredData={studioStructuredData(entry)}
+>
+  <Content />
+
+  <div slot="aside" class="content-facts">
+    {
+      entry.data.kind === "project" && entry.data.role && (
+        <div>
+          <p class="eyebrow">ROLE</p>
+          <p>{entry.data.role}</p>
+        </div>
+      )
+    }
+    {
+      entry.data.kind === "project" &&
+        entry.data.outcomes &&
+        entry.data.outcomes.length > 0 && (
+          <div>
+            <p class="eyebrow">OUTCOMES</p>
+            <ul>
+              {entry.data.outcomes.map((outcome) => (
+                <li>{outcome}</li>
+              ))}
+            </ul>
+          </div>
+        )
+    }
+    {
+      links.length > 0 && (
+        <div>
+          <p class="eyebrow">LINKS</p>
+          {links.map(([label, href]) => (
+            <ArrowLink
+              href={href}
+              label={linkLabels[label]}
+              external={isExternalHref(href)}
+            />
+          ))}
+        </div>
+      )
+    }
+    {
+      relatedJournal.length > 0 && (
+        <div>
+          <p class="eyebrow">RELATED JOURNAL</p>
+          <ul class="related-links">
+            {relatedJournal.map((journal) => (
+              <li>
+                <a href={`/journal/${journal.id}/`}>{journal.data.title}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+  </div>
+</ContentLayout>

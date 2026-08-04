@@ -1,0 +1,95 @@
+---
+import ArrowLink from "../components/ArrowLink.astro";
+import TopicList from "../components/TopicList.astro";
+import { formatDate, toIsoDate } from "../lib/dates";
+import type { StructuredData } from "../lib/structured-data";
+import { topicPath } from "../lib/routes";
+import BaseLayout from "./BaseLayout.astro";
+
+export interface Props {
+  title: string;
+  description: string;
+  kind: string;
+  status?: string;
+  topics?: readonly string[];
+  publishedAt?: Date;
+  updatedAt?: Date;
+  backHref: string;
+  backLabel: string;
+  canonical?: string;
+  image?: string;
+  structuredData?: StructuredData | StructuredData[];
+}
+
+const {
+  title,
+  description,
+  kind,
+  status,
+  topics = [],
+  publishedAt,
+  updatedAt,
+  backHref,
+  backLabel,
+  canonical,
+  image,
+  structuredData,
+} = Astro.props;
+
+const topicItems = topics.map((slug) => ({ slug, href: topicPath(slug) }));
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonical={canonical}
+  image={image}
+  type="article"
+  structuredData={structuredData}
+  bodyClass="content-page"
+>
+  <article class="site-shell article-shell">
+    <header class="article-header">
+      <ArrowLink
+        href={backHref}
+        label={backLabel}
+        class="article-header__back"
+      />
+      <div class="article-header__meta metadata-row">
+        <span>{kind}</span>
+        {status && <span>{status}</span>}
+        {
+          publishedAt && (
+            <time datetime={toIsoDate(publishedAt)}>
+              {formatDate(publishedAt)}
+            </time>
+          )
+        }
+        {
+          updatedAt &&
+            (!publishedAt || updatedAt.getTime() !== publishedAt.getTime()) && (
+              <time datetime={toIsoDate(updatedAt)}>
+                Updated {formatDate(updatedAt)}
+              </time>
+            )
+        }
+      </div>
+      <h1>{title}</h1>
+      <p class="article-header__summary">{description}</p>
+      {
+        topicItems.length > 0 && (
+          <TopicList topics={topicItems} baseHref="/topics/" />
+        )
+      }
+    </header>
+
+    <div class="article-layout">
+      <div class="prose article-body">
+        <slot />
+      </div>
+      <aside class="article-aside">
+        <slot name="aside" />
+      </aside>
+    </div>
+  </article>
+</BaseLayout>

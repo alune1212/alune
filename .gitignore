@@ -1,36 +1,30 @@
-# Dependencies
+# Dependencies and package-manager state
 node_modules/
 .pnpm-store/
 
-# Python
-.venv/
-.uv-cache/
-.uv-tools/
-__pycache__/
-*.py[cod]
-.pytest_cache/
-.ruff_cache/
-.ty/
-
-# Build outputs
+# Astro and build output
+.astro/
 dist/
-build/
-.local/
-.turbo/
 coverage/
+.vercel/
+
+# Test output
 playwright-report/
 test-results/
 
-# Environment
+# Local configuration and secrets
 .env
 .env.*
 !.env.example
+.claude/settings.local.json
+.codex/
 
-# Editors
+# Caches and local tooling
+.turbo/
+.serena/
 .DS_Store
 .idea/
 .vscode/
-.serena/
 
 # Logs
 *.log

@@ -1,0 +1,34 @@
+---
+import ArrowLink from "./ArrowLink.astro";
+
+export interface Props {
+  title: string;
+  message?: string;
+  actionHref?: string;
+  actionLabel?: string;
+  class?: string;
+}
+
+const {
+  title,
+  message,
+  actionHref,
+  actionLabel,
+  class: className,
+} = Astro.props;
+---
+
+<section
+  class:list={["empty-state", className]}
+  role="status"
+  aria-live="polite"
+>
+  <span class="empty-state__mark" aria-hidden="true">—</span>
+  <h2>{title}</h2>
+  {message && <p>{message}</p>}
+  {
+    actionHref && actionLabel && (
+      <ArrowLink href={actionHref} label={actionLabel} />
+    )
+  }
+</section>

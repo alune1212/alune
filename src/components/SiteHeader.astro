@@ -1,0 +1,102 @@
+---
+import ThemeToggle from "./ThemeToggle.astro";
+
+export interface NavItem {
+  label: string;
+  href: string;
+}
+
+export interface Props {
+  currentPath?: string;
+  homeHref?: string;
+  wordmark?: string;
+  navItems?: readonly NavItem[];
+}
+
+const {
+  currentPath = Astro.url.pathname,
+  homeHref = "/",
+  wordmark = "alune",
+  navItems = [
+    { label: "Studio", href: "/studio" },
+    { label: "Journal", href: "/journal" },
+    { label: "About", href: "/about" },
+  ],
+} = Astro.props;
+
+const normalizePath = (path: string) => {
+  if (path.length > 1 && path.endsWith("/")) return path.slice(0, -1);
+  return path || "/";
+};
+
+const activePath = normalizePath(currentPath);
+const isCurrent = (href: string) => {
+  const target = normalizePath(href);
+  return target === "/"
+    ? activePath === "/"
+    : activePath === target || activePath.startsWith(`${target}/`);
+};
+---
+
+<header class="site-header">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="site-shell site-header__inner">
+    <a
+      class="site-header__wordmark"
+      href={homeHref}
+      aria-label={`${wordmark} home`}
+    >
+      {wordmark}
+    </a>
+
+    <nav
+      class="site-header__nav site-header__nav--desktop"
+      aria-label="Primary navigation"
+    >
+      <ul>
+        {
+          navItems.map((item) => (
+            <li>
+              <a
+                href={item.href}
+                class:list={{ "is-current": isCurrent(item.href) }}
+                aria-current={isCurrent(item.href) ? "page" : undefined}
+              >
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="site-header__actions">
+      <ThemeToggle />
+      <details class="site-header__menu">
+        <summary aria-label="Open navigation menu">
+          <span>Menu</span>
+          <span class="site-header__menu-icon" aria-hidden="true"
+            ><i></i><i></i></span
+          >
+        </summary>
+        <nav aria-label="Mobile navigation">
+          <ul>
+            {
+              navItems.map((item) => (
+                <li>
+                  <a
+                    href={item.href}
+                    class:list={{ "is-current": isCurrent(item.href) }}
+                    aria-current={isCurrent(item.href) ? "page" : undefined}
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+      </details>
+    </div>
+  </div>
+</header>
