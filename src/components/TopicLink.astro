@@ -1,0 +1,58 @@
+---
+import type { TopicItem, TopicValue } from "./types";
+
+export interface Props {
+  topic: TopicValue;
+  baseHref?: string;
+  href?: string;
+  label?: string;
+  count?: number;
+  selected?: boolean;
+  queryKey?: string;
+  class?: string;
+  ariaLabel?: string;
+}
+
+const {
+  topic,
+  baseHref = "/journal",
+  href: explicitHref,
+  label: explicitLabel,
+  count: explicitCount,
+  selected = false,
+  queryKey = "topic",
+  class: className,
+  ariaLabel,
+} = Astro.props;
+
+const item: TopicItem = typeof topic === "string" ? { slug: topic } : topic;
+const slug = item.slug.trim();
+const displayLabel =
+  explicitLabel ??
+  item.label ??
+  slug
+    .replace(/[-_]+/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+const href =
+  explicitHref ??
+  item.href ??
+  `${baseHref}?${queryKey}=${encodeURIComponent(slug)}`;
+const count = explicitCount ?? item.count;
+---
+
+<a
+  class:list={["topic-link", { "is-selected": selected }, className]}
+  href={href}
+  aria-label={ariaLabel ?? `Topic: ${displayLabel}`}
+  aria-current={selected ? "page" : undefined}
+  data-topic={slug}
+>
+  <span>{displayLabel}</span>
+  {
+    typeof count === "number" && (
+      <span class="topic-link__count" aria-label={`${count} entries`}>
+        {count}
+      </span>
+    )
+  }
+</a>

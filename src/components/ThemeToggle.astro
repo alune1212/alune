@@ -1,0 +1,101 @@
+---
+export interface Props {
+  /** A more specific label is useful when the control appears outside a header. */
+  label?: string;
+  class?: string;
+}
+
+const { label = "Toggle colour theme", class: className } = Astro.props;
+---
+
+<button
+  class:list={["theme-toggle", className]}
+  type="button"
+  data-theme-toggle
+  aria-label={label}
+  aria-pressed="false"
+  title={label}
+>
+  <span class="theme-toggle__icon theme-toggle__icon--sun" aria-hidden="true">
+    <svg viewBox="0 0 24 24" focusable="false">
+      <circle cx="12" cy="12" r="4"></circle>
+      <path
+        d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"
+      ></path>
+    </svg>
+  </span>
+  <span class="theme-toggle__icon theme-toggle__icon--moon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" focusable="false">
+      <path d="M20.1 15.3A8.5 8.5 0 0 1 8.7 3.9 8.5 8.5 0 1 0 20.1 15.3Z"
+      ></path>
+    </svg>
+  </span>
+  <span class="sr-only" data-theme-toggle-label>Toggle colour theme</span>
+</button>
+
+<script is:inline>
+  (() => {
+    const STORAGE_KEY = "alune-theme";
+    const root = document.documentElement;
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+
+    const readStoredTheme = () => {
+      try {
+        const stored = window.localStorage.getItem(STORAGE_KEY);
+        return stored === "dark" || stored === "light" ? stored : null;
+      } catch {
+        return null;
+      }
+    };
+
+    const setTheme = (theme, persist = false) => {
+      root.dataset.theme = theme;
+      root.style.colorScheme = theme;
+      if (persist) {
+        try {
+          window.localStorage.setItem(STORAGE_KEY, theme);
+        } catch {
+          // Storage can be unavailable in privacy-restricted contexts.
+        }
+      }
+
+      document.querySelectorAll("[data-theme-toggle]").forEach((control) => {
+        const button = control;
+        button.setAttribute("aria-pressed", String(theme === "dark"));
+        const nextTheme = theme === "dark" ? "light" : "dark";
+        const nextLabel = `Use ${nextTheme} theme`;
+        button.setAttribute("aria-label", nextLabel);
+        button.setAttribute("title", nextLabel);
+        const label = button.querySelector("[data-theme-toggle-label]");
+        if (label) label.textContent = nextLabel;
+      });
+    };
+
+    const storedTheme = readStoredTheme();
+    setTheme(storedTheme ?? (media.matches ? "dark" : "light"));
+
+    document.querySelectorAll("[data-theme-toggle]").forEach((control) => {
+      control.addEventListener("click", () => {
+        const current = root.dataset.theme === "dark" ? "dark" : "light";
+        setTheme(current === "dark" ? "light" : "dark", true);
+      });
+    });
+
+    if (!storedTheme) {
+      const followSystem = (event) =>
+        setTheme(event.matches ? "dark" : "light");
+      if (typeof media.addEventListener === "function") {
+        media.addEventListener("change", followSystem);
+      }
+    }
+
+    window.addEventListener("storage", (event) => {
+      if (
+        event.key === STORAGE_KEY &&
+        (event.newValue === "dark" || event.newValue === "light")
+      ) {
+        setTheme(event.newValue);
+      }
+    });
+  })();
+</script>

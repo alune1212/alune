@@ -1,182 +1,28 @@
-# AGENTS.md
+# alune repository guidance
 
-Project guidance for Codex and other AI agents working in this repository.
+本仓库是 alune 的单包 Astro 静态个人品牌站点。开始工作前阅读 [README](README.md) 和与任务相关的 canonical 文档；保留工作树中的无关改动，不覆盖其他协作者正在进行的工作。
 
-## Current Scope
+## 实施边界
 
-`alune-platform` is the Alune Knowledge personal/small-team RAG knowledge base MVP. The current codebase covers only:
+- 页面在构建期生成静态 HTML、CSS 和必要的 JavaScript；Astro integrations 属于构建能力，不代表存在运行时服务。
+- 当前没有后端 API、SSR、数据库、登录、CMS、队列或部署 workflow。只有用户明确开启新阶段时才能引入这些能力。
+- 内容位于 `src/content/`。公开标识由相对文件路径生成 Astro entry ID，不在 frontmatter 中维护 `slug`。
+- 不得把占位资料、未完成能力或未经确认的线上地址描述为已经发布。
 
-- pnpm workspace + Turborepo monorepo wiring.
-- FastAPI backend health endpoints.
-- Vite React personal workspace shell.
-- PostgreSQL 18 with pgvector and Redis 8 through Docker Compose.
-- API/Web Docker images for a complete MVP stack.
-- Alembic migration baseline with the `system_info` table.
-- Login MVP with `users`, password hashing, JWT login, `/auth/me`, frontend login, and a protected dashboard.
-- Permission baseline with roles, permissions, user-role links, role-permission links, backend permission dependency, and frontend menu filtering.
-- Stage 6G-W platform foundation, Stage 6H personal-platform repositioning, Stage 7A App Center V1 retained as a non-primary module, Stage 7B RAG knowledge platform repositioning, and Stage 7C RAG MVP hardening with user create/enable/disable/batch-status confirmation and result feedback/edit/password reset, user role assignment, user role/space filters, role create/update/delete guards, searchable grouped role permission assignment with empty-state feedback, space tree/update/delete rules, audit log filtering/pagination/date range/CSV export, dictionary type/item maintenance guards, local and MinIO file upload/download, upload policy checks with size pre-check before scan, download filename sanitization, file storage backend factory, ClamAV upload scanner adapter, knowledge bases, knowledge documents, knowledge-base member management UI, document re-index UI, pgvector chunks, OpenAI-compatible AI settings, multi-knowledge-base single-turn RAG Q&A with citations, frontend interaction tests, Orval API client generation from FastAPI OpenAPI, generated-client migration for frontend reads/writes, multipart binary type normalization, a narrowed root API client compatibility layer for runtime configuration, CSV export, file upload, and file download, Playwright smoke coverage for login and navigation, GitHub Actions CI quality gates, Dependabot dependency update visibility, manual npm/Python dependency security audit scripts, an `ENVIRONMENT` setting with production credential validation, superuser management permission guard including self-superuser-status change prevention, self-disable prevention, space delete concurrency fix on the retained `departments` technical module, role permission clear fix, 401-triggered token cleanup and session-expired notice on frontend, `RequirePermission` attached to protected routes for route-level access control, and Docker Web Nginx proxying `/api/` to the API container so production browsers do not call localhost.
+## 单一事实来源
 
-Do not add OCR, script execution, dynamic plugin loading, approval flows, reports, payroll, or company-specific enterprise workflows unless the user explicitly asks for that phase.
+- 工程、构建、测试与发布流程：[docs/development.md](docs/development.md)
+- 内容 schema 与写作约定：[docs/content-guide.md](docs/content-guide.md)
+- 视觉与无障碍原则：[docs/design-direction.md](docs/design-direction.md)
+- 阶段与扩展边界：[docs/roadmap.md](docs/roadmap.md)
+- 代码与品牌权利：[LICENSE](LICENSE)、[CONTENT_LICENSE.md](CONTENT_LICENSE.md)
 
-## Key Commands
+不要在本文件复制依赖版本、完整脚本列表、路由清单或 frontmatter 字段；修改事实时更新其对应的唯一文档和实现。
 
-```bash
-pnpm install
-pnpm --filter @alune/web exec playwright install chromium
-cd apps/api && uv sync && cd ../..
-pnpm docker:deps
-pnpm dev
-```
+## 完成要求
 
-Quality gates:
-
-```bash
-UV_CACHE_DIR=.uv-cache pnpm lint
-UV_CACHE_DIR=.uv-cache pnpm typecheck
-UV_CACHE_DIR=.uv-cache pnpm test
-UV_CACHE_DIR=.uv-cache pnpm api-client:generate
-pnpm --filter @alune/api-client typecheck
-pnpm --filter @alune/api-client test
-pnpm --filter @alune/web e2e --list
-pnpm exec prettier --check .github/workflows/ci.yml
-pnpm exec prettier --check .github/dependabot.yml
-pnpm security:audit:npm
-UV_CACHE_DIR=.uv-cache pnpm security:audit:python
-pnpm build
-docker compose config
-docker compose --profile app config
-```
-
-Docker:
-
-```bash
-pnpm docker:deps
-pnpm docker:app
-pnpm docker:logs
-pnpm docker:down
-pnpm db:upgrade
-FIRST_SUPERUSER_PASSWORD=change-this-password pnpm db:seed
-E2E_BASE_URL=http://localhost:5173 E2E_ADMIN_USERNAME=e2e_admin E2E_ADMIN_PASSWORD=change-this-password pnpm --filter @alune/web e2e
-```
-
-If ports 8000 or 5173 are already occupied:
-
-```bash
-API_PORT=18000 WEB_PORT=15173 docker compose --profile app up --build
-```
-
-With that alternate Docker mapping, use `http://localhost:15173` for Web and `http://localhost:18000/docs` or `http://localhost:18000/api/v1/health` for direct API checks. Docker Web proxies browser requests from `/api/` to the API container. The API root `/` is intentionally unrouted and returns `{"detail":"Not Found"}`.
-
-## Architecture Facts
-
-- Backend entry: `apps/api/app/main.py`.
-- Backend routers are included under `/api/v1`.
-- Implemented API routes:
-  - `GET /api/v1/health`
-  - `GET /api/v1/health/db`
-  - `POST /api/v1/auth/login`
-  - `GET /api/v1/auth/me`
-  - `GET /api/v1/apps`
-  - `POST /api/v1/apps`
-  - `PATCH /api/v1/apps/{app_id}`
-  - `PATCH /api/v1/apps/{app_id}/status`
-  - `GET /api/v1/knowledge-bases`
-  - `POST /api/v1/knowledge-bases`
-  - `GET /api/v1/knowledge-bases/{knowledge_base_id}`
-  - `PATCH /api/v1/knowledge-bases/{knowledge_base_id}`
-  - `DELETE /api/v1/knowledge-bases/{knowledge_base_id}`
-  - `GET /api/v1/knowledge-bases/{knowledge_base_id}/members`
-  - `PUT /api/v1/knowledge-bases/{knowledge_base_id}/members`
-  - `GET /api/v1/knowledge-bases/{knowledge_base_id}/documents`
-  - `POST /api/v1/knowledge-bases/{knowledge_base_id}/documents/upload`
-  - `GET /api/v1/knowledge-documents/{document_id}`
-  - `POST /api/v1/knowledge-documents/{document_id}/index`
-  - `DELETE /api/v1/knowledge-documents/{document_id}`
-  - `POST /api/v1/rag/ask`
-  - `GET /api/v1/users`
-  - `POST /api/v1/users`
-  - `PATCH /api/v1/users/bulk-status`
-  - `PATCH /api/v1/users/{user_id}`
-  - `PATCH /api/v1/users/{user_id}/password`
-  - `GET /api/v1/users/{user_id}/roles`
-  - `PUT /api/v1/users/{user_id}/roles`
-  - `GET /api/v1/roles`
-  - `POST /api/v1/roles`
-  - `GET /api/v1/roles/permissions`
-  - `GET /api/v1/roles/{role_id}/permissions`
-  - `PATCH /api/v1/roles/{role_id}`
-  - `DELETE /api/v1/roles/{role_id}`
-  - `PUT /api/v1/roles/{role_id}/permissions`
-  - `GET /api/v1/departments`
-  - `GET /api/v1/departments/tree`
-  - `POST /api/v1/departments`
-  - `PATCH /api/v1/departments/{department_id}`
-  - `DELETE /api/v1/departments/{department_id}`
-  - `GET /api/v1/audit/operation-logs`
-  - `GET /api/v1/audit/operation-logs/export`
-  - `GET /api/v1/audit/login-logs`
-  - `GET /api/v1/audit/login-logs/export`
-  - `GET /api/v1/dictionaries/types`
-  - `POST /api/v1/dictionaries/types`
-  - `PATCH /api/v1/dictionaries/types/{type_id}`
-  - `DELETE /api/v1/dictionaries/types/{type_id}`
-  - `GET /api/v1/dictionaries/items`
-  - `POST /api/v1/dictionaries/items`
-  - `PATCH /api/v1/dictionaries/items/{item_id}`
-  - `DELETE /api/v1/dictionaries/items/{item_id}`
-  - `GET /api/v1/files`
-  - `POST /api/v1/files`
-  - `POST /api/v1/files/upload`
-  - `GET /api/v1/files/{file_id}/download`
-- Backend settings live in `apps/api/app/core/config.py`.
-- `ENVIRONMENT` supports `development`, `staging`, and `production`; production rejects default JWT, PostgreSQL, and MinIO credentials and requires a JWT secret of at least 32 characters.
-- Async SQLAlchemy engine/session lives in `apps/api/app/db/session.py`.
-- Alembic config lives in `apps/api/alembic.ini` and `apps/api/alembic/`.
-- Current baseline table: `system_info`.
-- Current auth table: `users`.
-- Current permission tables: `roles`, `permissions`, `user_roles`, `role_permissions`.
-- Current platform tables: `departments` (displayed as spaces), `platform_apps`, `operation_logs`, `login_logs`, `dictionary_types`, `dictionary_items`, `file_attachments`.
-- Current RAG tables: `knowledge_bases`, `knowledge_base_members`, `knowledge_documents`, `knowledge_chunks`.
-- Local file storage defaults to `.local/uploads`; Docker app profile mounts `api_uploads` at `/app/uploads`.
-- Upload policy is configured by `MAX_UPLOAD_SIZE_BYTES` and `ALLOWED_UPLOAD_CONTENT_TYPES`.
-- File storage backend is configured by `FILE_STORAGE_BACKEND`; `local` and `minio` are implemented. MinIO uses `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`, and `MINIO_SECURE`.
-- `minio-init` is a one-shot Compose bucket initializer. `Exited (0)` is normal and the stopped container can be removed; it is recreated when the `minio-init` service is started again.
-- Upload scanning is configured by `UPLOAD_SCANNER_ENABLED`; the default is no-op, and `UPLOAD_SCANNER_BACKEND=clamav` scans through clamd using `CLAMAV_HOST`, `CLAMAV_PORT`, and `CLAMAV_TIMEOUT_SECONDS`.
-- RAG AI integration is OpenAI-compatible and configured by `AI_BASE_URL`, `AI_API_KEY`, `AI_CHAT_MODEL`, `AI_EMBEDDING_MODEL`, `AI_EMBEDDING_DIMENSIONS`, `RAG_TOP_K`, `RAG_CHUNK_SIZE`, and `RAG_CHUNK_OVERLAP`.
-- Playwright package version is `1.60.0` in the current install; matching Chromium browser binaries are installed under `/Users/alune/Library/Caches/ms-playwright/chromium-1223` and `/Users/alune/Library/Caches/ms-playwright/chromium_headless_shell-1223`.
-- If Chromium launch fails inside Codex with a macOS Mach port permission error, rerun browser checks outside the sandbox.
-- Frontend entry: `apps/web/src/app/main.tsx`.
-- TanStack Router setup: `apps/web/src/app/router.tsx` and `apps/web/src/routes/`.
-- App shell: `apps/web/src/components/layout/`.
-- Dashboard page: `apps/web/src/features/dashboard/dashboard-page.tsx`.
-- Login page and auth provider: `apps/web/src/features/auth/`.
-- Platform pages: `apps/web/src/features/apps/`, `apps/web/src/features/users/`, `apps/web/src/features/roles/`, `apps/web/src/features/departments/`, `apps/web/src/features/audit/`, `apps/web/src/features/dictionaries/`, `apps/web/src/features/files/`.
-- Navigation config: `apps/web/src/config/navigation.ts`.
-- Menu filtering: `apps/web/src/config/navigation.ts`.
-- Compatibility API client: `packages/api-client/src/index.ts`; keep the TODO to migrate call sites to `@alune/api-client/generated`.
-- Generated API client: `packages/api-client/src/generated/api.ts`, generated from `packages/api-client/openapi/openapi.json` by Orval.
-- API client runtime config: `packages/api-client/src/runtime-config.ts`; web initializes it in `apps/web/src/app/main.tsx`.
-- Generated client fetcher: `packages/api-client/src/orval-fetch.ts`.
-- OpenAPI export script: `apps/api/app/scripts/export_openapi.py`.
-- Shared constants: `packages/shared/src/index.ts`.
-- Feature development readiness gate: `docs/feature-readiness.md`; module implementation checklist: `docs/feature-module-checklist.md`. Before starting company-specific feature modules, write the module scope brief and keep npm/Python audits passing.
-
-## Guardrails
-
-- Keep the Alune Hub platform small. Avoid over-abstracting before at least two personal-platform modules prove the abstraction.
-- Use TanStack Query for server state and Zustand only for UI state.
-- Keep shadcn/ui-compatible primitives under `apps/web/src/components/ui/`.
-- Keep backend modules under `apps/api/app/modules/<feature>/`.
-- Use Alembic for schema changes; do not add production table creation through `create_all`.
-- PostgreSQL 18 Docker volume must mount at `/var/lib/postgresql`, not `/var/lib/postgresql/data`.
-- Use `ruff format`; do not add Black, isort, or flake8.
-
-## Docs To Keep In Sync
-
-- `README.md` for quick start.
-- `docs/architecture.md` for structure and data flow.
-- `docs/feature-module-checklist.md` for personal-platform module implementation gates.
-- `docs/feature-readiness.md` for pre-feature readiness gates.
-- `docs/runbook.md` for local operations and troubleshooting.
-- `docs/handoff.md` for current completion state and next phase.
-- `CLAUDE.md` and this file for agent-facing project facts.
+- 优先复用现有 Astro 组件、纯函数和设计 tokens；不为未来假设预埋服务端依赖。
+- 保持语义 HTML、键盘可用、可读对比度和 reduced-motion 行为。
+- 提交前运行 `pnpm check`；涉及页面、交互、路由或样式时再运行 `pnpm e2e`。
+- 修改发布资料后运行 `pnpm check:release`；占位阶段允许它按文档所列条件失败。
+- 不提交构建产物、测试报告、环境文件、编辑器缓存或系统元数据。

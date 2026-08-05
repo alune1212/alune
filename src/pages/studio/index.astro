@@ -1,0 +1,54 @@
+---
+import EntryList from "../../components/EntryList.astro";
+import Pagination from "../../components/Pagination.astro";
+import TopicList from "../../components/TopicList.astro";
+import type { TopicItem } from "../../components/types";
+import ListingLayout from "../../layouts/ListingLayout.astro";
+import { getStudioEntries } from "../../lib/collections";
+import { countTopics, topicLabel } from "../../lib/content";
+import { paginate } from "../../lib/pagination";
+import { studioPreviewEntries } from "../../lib/preview";
+import { topicPath } from "../../lib/routes";
+import { studioViewModel } from "../../lib/view-models";
+
+const entries = await getStudioEntries({ production: import.meta.env.PROD });
+const page = paginate(entries, 1);
+const items = page.items.map(studioViewModel);
+const displayItems =
+  import.meta.env.DEV && items.length === 0 ? studioPreviewEntries : items;
+const topicCounts = countTopics(entries.map((entry) => entry.data));
+const topics: TopicItem[] = Object.entries(topicCounts).map(
+  ([slug, count]) => ({
+    slug,
+    label: topicLabel(slug),
+    count,
+    href: topicPath(slug),
+  }),
+);
+---
+
+<ListingLayout
+  title="Studio"
+  eyebrow="STUDIO / THINGS MADE"
+  description="One collection for projects, tools, open-source work, and experiments—finished or still becoming."
+  bodyClass="studio-page"
+>
+  {
+    topics.length > 0 && (
+      <TopicList
+        slot="topics"
+        topics={topics}
+        baseHref="/topics/"
+        label="Studio topics"
+        class="listing-topics"
+      />
+    )
+  }
+  <EntryList
+    entries={displayItems}
+    label="Studio entries"
+    emptyTitle="Nothing published in Studio yet."
+    emptyMessage="Projects, tools, and experiments will appear here when they are ready."
+  />
+  <Pagination section="studio" {...page} />
+</ListingLayout>

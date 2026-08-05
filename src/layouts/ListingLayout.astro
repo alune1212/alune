@@ -1,0 +1,27 @@
+---
+import SectionHeading from "../components/SectionHeading.astro";
+import BaseLayout from "./BaseLayout.astro";
+
+export interface Props {
+  title: string;
+  description: string;
+  eyebrow: string;
+  bodyClass?: string;
+}
+
+const { title, description, eyebrow, bodyClass } = Astro.props;
+---
+
+<BaseLayout title={title} description={description} bodyClass={bodyClass}>
+  <div class="site-shell listing-shell">
+    <SectionHeading
+      title={title}
+      description={description}
+      eyebrow={eyebrow}
+      level={1}
+      class="listing-intro"
+    />
+    <slot name="topics" />
+    <slot />
+  </div>
+</BaseLayout>

@@ -1,0 +1,54 @@
+---
+import EntryList from "../../components/EntryList.astro";
+import Pagination from "../../components/Pagination.astro";
+import TopicList from "../../components/TopicList.astro";
+import type { TopicItem } from "../../components/types";
+import ListingLayout from "../../layouts/ListingLayout.astro";
+import { getJournalEntries } from "../../lib/collections";
+import { countTopics, topicLabel } from "../../lib/content";
+import { paginate } from "../../lib/pagination";
+import { journalPreviewEntries } from "../../lib/preview";
+import { topicPath } from "../../lib/routes";
+import { journalViewModel } from "../../lib/view-models";
+
+const entries = await getJournalEntries({ production: import.meta.env.PROD });
+const page = paginate(entries, 1);
+const items = page.items.map(journalViewModel);
+const displayItems =
+  import.meta.env.DEV && items.length === 0 ? journalPreviewEntries : items;
+const topicCounts = countTopics(entries.map((entry) => entry.data));
+const topics: TopicItem[] = Object.entries(topicCounts).map(
+  ([slug, count]) => ({
+    slug,
+    label: topicLabel(slug),
+    count,
+    href: topicPath(slug),
+  }),
+);
+---
+
+<ListingLayout
+  title="Journal"
+  eyebrow="JOURNAL / NOTES IN PUBLIC"
+  description="Essays, notes, devlogs, and updates arranged as one continuous record of learning and making."
+  bodyClass="journal-page"
+>
+  {
+    topics.length > 0 && (
+      <TopicList
+        slot="topics"
+        topics={topics}
+        baseHref="/topics/"
+        label="Journal topics"
+        class="listing-topics"
+      />
+    )
+  }
+  <EntryList
+    entries={displayItems}
+    label="Journal entries"
+    emptyTitle="Nothing published in Journal yet."
+    emptyMessage="Essays, notes, devlogs, and updates will appear here."
+  />
+  <Pagination section="journal" {...page} />
+</ListingLayout>

@@ -1,0 +1,19 @@
+---
+import ArrowLink from "../components/ArrowLink.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="Page not found"
+  description="The requested page could not be found."
+  canonical={false}
+  noindex={true}
+  bodyClass="not-found-page"
+>
+  <section class="site-shell not-found" aria-labelledby="not-found-title">
+    <p class="eyebrow">ERROR / 404</p>
+    <h1 id="not-found-title">This path goes nowhere—yet.</h1>
+    <p>The page may have moved, changed, or never existed.</p>
+    <ArrowLink href="/" label="Return home" />
+  </section>
+</BaseLayout>

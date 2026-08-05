@@ -1,0 +1,52 @@
+---
+import { render } from "astro:content";
+
+import ArrowLink from "../components/ArrowLink.astro";
+import { site } from "../config/site";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getSingletonPage } from "../lib/collections";
+import { formatDate, toIsoDate } from "../lib/dates";
+import { personStructuredData } from "../lib/structured-data";
+
+const page = await getSingletonPage("about", {
+  production: import.meta.env.PROD,
+});
+const rendered = page ? await render(page) : undefined;
+const PageContent = rendered?.Content;
+const title = page?.data.title ?? "About";
+const description = page?.data.summary ?? site.about.lead;
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  structuredData={personStructuredData()}
+  bodyClass="about-page"
+>
+  <article class="site-shell narrative-page">
+    <header class="narrative-page__header">
+      <p class="eyebrow">ABOUT / ALUNE</p>
+      <h1>{title}</h1>
+      <p>{description}</p>
+      {
+        page?.data.updatedAt && (
+          <time datetime={toIsoDate(page.data.updatedAt)}>
+            Updated {formatDate(page.data.updatedAt)}
+          </time>
+        )
+      }
+    </header>
+
+    <div class="narrative-page__grid">
+      <div class="prose narrative-page__body">
+        {PageContent ? <PageContent /> : <p>{site.about.body}</p>}
+      </div>
+      <aside class="narrative-page__aside">
+        <p class="eyebrow">CONTINUE</p>
+        <ArrowLink href="/studio/" label="Explore Studio" />
+        <ArrowLink href="/journal/" label="Read Journal" />
+        <ArrowLink href="/now/" label="What I am doing now" />
+      </aside>
+    </div>
+  </article>
+</BaseLayout>

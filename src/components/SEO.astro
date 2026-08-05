@@ -1,0 +1,60 @@
+---
+import { site } from "../config/site";
+
+export interface Props {
+  title?: string;
+  description?: string;
+  canonical?: string | false;
+  image?: string;
+  type?: "website" | "article";
+  noindex?: boolean;
+  structuredData?: Record<string, unknown> | Record<string, unknown>[];
+}
+
+const {
+  title = site.title,
+  description = site.description,
+  canonical,
+  image = "/og-default.svg",
+  type = "website",
+  noindex = false,
+  structuredData,
+} = Astro.props;
+
+const canonicalUrl =
+  canonical === false
+    ? undefined
+    : new URL(canonical ?? Astro.url.pathname, Astro.url).href;
+const imageUrl = new URL(image, canonicalUrl ?? Astro.url).href;
+const schemas = structuredData
+  ? Array.isArray(structuredData)
+    ? structuredData
+    : [structuredData]
+  : [];
+const structuredJson = JSON.stringify(
+  schemas.length === 1 ? schemas[0] : schemas,
+).replace(/</g, "\\u003c");
+---
+
+<title>{title}</title>
+<meta name="description" content={description} />
+{canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+{noindex && <meta name="robots" content="noindex, nofollow" />}
+
+<meta property="og:type" content={type} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+{canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
+<meta property="og:image" content={imageUrl} />
+<meta property="og:site_name" content={site.name} />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={imageUrl} />
+
+{
+  schemas.length > 0 && (
+    <script is:inline type="application/ld+json" set:html={structuredJson} />
+  )
+}

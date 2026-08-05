@@ -1,0 +1,127 @@
+---
+import ArrowLink from "../components/ArrowLink.astro";
+import EmptyState from "../components/EmptyState.astro";
+import EntryList from "../components/EntryList.astro";
+import SectionHeading from "../components/SectionHeading.astro";
+import { site } from "../config/site";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getJournalEntries, getStudioEntries } from "../lib/collections";
+import { journalPreviewEntries, studioPreviewEntries } from "../lib/preview";
+import { personStructuredData } from "../lib/structured-data";
+import { journalViewModel, studioViewModel } from "../lib/view-models";
+
+const production = import.meta.env.PROD;
+const studioEntries = await getStudioEntries({ production });
+const journalEntries = await getJournalEntries({ production });
+
+const studioItems = studioEntries.map(studioViewModel);
+const journalItems = journalEntries.map(journalViewModel);
+const featuredStudio = studioItems.filter((entry) => entry.featured);
+const homeStudio = (
+  featuredStudio.length > 0 ? featuredStudio : studioItems
+).slice(0, 3);
+const homeJournal = journalItems.slice(0, 3);
+
+const studioDisplay =
+  import.meta.env.DEV && homeStudio.length === 0
+    ? studioPreviewEntries
+    : homeStudio;
+const journalDisplay =
+  import.meta.env.DEV && homeJournal.length === 0
+    ? journalPreviewEntries
+    : homeJournal;
+---
+
+<BaseLayout
+  title={site.title}
+  description={site.description}
+  structuredData={personStructuredData()}
+  bodyClass="home-page"
+>
+  <section class="site-shell hero" aria-labelledby="hero-title">
+    <div class="hero__main">
+      <p class="eyebrow">{site.hero.eyebrow}</p>
+      <h1 id="hero-title">{site.hero.title}</h1>
+      <p class="hero__summary">{site.hero.summary}</p>
+      <div class="hero__actions">
+        <ArrowLink href="/studio/" label="Explore Studio" />
+        <ArrowLink href="/journal/" label="Read Journal" />
+      </div>
+    </div>
+
+    <aside class="hero__index" aria-label="Site index">
+      <p class="eyebrow">INDEX / 001</p>
+      <dl>
+        <div>
+          <dt>Studio</dt>
+          <dd>{studioEntries.length.toString().padStart(2, "0")}</dd>
+        </div>
+        <div>
+          <dt>Journal</dt>
+          <dd>{journalEntries.length.toString().padStart(2, "0")}</dd>
+        </div>
+        <div>
+          <dt>Updated</dt>
+          <dd>{site.now.updatedAt}</dd>
+        </div>
+      </dl>
+    </aside>
+  </section>
+
+  <section class="site-shell home-section" aria-labelledby="featured-studio">
+    <SectionHeading
+      id="featured-studio"
+      eyebrow="01 / SELECTED"
+      title="Featured Studio"
+      description="Projects, tools, open-source work, and experiments collected in one evolving space."
+    >
+      <ArrowLink slot="action" href="/studio/" label="View all Studio" />
+    </SectionHeading>
+    {
+      studioDisplay.length > 0 ? (
+        <EntryList entries={studioDisplay} label="Featured Studio entries" />
+      ) : (
+        <EmptyState
+          title="Studio is being prepared."
+          message="Published projects and experiments will appear here."
+        />
+      )
+    }
+  </section>
+
+  <section class="site-shell home-section" aria-labelledby="latest-journal">
+    <SectionHeading
+      id="latest-journal"
+      eyebrow="02 / RECENT"
+      title="Latest Journal"
+      description="Essays, notes, devlogs, and updates—kept together as a public trail of thought."
+    >
+      <ArrowLink slot="action" href="/journal/" label="View all Journal" />
+    </SectionHeading>
+    {
+      journalDisplay.length > 0 ? (
+        <EntryList entries={journalDisplay} label="Latest Journal entries" />
+      ) : (
+        <EmptyState
+          title="The first entry is still unwritten."
+          message="Published writing will appear here."
+        />
+      )
+    }
+  </section>
+
+  <section class="site-shell now-block" aria-labelledby="now-title">
+    <div>
+      <p class="eyebrow">03 / NOW</p>
+      <h2 id="now-title">In progress</h2>
+    </div>
+    <div class="now-block__content">
+      <p>{site.now.summary}</p>
+      <p class="metadata-row">Last updated {site.now.updatedAt}</p>
+      <div class="now-block__links">
+        <ArrowLink href="/now/" label="Read the full Now page" />
+        <ArrowLink href="/about/" label="About this person" />
+      </div>
+    </div>
+  </section>
+</BaseLayout>
