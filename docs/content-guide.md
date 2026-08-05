@@ -1,85 +1,85 @@
 # 内容指南
 
-alune 的内容先服务于阅读，再服务于展示。写作保持具体、诚实、克制；不要把未完成的想法写成已经上线的产品，也不要为了 SEO 堆砌关键词。
+alune 的内容先服务于阅读，再服务于展示。写作保持具体、诚实和克制；不要把未完成的想法描述成已经上线的产品，也不要为了 SEO 堆砌关键词。
 
-## 内容集合
+## 集合与模板
 
 内容位于 `src/content/`：
 
 - `studio/`：项目、工具、实验和开源作品。
 - `journal/`：essay、note、devlog、update 等文章。
-- `pages/`：`about`、`now` 等固定页面。
-- `_templates/`：仅供复制的模板，不会被发布。
+- `pages/`：About、Now 固定页面的可选正文覆盖。
+- `_templates/`：可复制的写作模板，不会被发布。
 
-集合由 Astro schema 校验。新增文件后，先运行 `pnpm typecheck`，再运行 `pnpm build`。
+集合由 `src/content.config.ts` 的 glob loader 加载，并由 `src/lib/content.ts` 的 strict schema 校验。
+
+## Entry ID
+
+不要在 frontmatter 中添加 `slug`。Astro 根据集合内的相对文件路径生成 entry ID，文件名和目录结构就是长期公开标识：
+
+```text
+src/content/studio/alune.md          → alune          → /studio/alune/
+src/content/journal/notes/first.md   → notes/first    → /journal/notes/first/
+```
+
+文件公开后尽量不要移动或改名。`relatedJournal` 和 `relatedStudio` 填目标 entry ID，而不是标题或完整 URL；构建会拒绝不存在的关联。
 
 ## 共享字段
 
-`studio` 和 `journal` 条目使用这些核心字段。`slug` 不写进 frontmatter：Astro glob loader 从文件名生成 entry ID/slug，文件名就是需要长期稳定的公开标识。
+Studio 与 Journal 使用以下字段：
 
-```yaml
-title: "清楚而具体的标题"
-summary: "一句话说明读者会得到什么"
-draft: false
-publishedAt: 2026-08-04
-updatedAt: 2026-08-04
-featured: false
-order: 0
-topics: ["knowledge", "typography"]
-# cover: "/images/example.webp"  # Journal 可选；使用时同时填写 coverAlt
-# coverAlt: "准确描述封面内容的替代文字"
-```
+| 字段               | 约定                                  |
+| ------------------ | ------------------------------------- |
+| `title`、`summary` | 必填且不能为空                        |
+| `draft`            | 默认 `false`；生产页面会排除草稿      |
+| `publishedAt`      | Studio 可选；非草稿 Journal 必填      |
+| `updatedAt`        | 可选；不得早于 `publishedAt`          |
+| `featured`         | 默认 `false`；用于首页和 Studio 编排  |
+| `order`            | 默认 `0`；数字越小越靠前              |
+| `topics`           | 小写 kebab-case、不可重复，默认空数组 |
 
-日期使用 ISO 格式；`updatedAt` 只有在内容实质变化时才更新。`slug` 一旦公开尽量保持不变，确需变更时要考虑旧链接和内部关联。
+日期使用 ISO 格式。只有内容发生实质变化时才更新 `updatedAt`。Journal 归档始终按 `publishedAt` 倒序；Studio 依次按 featured、order 和日期排序。
 
-Studio 列表可使用 `featured` 与 `order` 做人工编排；Journal 列表始终按 `publishedAt` 倒序，确保首页的 Latest Journal 与归档顺序名副其实。
+## Studio
 
-## Studio 字段
-
-除共享字段外，Studio 需要：
+Studio 必须选择一种 `kind`，并填写 `status`、`links`；`relatedJournal` 未填写时默认为空数组：
 
 ```yaml
 kind: project # project | tool | experiment | open-source
 status: active # idea | building | active | paused | archived
 relatedJournal: []
-links:
-  primary: "https://example.com" # 可选
-  source: "https://github.com/..." # 可选
+links: {}
 ```
 
-`role`、`outcomes` 可按 project schema 需要补充。`tool` 使用 `links.launch`（必填）和可选的 `links.source`；`open-source` 必须提供 `links.source`；project/experiment 使用可选的 `links.primary`、`links.source`。`relatedJournal` 填文章 ID，不要填展示标题；链接必须能说明其用途，不能留下无效占位地址。
+- `project`、`experiment`：`links` 必填但可以为空，可使用 `primary`、`source`。
+- `tool`：`links.launch` 必填，`links.source` 可选。
+- `open-source`：`links.source` 必填，`links.primary` 可选。
+- 只有 `project` 可以使用可选的 `role` 和 `outcomes`。
 
-## Journal 字段
+外链必须使用 HTTPS；仅 localhost、127.0.0.1 和 `[::1]` 可以使用 HTTP。不同 kind 的完整起始结构以 `_templates/` 中对应模板为准。
 
-除共享字段外，Journal 需要：
+## Journal
 
 ```yaml
-kind: essay # essay | note | devlog | update
+kind: note # essay | note | devlog | update
 series: "系列名" # 可选
 relatedStudio: []
-cover: "/images/example.webp" # 可选
-coverAlt: "准确描述封面内容的替代文字" # 使用 cover 时必填
+cover: "/images/example.webp" # 可选；也可使用 HTTPS URL
+coverAlt: "准确描述封面内容" # 使用 cover 时必填
 ```
 
-文章开头先给读者上下文，正文使用短段落和明确的小标题。代码、命令、外部事实和个人判断要分开；涉及外部资料时保留来源链接。
+`cover` 和 `coverAlt` 必须同时出现。正文先给出上下文，再使用短段落和明确标题；代码、外部事实和个人判断应清楚区分，引用外部资料时保留来源链接。
 
-## Fixed pages
+## 固定页面
 
-`pages` 条目使用 `about` 或 `now` 类型，并至少包含 `title`、`summary`、`updatedAt`、`draft`。About 介绍现在在做什么和如何联系；Now 只记录当前阶段，不承诺固定更新频率。
+`pages` 集合仅接受 `about`、`now`，并要求 `title`、`summary`、`updatedAt`；`draft` 未填写时默认为 `false`。没有对应内容文件时，页面使用 `src/config/site.config.json` 的占位文案；补充真实正文后，内容集合会覆盖该回退。
 
 ## 发布前检查
 
-```bash
-pnpm lint
-pnpm format:check
-pnpm typecheck
-pnpm test
-pnpm build
-```
+1. 确认标题、摘要、entry ID、日期和草稿状态正确。
+2. 确认关联 ID 存在，外链安全且没有占位地址。
+3. 图片具有准确替代文字、合理尺寸和清晰许可。
+4. 在窄屏、键盘和 reduced-motion 环境下仍可阅读。
+5. 按 [开发与维护](development.md) 运行普通质量门；准备正式上线时再运行 `pnpm check:release`。
 
-人工检查：
-
-1. 标题、摘要、slug 和日期是否一致，是否误将草稿设为公开。
-2. 内部关联 ID 是否存在；外链是否指向正确页面并使用 HTTPS（本地地址除外）。
-3. 图片有替代文字、尺寸合理、来源和许可清楚；品牌素材按 [CONTENT_LICENSE.md](../CONTENT_LICENSE.md) 处理。
-4. 在窄屏和键盘操作下阅读顺畅；不要把 hover 或动效当成唯一信息入口。
+原创文字和品牌素材的使用范围见 [CONTENT_LICENSE.md](../CONTENT_LICENSE.md)。

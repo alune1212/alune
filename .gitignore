@@ -6,7 +6,6 @@ node_modules/
 .astro/
 dist/
 coverage/
-.vercel/
 
 # Test output
 playwright-report/
@@ -20,7 +19,6 @@ test-results/
 .codex/
 
 # Caches and local tooling
-.turbo/
 .serena/
 .DS_Store
 .idea/

@@ -1,49 +1,28 @@
 # alune repository guidance
 
-本仓库是 **alune** 的单一根目录 Astro 静态个人品牌站点。开始工作前先读本文件和相关 `docs/`；当前工作树可能有并行改动，请只修改任务明确拥有的文件，保留无关改动。
+本仓库是 alune 的单包 Astro 静态个人品牌站点。开始工作前阅读 [README](README.md) 和与任务相关的 canonical 文档；保留工作树中的无关改动，不覆盖其他协作者正在进行的工作。
 
-## 当前边界
+## 实施边界
 
-- 站点导航固定为 `Studio`、`Journal`、`About`，对应 `/studio`、`/journal`、`/about`。
-- 页面在构建时由 Astro 生成静态 HTML、CSS 和 JavaScript；内容存放在仓库中。
-- 当前没有后端 API、数据库、登录、CMS、运行时插件、队列或部署配置。不要为了“以后可能需要”提前加入这些依赖。
-- 不要把未实现的服务端能力、内容管理后台或线上地址写进 README、页面或测试。
+- 页面在构建期生成静态 HTML、CSS 和必要的 JavaScript；Astro integrations 属于构建能力，不代表存在运行时服务。
+- 当前没有后端 API、SSR、数据库、登录、CMS、队列或部署 workflow。只有用户明确开启新阶段时才能引入这些能力。
+- 内容位于 `src/content/`。公开标识由相对文件路径生成 Astro entry ID，不在 frontmatter 中维护 `slug`。
+- 不得把占位资料、未完成能力或未经确认的线上地址描述为已经发布。
 
-## 目录约定
+## 单一事实来源
 
-- `src/pages/`：路由和页面组合；保持页面薄，把复用逻辑放进 `src/components/` 或 `src/lib/`。
-- `src/components/`：可复用 Astro/前端组件。
-- `src/content/`：`studio`、`journal`、`pages` 内容集合及模板；schema 是内容契约。
-- `src/layouts/`、`src/styles/`、`src/config/`：布局、设计 tokens/全局样式、站点配置。
-- `public/`：不经 Astro 处理的静态资源；品牌素材的权利见 `CONTENT_LICENSE.md`。
-- `tests/`：单元/组件测试和 Playwright 冒烟测试配置。
-- `docs/`：架构、内容、设计、路线和维护文档；改动工程事实时同步更新。
+- 工程、构建、测试与发布流程：[docs/development.md](docs/development.md)
+- 内容 schema 与写作约定：[docs/content-guide.md](docs/content-guide.md)
+- 视觉与无障碍原则：[docs/design-direction.md](docs/design-direction.md)
+- 阶段与扩展边界：[docs/roadmap.md](docs/roadmap.md)
+- 代码与品牌权利：[LICENSE](LICENSE)、[CONTENT_LICENSE.md](CONTENT_LICENSE.md)
 
-## 本地命令
+不要在本文件复制依赖版本、完整脚本列表、路由清单或 frontmatter 字段；修改事实时更新其对应的唯一文档和实现。
 
-```bash
-pnpm install
-pnpm dev
-pnpm lint
-pnpm format:check
-pnpm typecheck
-pnpm test
-pnpm build
-pnpm exec playwright install chromium
-pnpm e2e
-```
+## 完成要求
 
-提交前至少运行 `pnpm check`（lint、format:check、typecheck、test、build）。需要浏览器流程时再运行 `pnpm e2e`；CI 还会安装 Chromium 后执行同一冒烟入口。
-
-## 实现规则
-
-- 使用仓库 `package.json` 的 `packageManager` 字段锁定 pnpm；Node 版本按 `engines` 和 CI 的 Node 24 执行。
-- 优先使用 Astro 的静态数据流和纯函数；不要在页面中加入网络请求、secret 或隐式运行时状态。
-- 新增内容按 [docs/content-guide.md](docs/content-guide.md) 填写 frontmatter，并确认 draft、slug、关联 ID 和日期可被 schema 接受。
-- 视觉实现遵循 [docs/design-direction.md](docs/design-direction.md)，优先复用现有 tokens 和组件，不为单个页面复制一套样式。
-- 保持键盘可用、语义 HTML、可读对比度和 reduced-motion 行为；交互增强不能成为阅读内容的唯一入口。
-- 不要提交构建产物、Playwright 报告、环境文件、编辑器缓存或 `.DS_Store`。
-
-## 文档与验证
-
-修改导航、内容 schema、构建脚本、许可证或质量门时，检查 README 及对应文档是否仍准确。CI 的顺序是：安装依赖 → lint → format check → typecheck → test → build → Playwright smoke；工作流不负责部署。
+- 优先复用现有 Astro 组件、纯函数和设计 tokens；不为未来假设预埋服务端依赖。
+- 保持语义 HTML、键盘可用、可读对比度和 reduced-motion 行为。
+- 提交前运行 `pnpm check`；涉及页面、交互、路由或样式时再运行 `pnpm e2e`。
+- 修改发布资料后运行 `pnpm check:release`；占位阶段允许它按文档所列条件失败。
+- 不提交构建产物、测试报告、环境文件、编辑器缓存或系统元数据。

@@ -43,6 +43,9 @@ jobs:
       - name: Check formatting
         run: pnpm format:check
 
+      - name: Check documentation
+        run: pnpm docs:check
+
       - name: Typecheck
         run: pnpm typecheck
 
