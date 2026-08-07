@@ -12,7 +12,6 @@ export interface TopicItem {
   /** Optional display label. When omitted, the slug is humanized. */
   label?: string;
   count?: number;
-  href?: string;
 }
 
 export type TopicValue = string | TopicItem;

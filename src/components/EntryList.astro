@@ -6,7 +6,6 @@ import type { EntryPreviewData } from "./types";
 export interface Props {
   entries: readonly EntryPreviewData[];
   label?: string;
-  topicBaseHref?: string;
   emptyTitle?: string;
   emptyMessage?: string;
   emptyActionHref?: string;
@@ -17,7 +16,6 @@ export interface Props {
 const {
   entries,
   label = "条目",
-  topicBaseHref = "/journal",
   emptyTitle = "这里还没有内容",
   emptyMessage = "此内容集合尚未发布任何条目。",
   emptyActionHref,
@@ -31,7 +29,7 @@ const {
     <ul class:list={["entry-list", className]} aria-label={label}>
       {entries.map((entry) => (
         <li>
-          <EntryPreview {...entry} topicBaseHref={topicBaseHref} />
+          <EntryPreview {...entry} />
         </li>
       ))}
     </ul>

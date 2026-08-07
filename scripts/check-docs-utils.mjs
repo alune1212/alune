@@ -47,7 +47,8 @@ export function markdownLinks(source) {
     });
   }
 
-  const referencePattern = /^\s{0,3}\[[^\]]+\]:\s*(?:<([^>]+)>|(\S+))/gmu;
+  const referencePattern =
+    /^(?:[ \t]{0,3})\[[^\]]+\]:[ \t]*(?:<([^>]+)>|(\S+))/gmu;
   for (const match of source.matchAll(referencePattern)) {
     links.push({
       target: match[1] ?? match[2],

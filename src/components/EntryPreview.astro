@@ -6,7 +6,6 @@ import { formatDate } from "../lib/dates";
 import { kindLabel, statusLabel } from "../lib/labels";
 
 export interface Props extends EntryPreviewData {
-  topicBaseHref?: string;
   class?: string;
 }
 
@@ -25,7 +24,6 @@ const {
   coverAlt = "",
   featured = false,
   actionLabel,
-  topicBaseHref = "/journal",
   class: className,
 } = Astro.props;
 
@@ -74,7 +72,7 @@ const resolvedActionLabel =
         <ul class="entry-preview__topics" aria-label="主题">
           {topics.map((topic) => (
             <li>
-              <TopicLink topic={topic} baseHref={topicBaseHref} />
+              <TopicLink topic={topic} />
             </li>
           ))}
         </ul>

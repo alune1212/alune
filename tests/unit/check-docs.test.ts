@@ -23,9 +23,30 @@ describe("documentation link extraction", () => {
       { target: "docs/development.md", line: 3 },
       { target: "assets/logo.svg", line: 4 },
       { target: "path with spaces.md", line: 5 },
-      { target: "docs/content-guide.md", line: 6 },
+      { target: "docs/content-guide.md", line: 7 },
     ]);
   });
+
+  it.each(["\n", "\r\n"])(
+    "keeps reference definitions on their own line with %j endings",
+    (newline) => {
+      const lines = [
+        "",
+        "[zero]: zero.md",
+        " [one]: one.md",
+        "  [two]: two.md",
+        "   [three]: three.md",
+        "    [four]: four.md",
+      ];
+
+      expect(markdownLinks(lines.join(newline))).toEqual([
+        { target: "zero.md", line: 2 },
+        { target: "one.md", line: 3 },
+        { target: "two.md", line: 4 },
+        { target: "three.md", line: 5 },
+      ]);
+    },
+  );
 
   it("handles 20,000 links within a bounded line-lookup budget", () => {
     const linkCount = 20_000;

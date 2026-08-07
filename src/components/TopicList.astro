@@ -4,48 +4,23 @@ import type { TopicValue } from "./types";
 
 export interface Props {
   topics: readonly TopicValue[];
-  baseHref?: string;
-  selected?: string;
   label?: string;
-  heading?: string;
-  emptyMessage?: string;
   class?: string;
 }
 
-const {
-  topics,
-  baseHref = "/journal",
-  selected,
-  label = "主题",
-  heading,
-  emptyMessage = "还没有主题。",
-  class: className,
-} = Astro.props;
-
-const selectedSlug = selected?.trim().toLowerCase();
-const topicSlug = (topic: TopicValue) =>
-  (typeof topic === "string" ? topic : topic.slug).trim().toLowerCase();
+const { topics, label = "主题", class: className } = Astro.props;
 ---
 
-<nav class:list={["topic-list", className]} aria-label={label}>
-  {heading && <h2 class="sr-only">{heading}</h2>}
-  {
-    topics.length > 0 ? (
+{
+  topics.length > 0 && (
+    <nav class:list={["topic-list", className]} aria-label={label}>
       <ul>
         {topics.map((topic) => (
           <li>
-            <TopicLink
-              topic={topic}
-              baseHref={baseHref}
-              selected={Boolean(
-                selectedSlug && topicSlug(topic) === selectedSlug,
-              )}
-            />
+            <TopicLink topic={topic} />
           </li>
         ))}
       </ul>
-    ) : (
-      <p class="topic-list__empty">{emptyMessage}</p>
-    )
-  }
-</nav>
+    </nav>
+  )
+}

@@ -3,7 +3,6 @@ import type { CollectionEntry } from "astro:content";
 import type { EntryPreviewData } from "../components/types";
 import { formatDate } from "./dates";
 import { entryPath } from "./routes";
-import { topicPath } from "./routes";
 
 function dateLabel(date: Date | undefined): string | undefined {
   return date ? formatDate(date) : undefined;
@@ -21,7 +20,7 @@ export function studioViewModel(
     status: entry.data.status,
     date: entry.data.updatedAt ?? entry.data.publishedAt,
     dateLabel: dateLabel(entry.data.updatedAt ?? entry.data.publishedAt),
-    topics: entry.data.topics.map((slug) => ({ slug, href: topicPath(slug) })),
+    topics: entry.data.topics,
     featured: entry.data.featured,
     actionLabel: "查看作品",
   };
@@ -38,7 +37,7 @@ export function journalViewModel(
     kind: entry.data.kind,
     date: entry.data.publishedAt ?? entry.data.updatedAt,
     dateLabel: dateLabel(entry.data.publishedAt ?? entry.data.updatedAt),
-    topics: entry.data.topics.map((slug) => ({ slug, href: topicPath(slug) })),
+    topics: entry.data.topics,
     cover: entry.data.cover,
     coverAlt: entry.data.coverAlt,
     featured: entry.data.featured,

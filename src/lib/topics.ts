@@ -50,17 +50,17 @@ export function countTopics<T extends TopicCarrier>(
   entries: readonly T[],
   options: TopicOptions = {},
 ): Record<string, number> {
-  const counts: Record<string, number> = {};
+  const counts = new Map<string, number>();
   for (const entry of entries) {
     if (options.production && entry.draft) continue;
     const normalizedTopics = new Set(
       (entry.topics ?? []).map(normalizeTopic).filter(Boolean),
     );
     for (const normalized of normalizedTopics) {
-      counts[normalized] = (counts[normalized] ?? 0) + 1;
+      counts.set(normalized, (counts.get(normalized) ?? 0) + 1);
     }
   }
-  return counts;
+  return Object.fromEntries(counts);
 }
 
 export function sortTopics(topics: readonly string[]): string[];

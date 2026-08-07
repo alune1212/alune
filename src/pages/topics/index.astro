@@ -5,7 +5,6 @@ import type { TopicItem } from "../../components/types";
 import ListingLayout from "../../layouts/ListingLayout.astro";
 import { getJournalEntries, getStudioEntries } from "../../lib/collections";
 import { countTopics, topicLabel } from "../../lib/content";
-import { topicPath } from "../../lib/routes";
 
 const production = import.meta.env.PROD;
 const [studio, journal] = await Promise.all([
@@ -17,7 +16,6 @@ const topics: TopicItem[] = Object.entries(counts).map(([slug, count]) => ({
   slug,
   label: topicLabel(slug),
   count,
-  href: topicPath(slug),
 }));
 ---
 
@@ -29,12 +27,7 @@ const topics: TopicItem[] = Object.entries(counts).map(([slug, count]) => ({
 >
   {
     topics.length > 0 ? (
-      <TopicList
-        topics={topics}
-        baseHref="/topics/"
-        label="全部主题"
-        class="topics-index"
-      />
+      <TopicList topics={topics} label="全部主题" class="topics-index" />
     ) : (
       <EmptyState
         title="还没有主题。"

@@ -26,4 +26,13 @@ describe("topic helpers", () => {
   it("formats stable topic slugs for labels", () => {
     expect(topicLabel("design-systems")).toBe("Design Systems");
   });
+
+  it("counts prototype-like topic names without inheriting object properties", () => {
+    expect(
+      countTopics([
+        { topics: ["constructor", "constructor", "to-string"] },
+        { topics: ["constructor"] },
+      ]),
+    ).toEqual({ constructor: 2, "to-string": 1 });
+  });
 });

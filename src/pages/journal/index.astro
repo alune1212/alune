@@ -8,7 +8,6 @@ import { getJournalEntries } from "../../lib/collections";
 import { countTopics, topicLabel } from "../../lib/content";
 import { paginate } from "../../lib/pagination";
 import { journalPreviewEntries } from "../../lib/preview";
-import { topicPath } from "../../lib/routes";
 import { journalViewModel } from "../../lib/view-models";
 
 const entries = await getJournalEntries({ production: import.meta.env.PROD });
@@ -22,7 +21,6 @@ const topics: TopicItem[] = Object.entries(topicCounts).map(
     slug,
     label: topicLabel(slug),
     count,
-    href: topicPath(slug),
   }),
 );
 ---
@@ -38,7 +36,6 @@ const topics: TopicItem[] = Object.entries(topicCounts).map(
       <TopicList
         slot="topics"
         topics={topics}
-        baseHref="/topics/"
         label="文章主题"
         class="listing-topics"
       />

@@ -8,7 +8,6 @@ import { getStudioEntries } from "../../lib/collections";
 import { countTopics, topicLabel } from "../../lib/content";
 import { paginate } from "../../lib/pagination";
 import { studioPreviewEntries } from "../../lib/preview";
-import { topicPath } from "../../lib/routes";
 import { studioViewModel } from "../../lib/view-models";
 
 const entries = await getStudioEntries({ production: import.meta.env.PROD });
@@ -22,7 +21,6 @@ const topics: TopicItem[] = Object.entries(topicCounts).map(
     slug,
     label: topicLabel(slug),
     count,
-    href: topicPath(slug),
   }),
 );
 ---
@@ -38,7 +36,6 @@ const topics: TopicItem[] = Object.entries(topicCounts).map(
       <TopicList
         slot="topics"
         topics={topics}
-        baseHref="/topics/"
         label="作品主题"
         class="listing-topics"
       />

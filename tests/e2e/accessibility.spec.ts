@@ -10,27 +10,17 @@ const coreRoutes = [
   "/topics/",
 ] as const;
 
-test("desktop core pages have no serious WCAG A/AA axe violations", async ({
-  page,
-}, testInfo) => {
-  test.skip(
-    testInfo.project.name !== "desktop-chromium",
-    "The axe audit is intentionally limited to desktop core pages.",
-  );
-
+test("core pages have no WCAG A/AA axe violations", async ({ page }) => {
   for (const route of coreRoutes) {
     await page.goto(route);
 
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa"])
       .analyze();
-    const seriousViolations = results.violations.filter(
-      ({ impact }) => impact === "critical" || impact === "serious",
-    );
 
     expect(
-      seriousViolations,
-      `${route} has serious axe violations: ${seriousViolations
+      results.violations,
+      `${route} has axe violations: ${results.violations
         .map(({ id, help }) => `${id} (${help})`)
         .join(", ")}`,
     ).toEqual([]);
