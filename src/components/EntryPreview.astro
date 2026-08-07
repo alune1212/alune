@@ -2,6 +2,8 @@
 import ArrowLink from "./ArrowLink.astro";
 import TopicLink from "./TopicLink.astro";
 import type { EntryPreviewData } from "./types";
+import { formatDate } from "../lib/dates";
+import { kindLabel, statusLabel } from "../lib/labels";
 
 export interface Props extends EntryPreviewData {
   topicBaseHref?: string;
@@ -27,33 +29,25 @@ const {
   class: className,
 } = Astro.props;
 
-const humanize = (value: string) =>
-  value
-    .replace(/[-_]+/g, " ")
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
-
 const dateValue =
   date instanceof Date ? date : date ? new Date(date) : undefined;
 const formattedDate =
   dateLabel ??
   (dateValue && !Number.isNaN(dateValue.getTime())
-    ? new Intl.DateTimeFormat("en", {
-        dateStyle: "medium",
-        timeZone: "UTC",
-      }).format(dateValue)
+    ? formatDate(dateValue)
     : undefined);
 const isoDate =
   dateValue && !Number.isNaN(dateValue.getTime())
     ? dateValue.toISOString().slice(0, 10)
     : undefined;
 const metadata = [
-  kind ? humanize(kind) : undefined,
-  status ? humanize(status) : undefined,
+  kind ? kindLabel(kind) : undefined,
+  status ? statusLabel(status) : undefined,
   ...(typeof meta === "string" ? [meta] : (meta ?? [])),
 ].filter((value): value is string => Boolean(value));
 const resolvedActionLabel =
   actionLabel ??
-  (kind === "project" || kind === "tool" ? "View work" : "Read entry");
+  (kind === "project" || kind === "tool" ? "查看作品" : "阅读文章");
 ---
 
 <article
@@ -69,7 +63,7 @@ const resolvedActionLabel =
     )
   }
   <div class="entry-preview__body">
-    <div class="entry-preview__meta" aria-label="Entry metadata">
+    <div class="entry-preview__meta" aria-label="条目元数据">
       {metadata.map((value) => <span>{value}</span>)}
       {formattedDate && <time datetime={isoDate}>{formattedDate}</time>}
     </div>
@@ -77,7 +71,7 @@ const resolvedActionLabel =
     <p class="entry-preview__summary">{summary}</p>
     {
       topics.length > 0 && (
-        <ul class="entry-preview__topics" aria-label="Topics">
+        <ul class="entry-preview__topics" aria-label="主题">
           {topics.map((topic) => (
             <li>
               <TopicLink topic={topic} baseHref={topicBaseHref} />

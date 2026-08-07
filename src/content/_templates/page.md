@@ -1,10 +1,10 @@
 ---
-# Copy this file into src/content/pages/about.md or now.md.
+# 将此文件复制到 src/content/pages/about.md 或 now.md。
 kind: about
-title: TODO: page title
-summary: TODO: one-sentence summary
+title: 待填写：页面标题
+summary: 待填写：一句话摘要
 draft: true
 updatedAt: 2026-01-01
 ---
 
-TODO: Write the page content here.
+待填写：在此撰写页面正文。

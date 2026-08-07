@@ -1,5 +1,6 @@
 ---
 import type { TopicItem, TopicValue } from "./types";
+import { topicCountLabel } from "../lib/labels";
 
 export interface Props {
   topic: TopicValue;
@@ -43,14 +44,14 @@ const count = explicitCount ?? item.count;
 <a
   class:list={["topic-link", { "is-selected": selected }, className]}
   href={href}
-  aria-label={ariaLabel ?? `Topic: ${displayLabel}`}
+  aria-label={ariaLabel ?? `主题：${displayLabel}`}
   aria-current={selected ? "page" : undefined}
   data-topic={slug}
 >
   <span>{displayLabel}</span>
   {
     typeof count === "number" && (
-      <span class="topic-link__count" aria-label={`${count} entries`}>
+      <span class="topic-link__count" aria-label={topicCountLabel(count)}>
         {count}
       </span>
     )

@@ -23,7 +23,7 @@ export function studioViewModel(
     dateLabel: dateLabel(entry.data.updatedAt ?? entry.data.publishedAt),
     topics: entry.data.topics.map((slug) => ({ slug, href: topicPath(slug) })),
     featured: entry.data.featured,
-    actionLabel: "View studio entry",
+    actionLabel: "查看作品",
   };
 }
 
@@ -42,6 +42,6 @@ export function journalViewModel(
     cover: entry.data.cover,
     coverAlt: entry.data.coverAlt,
     featured: entry.data.featured,
-    actionLabel: "Read journal entry",
+    actionLabel: "阅读文章",
   };
 }

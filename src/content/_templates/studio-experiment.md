@@ -1,8 +1,8 @@
 ---
-# Copy this file into src/content/studio/<stable-id>.md and replace every TODO.
+# 将此文件复制到 src/content/studio/<stable-id>.md，并替换所有占位内容。
 kind: experiment
-title: TODO: experiment title
-summary: TODO: one-sentence summary
+title: 待填写：实验标题
+summary: 待填写：一句话摘要
 status: idea
 draft: true
 publishedAt: 2026-01-01
@@ -14,4 +14,4 @@ relatedJournal: []
 links: {}
 ---
 
-TODO: Record the question, approach, and what you learned.
+待填写：记录问题、方法和你的收获。

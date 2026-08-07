@@ -23,6 +23,7 @@ export function journalStructuredData(
   return {
     "@context": "https://schema.org",
     "@type": "Article",
+    inLanguage: site.locale,
     headline: entry.data.title,
     description: entry.data.summary,
     url: new URL(entryPath("journal", entry.id), site.siteUrl).href,
@@ -50,6 +51,7 @@ export function studioStructuredData(
   return {
     "@context": "https://schema.org",
     "@type": type,
+    inLanguage: site.locale,
     name: entry.data.title,
     description: entry.data.summary,
     url: new URL(entryPath("studio", entry.id), site.siteUrl).href,

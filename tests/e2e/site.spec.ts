@@ -10,9 +10,9 @@ const coreRoutes = [
 ] as const;
 
 const primaryNavigation = [
-  { label: "Studio", href: "/studio/" },
-  { label: "Journal", href: "/journal/" },
-  { label: "About", href: "/about/" },
+  { label: "作品", href: "/studio/" },
+  { label: "文章", href: "/journal/" },
+  { label: "关于", href: "/about/" },
 ] as const;
 
 test.describe("site structure", () => {
@@ -27,6 +27,7 @@ test.describe("site structure", () => {
         response?.ok(),
         `${route} should return a successful response`,
       ).toBeTruthy();
+      await expect(page.locator("html")).toHaveAttribute("lang", "zh-CN");
       await expect(page.locator("main")).toBeVisible();
       await expect(
         page.locator("main").getByRole("heading", { level: 1 }).first(),
@@ -46,11 +47,14 @@ test.describe("site structure", () => {
 
     const banner = page.getByRole("banner");
     await expect(
-      banner.getByRole("link", { name: /home$/i }).first(),
+      banner.getByRole("link", { name: "跳转到主要内容" }),
+    ).toHaveAttribute("href", "#main-content");
+    await expect(
+      banner.getByRole("link", { name: /首页$/ }).first(),
     ).toHaveAttribute("href", "/");
 
     const navigation = banner.getByRole("navigation", {
-      name: "Primary navigation",
+      name: "主导航",
     });
     await expect(navigation.getByRole("link")).toHaveCount(
       primaryNavigation.length,
@@ -135,6 +139,7 @@ test.describe("site structure", () => {
     const body = await response.text();
     expect(body).toMatch(/<rss\b/i);
     expect(body).toMatch(/<channel>/i);
+    expect(body).toMatch(/<language>zh-CN<\/language>/i);
   });
 
   test("robots.txt advertises the placeholder crawl policy and sitemap", async ({
@@ -173,6 +178,13 @@ test.describe("site structure", () => {
       ).toHaveCount(1);
       await expect(description).toHaveAttribute("content", /\S+/);
 
+      const openGraphLocale = page.locator('meta[property="og:locale"]');
+      await expect(
+        openGraphLocale,
+        `${route} should expose the Chinese Open Graph locale`,
+      ).toHaveCount(1);
+      await expect(openGraphLocale).toHaveAttribute("content", "zh_CN");
+
       const canonical = page.locator('link[rel="canonical"]');
       await expect(
         canonical,
@@ -204,6 +216,10 @@ test.describe("site structure", () => {
     const root = page.locator("html");
     const initialTheme = await root.getAttribute("data-theme");
     expect(initialTheme).toMatch(/^(light|dark)$/);
+    await expect(page.locator("[data-theme-toggle]").first()).toHaveAttribute(
+      "aria-label",
+      /主题/,
+    );
 
     await page.locator("[data-theme-toggle]").first().click();
 
@@ -258,10 +274,14 @@ test.describe("mobile navigation", () => {
       const homeUrl = page.url();
 
       const menu = page.locator("details.site-header__menu");
+      await expect(menu.locator("summary")).toHaveAttribute(
+        "aria-label",
+        /导航/,
+      );
       await menu.locator("summary").click();
 
       const navigation = menu.getByRole("navigation", {
-        name: "Mobile navigation",
+        name: "移动导航",
       });
       await expect(navigation).toBeVisible();
 

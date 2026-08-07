@@ -6,6 +6,7 @@ import SectionHeading from "../components/SectionHeading.astro";
 import { site } from "../config/site";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getJournalEntries, getStudioEntries } from "../lib/collections";
+import { formatDate } from "../lib/dates";
 import { journalPreviewEntries, studioPreviewEntries } from "../lib/preview";
 import { personStructuredData } from "../lib/structured-data";
 import { journalViewModel, studioViewModel } from "../lib/view-models";
@@ -21,6 +22,7 @@ const homeStudio = (
   featuredStudio.length > 0 ? featuredStudio : studioItems
 ).slice(0, 3);
 const homeJournal = journalItems.slice(0, 3);
+const nowUpdatedAt = formatDate(site.now.updatedAt);
 
 const studioDisplay =
   import.meta.env.DEV && homeStudio.length === 0
@@ -44,25 +46,25 @@ const journalDisplay =
       <h1 id="hero-title">{site.hero.title}</h1>
       <p class="hero__summary">{site.hero.summary}</p>
       <div class="hero__actions">
-        <ArrowLink href="/studio/" label="Explore Studio" />
-        <ArrowLink href="/journal/" label="Read Journal" />
+        <ArrowLink href="/studio/" label="浏览作品" />
+        <ArrowLink href="/journal/" label="阅读文章" />
       </div>
     </div>
 
-    <aside class="hero__index" aria-label="Site index">
-      <p class="eyebrow">INDEX / 001</p>
+    <aside class="hero__index" aria-label="站点索引">
+      <p class="eyebrow">索引 / 001</p>
       <dl>
         <div>
-          <dt>Studio</dt>
+          <dt>作品</dt>
           <dd>{studioEntries.length.toString().padStart(2, "0")}</dd>
         </div>
         <div>
-          <dt>Journal</dt>
+          <dt>文章</dt>
           <dd>{journalEntries.length.toString().padStart(2, "0")}</dd>
         </div>
         <div>
-          <dt>Updated</dt>
-          <dd>{site.now.updatedAt}</dd>
+          <dt>更新</dt>
+          <dd>{nowUpdatedAt}</dd>
         </div>
       </dl>
     </aside>
@@ -71,19 +73,19 @@ const journalDisplay =
   <section class="site-shell home-section" aria-labelledby="featured-studio">
     <SectionHeading
       id="featured-studio"
-      eyebrow="01 / SELECTED"
-      title="Featured Studio"
-      description="Projects, tools, open-source work, and experiments collected in one evolving space."
+      eyebrow="01 / 精选"
+      title="精选作品"
+      description="这里收录项目、工具、开源作品与实验，也保留它们持续生长的过程。"
     >
-      <ArrowLink slot="action" href="/studio/" label="View all Studio" />
+      <ArrowLink slot="action" href="/studio/" label="查看全部作品" />
     </SectionHeading>
     {
       studioDisplay.length > 0 ? (
-        <EntryList entries={studioDisplay} label="Featured Studio entries" />
+        <EntryList entries={studioDisplay} label="精选作品列表" />
       ) : (
         <EmptyState
-          title="Studio is being prepared."
-          message="Published projects and experiments will appear here."
+          title="作品正在准备中。"
+          message="发布后的项目、工具与实验会出现在这里。"
         />
       )
     }
@@ -92,19 +94,19 @@ const journalDisplay =
   <section class="site-shell home-section" aria-labelledby="latest-journal">
     <SectionHeading
       id="latest-journal"
-      eyebrow="02 / RECENT"
-      title="Latest Journal"
-      description="Essays, notes, devlogs, and updates—kept together as a public trail of thought."
+      eyebrow="02 / 最近"
+      title="最新文章"
+      description="长文、笔记、开发日志与近况更新，共同构成一条公开的思考轨迹。"
     >
-      <ArrowLink slot="action" href="/journal/" label="View all Journal" />
+      <ArrowLink slot="action" href="/journal/" label="查看全部文章" />
     </SectionHeading>
     {
       journalDisplay.length > 0 ? (
-        <EntryList entries={journalDisplay} label="Latest Journal entries" />
+        <EntryList entries={journalDisplay} label="最新文章列表" />
       ) : (
         <EmptyState
-          title="The first entry is still unwritten."
-          message="Published writing will appear here."
+          title="第一篇文章还在酝酿中。"
+          message="发布后的文字会出现在这里。"
         />
       )
     }
@@ -112,15 +114,15 @@ const journalDisplay =
 
   <section class="site-shell now-block" aria-labelledby="now-title">
     <div>
-      <p class="eyebrow">03 / NOW</p>
-      <h2 id="now-title">In progress</h2>
+      <p class="eyebrow">03 / 近况</p>
+      <h2 id="now-title">正在进行</h2>
     </div>
     <div class="now-block__content">
       <p>{site.now.summary}</p>
-      <p class="metadata-row">Last updated {site.now.updatedAt}</p>
+      <p class="metadata-row">最近更新：{nowUpdatedAt}</p>
       <div class="now-block__links">
-        <ArrowLink href="/now/" label="Read the full Now page" />
-        <ArrowLink href="/about/" label="About this person" />
+        <ArrowLink href="/now/" label="查看完整近况" />
+        <ArrowLink href="/about/" label="了解作者" />
       </div>
     </div>
   </section>

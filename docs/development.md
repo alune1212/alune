@@ -36,9 +36,9 @@ layouts + components + pages
 dist/ 静态输出
 ```
 
-`src/content/_templates/` 仅用于复制，不会被 loader 发布。Studio、Journal 和固定页面的相对文件路径会生成 entry ID；例如 `journal/notes/hello.md` 的 ID 是 `notes/hello`，详情地址是 `/journal/notes/hello/`。生产构建排除 `draft: true` 的条目，开发环境保留草稿预览。
+`src/content/_templates/` 仅用于复制，不会被 loader 发布。作品（`studio`）、文章（`journal`）和固定页面的相对文件路径会生成 entry ID；例如 `journal/notes/hello.md` 的 ID 是 `notes/hello`，详情地址是 `/journal/notes/hello/`。生产构建排除 `draft: true` 的条目，开发环境保留草稿预览。
 
-页面文件是路由事实来源。Studio、Journal 的详情文件分别是 `src/pages/studio/[...id].astro` 和 `src/pages/journal/[...id].astro`；catch-all 参数对应 entry ID，因此支持嵌套路径。完整公开入口见 [README](../README.md)。新增或删除页面时同时更新导航配置、README 和对应测试。
+页面文件是路由事实来源。作品（`studio`）、文章（`journal`）的详情文件分别是 `src/pages/studio/[...id].astro` 和 `src/pages/journal/[...id].astro`；catch-all 参数对应 entry ID，因此支持嵌套路径。完整公开入口见 [README](../README.md)。新增或删除页面时同时更新导航配置、README 和对应测试。
 
 ## 本地开发与质量门
 
@@ -84,8 +84,8 @@ pnpm e2e
 1. `src/config/site.config.json` 的 `placeholder` 为 `false`。
 2. 使用非保留域名的 HTTPS 生产地址。
 3. 作者姓名和联系邮箱不再是占位值。
-4. Studio 与 Journal 各至少有一条非草稿内容。
-5. 已发布内容不含 TODO、TBD、replace-me、示例域名等占位资料。
+4. 作品（`studio`）与文章（`journal`）各至少有一条非草稿内容。
+5. 已发布内容不含 TODO、TBD、replace-me、待填写、待补充、占位、示例域名等占位资料。
 
 当前仓库尚未满足这些条件，因此该命令应失败；普通工程验收使用 `pnpm check` 和 `pnpm e2e`。确定域名、托管、缓存与回滚方案后，才能新增部署配置。
 

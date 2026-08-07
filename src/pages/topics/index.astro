@@ -22,9 +22,9 @@ const topics: TopicItem[] = Object.entries(counts).map(([slug, count]) => ({
 ---
 
 <ListingLayout
-  title="Topics"
-  eyebrow="INDEX / SHARED THREADS"
-  description="Shared themes connecting Studio work with Journal writing."
+  title="主题"
+  eyebrow="索引 / 共同线索"
+  description="连接作品与文章的共同主题。"
   bodyClass="topics-page"
 >
   {
@@ -32,13 +32,13 @@ const topics: TopicItem[] = Object.entries(counts).map(([slug, count]) => ({
       <TopicList
         topics={topics}
         baseHref="/topics/"
-        label="All topics"
+        label="全部主题"
         class="topics-index"
       />
     ) : (
       <EmptyState
-        title="No topics yet."
-        message="Topics are created automatically when published Studio and Journal entries use them."
+        title="还没有主题。"
+        message="当发布的作品和文章使用主题后，这里会自动生成索引。"
       />
     )
   }

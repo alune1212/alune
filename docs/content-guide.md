@@ -8,7 +8,7 @@ alune 的内容先服务于阅读，再服务于展示。写作保持具体、�
 
 - `studio/`：项目、工具、实验和开源作品。
 - `journal/`：essay、note、devlog、update 等文章。
-- `pages/`：About、Now 固定页面的可选正文覆盖。
+- `pages/`：关于（`about`）、近况（`now`）固定页面的可选正文覆盖。
 - `_templates/`：可复制的写作模板，不会被发布。
 
 集合由 `src/content.config.ts` 的 glob loader 加载，并由 `src/lib/content.ts` 的 strict schema 校验。
@@ -26,23 +26,23 @@ src/content/journal/notes/first.md   → notes/first    → /journal/notes/first
 
 ## 共享字段
 
-Studio 与 Journal 使用以下字段：
+作品（`studio`）与文章（`journal`）使用以下字段：
 
 | 字段               | 约定                                  |
 | ------------------ | ------------------------------------- |
 | `title`、`summary` | 必填且不能为空                        |
 | `draft`            | 默认 `false`；生产页面会排除草稿      |
-| `publishedAt`      | Studio 可选；非草稿 Journal 必填      |
+| `publishedAt`      | 作品可选；非草稿文章必填              |
 | `updatedAt`        | 可选；不得早于 `publishedAt`          |
-| `featured`         | 默认 `false`；用于首页和 Studio 编排  |
+| `featured`         | 默认 `false`；用于首页和作品编排      |
 | `order`            | 默认 `0`；数字越小越靠前              |
 | `topics`           | 小写 kebab-case、不可重复，默认空数组 |
 
-日期使用 ISO 格式。只有内容发生实质变化时才更新 `updatedAt`。Journal 归档始终按 `publishedAt` 倒序；Studio 依次按 featured、order 和日期排序。
+日期使用 ISO 格式。只有内容发生实质变化时才更新 `updatedAt`。文章归档始终按 `publishedAt` 倒序；作品依次按 featured、order 和日期排序。
 
-## Studio
+## 作品（`studio`）
 
-Studio 必须选择一种 `kind`，并填写 `status`、`links`；`relatedJournal` 未填写时默认为空数组：
+作品必须选择一种 `kind`，并填写 `status`、`links`；`relatedJournal` 未填写时默认为空数组：
 
 ```yaml
 kind: project # project | tool | experiment | open-source
@@ -58,7 +58,7 @@ links: {}
 
 外链必须使用 HTTPS；仅 localhost、127.0.0.1 和 `[::1]` 可以使用 HTTP。不同 kind 的完整起始结构以 `_templates/` 中对应模板为准。
 
-## Journal
+## 文章（`journal`）
 
 ```yaml
 kind: note # essay | note | devlog | update

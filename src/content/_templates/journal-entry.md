@@ -1,18 +1,18 @@
 ---
-# Copy this file into src/content/journal/<stable-id>.md and replace every TODO.
+# 将此文件复制到 src/content/journal/<stable-id>.md，并替换所有占位内容。
 kind: note
-title: TODO: journal title
-summary: TODO: one-sentence summary
+title: 待填写：文章标题
+summary: 待填写：一句话摘要
 draft: true
 publishedAt: 2026-01-01
 updatedAt: 2026-01-01
 featured: false
 order: 0
 topics: []
-series: TODO: optional series
+series: 待填写：可选系列
 relatedStudio: []
 cover: /images/replace-me.jpg
-coverAlt: TODO: describe the cover image
+coverAlt: 待填写：准确描述封面图片
 ---
 
-TODO: Write the journal entry here.
+待填写：在此撰写文章正文。

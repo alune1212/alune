@@ -3,6 +3,7 @@ import SEO from "../components/SEO.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import { primaryNavigation, site } from "../config/site";
+import { sectionLabels } from "../lib/labels";
 import type { StructuredData } from "../lib/structured-data";
 import "../styles/global.css";
 
@@ -49,7 +50,7 @@ const {
     <link
       rel="alternate"
       type="application/rss+xml"
-      title={`${site.name} Journal`}
+      title={`${site.name} ${sectionLabels.journal}`}
       href={new URL("rss.xml", Astro.site)}
     />
     <SEO
@@ -90,7 +91,7 @@ const {
     </main>
     <SiteFooter
       navItems={primaryNavigation}
-      statement="A personal digital home, designed to evolve over time."
+      statement="一个不断生长的个人数字主页。"
     />
   </body>
 </html>

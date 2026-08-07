@@ -1,8 +1,8 @@
 ---
-# Copy this file into src/content/studio/<stable-id>.md and replace every TODO.
+# 将此文件复制到 src/content/studio/<stable-id>.md，并替换所有占位内容。
 kind: tool
-title: TODO: tool title
-summary: TODO: one-sentence summary
+title: 待填写：工具标题
+summary: 待填写：一句话摘要
 status: building
 draft: true
 publishedAt: 2026-01-01
@@ -16,4 +16,4 @@ links:
   source: https://github.com/replace-me/replace-me
 ---
 
-TODO: Describe what this tool does and who it helps.
+待填写：说明工具的用途及其帮助对象。

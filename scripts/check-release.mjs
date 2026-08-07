@@ -67,7 +67,9 @@ if (!isProductionSiteUrl(config.siteUrl)) {
 
 if (
   !config.author?.name ||
-  /^(your\b|todo\b|tbd\b|placeholder\b)/i.test(config.author.name.trim())
+  /^(your\b|todo\b|tbd\b|placeholder\b|你的名字)/i.test(
+    config.author.name.trim(),
+  )
 ) {
   errors.push("Replace the placeholder author name.");
 }
@@ -108,6 +110,9 @@ async function publishedEntries(collection) {
         pattern: /development preview only/i,
         label: "development preview copy",
       },
+      { pattern: /待填写/u, label: "待填写" },
+      { pattern: /待补充/u, label: "待补充" },
+      { pattern: /占位/u, label: "中文占位内容" },
     ].find(({ pattern }) => pattern.test(source));
     const placeholderFrontmatter = [
       {

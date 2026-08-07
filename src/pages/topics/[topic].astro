@@ -35,24 +35,24 @@ const label = topicLabel(topic);
 
 <ListingLayout
   title={label}
-  eyebrow="TOPIC / SHARED THREAD"
-  description={`Studio work and Journal writing connected by ${label}.`}
+  eyebrow="主题 / 共同线索"
+  description={`${label} 连接的作品与文章。`}
   bodyClass="topic-page"
 >
   <section class="topic-group" aria-labelledby="topic-studio">
-    <h2 id="topic-studio">Studio</h2>
+    <h2 id="topic-studio">作品</h2>
     <EntryList
       entries={studioItems}
-      label={`${label} Studio entries`}
-      emptyTitle="No Studio entries in this topic."
+      label={`${label} 主题下的作品`}
+      emptyTitle="这个主题下还没有作品。"
     />
   </section>
   <section class="topic-group" aria-labelledby="topic-journal">
-    <h2 id="topic-journal">Journal</h2>
+    <h2 id="topic-journal">文章</h2>
     <EntryList
       entries={journalItems}
-      label={`${label} Journal entries`}
-      emptyTitle="No Journal entries in this topic."
+      label={`${label} 主题下的文章`}
+      emptyTitle="这个主题下还没有文章。"
     />
   </section>
 </ListingLayout>

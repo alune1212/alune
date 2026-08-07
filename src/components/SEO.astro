@@ -26,6 +26,7 @@ const canonicalUrl =
     ? undefined
     : new URL(canonical ?? Astro.url.pathname, Astro.url).href;
 const imageUrl = new URL(image, canonicalUrl ?? Astro.url).href;
+const openGraphLocale = site.locale.replace("-", "_");
 const schemas = structuredData
   ? Array.isArray(structuredData)
     ? structuredData
@@ -42,6 +43,7 @@ const structuredJson = JSON.stringify(
 {noindex && <meta name="robots" content="noindex, nofollow" />}
 
 <meta property="og:type" content={type} />
+<meta property="og:locale" content={openGraphLocale} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
 {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}

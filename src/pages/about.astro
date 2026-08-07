@@ -13,7 +13,7 @@ const page = await getSingletonPage("about", {
 });
 const rendered = page ? await render(page) : undefined;
 const PageContent = rendered?.Content;
-const title = page?.data.title ?? "About";
+const title = page?.data.title ?? "关于";
 const description = page?.data.summary ?? site.about.lead;
 ---
 
@@ -25,13 +25,13 @@ const description = page?.data.summary ?? site.about.lead;
 >
   <article class="site-shell narrative-page">
     <header class="narrative-page__header">
-      <p class="eyebrow">ABOUT / ALUNE</p>
+      <p class="eyebrow">关于 / ALUNE</p>
       <h1>{title}</h1>
       <p>{description}</p>
       {
         page?.data.updatedAt && (
           <time datetime={toIsoDate(page.data.updatedAt)}>
-            Updated {formatDate(page.data.updatedAt)}
+            更新于 {formatDate(page.data.updatedAt)}
           </time>
         )
       }
@@ -42,10 +42,10 @@ const description = page?.data.summary ?? site.about.lead;
         {PageContent ? <PageContent /> : <p>{site.about.body}</p>}
       </div>
       <aside class="narrative-page__aside">
-        <p class="eyebrow">CONTINUE</p>
-        <ArrowLink href="/studio/" label="Explore Studio" />
-        <ArrowLink href="/journal/" label="Read Journal" />
-        <ArrowLink href="/now/" label="What I am doing now" />
+        <p class="eyebrow">继续浏览</p>
+        <ArrowLink href="/studio/" label="浏览作品" />
+        <ArrowLink href="/journal/" label="阅读文章" />
+        <ArrowLink href="/now/" label="查看我的近况" />
       </aside>
     </div>
   </article>

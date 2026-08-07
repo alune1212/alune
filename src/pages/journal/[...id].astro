@@ -32,7 +32,7 @@ const relatedStudio = studios.filter((studio) => relatedIds.has(studio.id));
   publishedAt={entry.data.publishedAt}
   updatedAt={entry.data.updatedAt}
   backHref="/journal/"
-  backLabel="Back to Journal"
+  backLabel="返回文章"
   image={entry.data.cover}
   structuredData={journalStructuredData(entry)}
 >
@@ -42,7 +42,7 @@ const relatedStudio = studios.filter((studio) => relatedIds.has(studio.id));
     {
       entry.data.series && (
         <div>
-          <p class="eyebrow">SERIES</p>
+          <p class="eyebrow">系列</p>
           <p>{entry.data.series}</p>
         </div>
       )
@@ -50,7 +50,7 @@ const relatedStudio = studios.filter((studio) => relatedIds.has(studio.id));
     {
       relatedStudio.length > 0 && (
         <div>
-          <p class="eyebrow">RELATED STUDIO</p>
+          <p class="eyebrow">相关作品</p>
           <ul class="related-links">
             {relatedStudio.map((studio) => (
               <li>

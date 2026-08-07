@@ -25,9 +25,9 @@ const journals = await getJournalEntries({ production: import.meta.env.PROD });
 const relatedIds = new Set(entry.data.relatedJournal);
 const relatedJournal = journals.filter((journal) => relatedIds.has(journal.id));
 const linkLabels = {
-  primary: "Visit project",
-  launch: "Open tool",
-  source: "View source",
+  primary: "访问项目",
+  launch: "打开工具",
+  source: "查看源码",
 } as const;
 const links = Object.entries(entry.data.links).filter(
   (link): link is [keyof typeof linkLabels, string] =>
@@ -44,7 +44,7 @@ const links = Object.entries(entry.data.links).filter(
   publishedAt={entry.data.publishedAt}
   updatedAt={entry.data.updatedAt}
   backHref="/studio/"
-  backLabel="Back to Studio"
+  backLabel="返回作品"
   structuredData={studioStructuredData(entry)}
 >
   <Content />
@@ -53,7 +53,7 @@ const links = Object.entries(entry.data.links).filter(
     {
       entry.data.kind === "project" && entry.data.role && (
         <div>
-          <p class="eyebrow">ROLE</p>
+          <p class="eyebrow">角色</p>
           <p>{entry.data.role}</p>
         </div>
       )
@@ -63,7 +63,7 @@ const links = Object.entries(entry.data.links).filter(
         entry.data.outcomes &&
         entry.data.outcomes.length > 0 && (
           <div>
-            <p class="eyebrow">OUTCOMES</p>
+            <p class="eyebrow">成果</p>
             <ul>
               {entry.data.outcomes.map((outcome) => (
                 <li>{outcome}</li>
@@ -75,7 +75,7 @@ const links = Object.entries(entry.data.links).filter(
     {
       links.length > 0 && (
         <div>
-          <p class="eyebrow">LINKS</p>
+          <p class="eyebrow">链接</p>
           {links.map(([label, href]) => (
             <ArrowLink
               href={href}
@@ -89,7 +89,7 @@ const links = Object.entries(entry.data.links).filter(
     {
       relatedJournal.length > 0 && (
         <div>
-          <p class="eyebrow">RELATED JOURNAL</p>
+          <p class="eyebrow">相关文章</p>
           <ul class="related-links">
             {relatedJournal.map((journal) => (
               <li>

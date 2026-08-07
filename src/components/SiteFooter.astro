@@ -13,12 +13,12 @@ export interface Props {
 
 const {
   year = new Date().getFullYear(),
-  statement = "A quiet place for work, writing, and what comes next.",
+  statement = "一个安静的空间，留给工作、文字和下一步。",
   homeHref = "/",
   navItems = [
-    { label: "Studio", href: "/studio" },
-    { label: "Journal", href: "/journal" },
-    { label: "About", href: "/about" },
+    { label: "作品", href: "/studio" },
+    { label: "文章", href: "/journal" },
+    { label: "关于", href: "/about" },
   ],
 } = Astro.props;
 ---
@@ -26,13 +26,13 @@ const {
 <footer class="site-footer">
   <div class="site-shell site-footer__inner">
     <div class="site-footer__identity">
-      <a class="site-footer__wordmark" href={homeHref} aria-label="alune home"
+      <a class="site-footer__wordmark" href={homeHref} aria-label="alune 首页"
         >alune</a
       >
       <p>{statement}</p>
     </div>
 
-    <nav class="site-footer__nav" aria-label="Footer navigation">
+    <nav class="site-footer__nav" aria-label="页脚导航">
       <ul>
         {
           navItems.map((item) => (

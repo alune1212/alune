@@ -1,67 +1,68 @@
 import type { EntryPreviewData } from "../components/types";
 
-const previewSummary =
-  "Development preview only — replace this structural example with your own published content.";
+const previewSummary = "仅供开发预览——请用你自己的已发布内容替换这个结构示例。";
+
+const previewTopic = { slug: "topic", label: "主题" } as const;
 
 export const studioPreviewEntries: readonly EntryPreviewData[] = [
   {
     id: "preview-project",
-    title: "Project title",
+    title: "项目标题",
     summary: previewSummary,
     href: "/studio/",
     kind: "project",
     status: "preview",
-    topics: ["topic"],
-    actionLabel: "Open Studio",
+    topics: [previewTopic],
+    actionLabel: "打开作品",
   },
   {
     id: "preview-tool",
-    title: "Tool title",
+    title: "工具标题",
     summary: previewSummary,
     href: "/studio/",
     kind: "tool",
     status: "preview",
-    topics: ["topic"],
-    actionLabel: "Open Studio",
+    topics: [previewTopic],
+    actionLabel: "打开作品",
   },
   {
     id: "preview-experiment",
-    title: "Experiment title",
+    title: "实验标题",
     summary: previewSummary,
     href: "/studio/",
     kind: "experiment",
     status: "preview",
-    topics: ["topic"],
-    actionLabel: "Open Studio",
+    topics: [previewTopic],
+    actionLabel: "打开作品",
   },
 ];
 
 export const journalPreviewEntries: readonly EntryPreviewData[] = [
   {
     id: "preview-essay",
-    title: "Essay title",
+    title: "随笔标题",
     summary: previewSummary,
     href: "/journal/",
     kind: "essay",
-    topics: ["topic"],
-    actionLabel: "Open Journal",
+    topics: [previewTopic],
+    actionLabel: "打开文章",
   },
   {
     id: "preview-note",
-    title: "Note title",
+    title: "笔记标题",
     summary: previewSummary,
     href: "/journal/",
     kind: "note",
-    topics: ["topic"],
-    actionLabel: "Open Journal",
+    topics: [previewTopic],
+    actionLabel: "打开文章",
   },
   {
     id: "preview-devlog",
-    title: "Devlog title",
+    title: "开发日志标题",
     summary: previewSummary,
     href: "/journal/",
     kind: "devlog",
-    topics: ["topic"],
-    actionLabel: "Open Journal",
+    topics: [previewTopic],
+    actionLabel: "打开文章",
   },
 ];

@@ -1,8 +1,8 @@
 ---
-# Copy this file into src/content/studio/<stable-id>.md and replace every TODO.
+# 将此文件复制到 src/content/studio/<stable-id>.md，并替换所有占位内容。
 kind: project
-title: TODO: project title
-summary: TODO: one-sentence summary
+title: 待填写：项目标题
+summary: 待填写：一句话摘要
 status: idea
 draft: true
 publishedAt: 2026-01-01
@@ -12,8 +12,8 @@ order: 0
 topics: []
 relatedJournal: []
 links: {}
-role: TODO: your role (optional)
+role: 待填写：你的角色（可选）
 outcomes: []
 ---
 
-TODO: Write the project story here.
+待填写：在此撰写项目故事。

@@ -5,6 +5,7 @@ import sanitizeHtml from "sanitize-html";
 
 import { site } from "../config/site";
 import { getJournalEntries } from "../lib/collections";
+import { sectionLabels } from "../lib/labels";
 import { entryPath } from "../lib/routes";
 
 const markdown = new MarkdownIt({
@@ -63,7 +64,7 @@ export async function GET(context: APIContext) {
   const entries = await getJournalEntries({ production: true });
 
   return rss({
-    title: `${site.name} Journal`,
+    title: `${site.name} ${sectionLabels.journal}`,
     description: site.description,
     site: context.site ?? site.siteUrl,
     customData: `<language>${site.locale}</language>`,

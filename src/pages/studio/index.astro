@@ -28,9 +28,9 @@ const topics: TopicItem[] = Object.entries(topicCounts).map(
 ---
 
 <ListingLayout
-  title="Studio"
-  eyebrow="STUDIO / THINGS MADE"
-  description="One collection for projects, tools, open-source work, and experiments—finished or still becoming."
+  title="作品"
+  eyebrow="作品 / 创作记录"
+  description="这里收录项目、工具、开源作品与实验，无论已经完成，还是仍在生长。"
   bodyClass="studio-page"
 >
   {
@@ -39,16 +39,16 @@ const topics: TopicItem[] = Object.entries(topicCounts).map(
         slot="topics"
         topics={topics}
         baseHref="/topics/"
-        label="Studio topics"
+        label="作品主题"
         class="listing-topics"
       />
     )
   }
   <EntryList
     entries={displayItems}
-    label="Studio entries"
-    emptyTitle="Nothing published in Studio yet."
-    emptyMessage="Projects, tools, and experiments will appear here when they are ready."
+    label="作品列表"
+    emptyTitle="还没有发布作品。"
+    emptyMessage="准备完成后，项目、工具与实验会出现在这里。"
   />
   <Pagination section="studio" {...page} />
 </ListingLayout>

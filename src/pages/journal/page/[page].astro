@@ -30,11 +30,11 @@ const items = page.items.map(journalViewModel);
 ---
 
 <ListingLayout
-  title={`Journal — Page ${page.currentPage}`}
-  eyebrow="JOURNAL / ARCHIVE"
-  description="Earlier essays, notes, devlogs, and updates from the Journal archive."
+  title={`文章 — 第 ${page.currentPage} 页`}
+  eyebrow="文章 / 归档"
+  description="更多归档中的长文、笔记、开发日志与近况更新。"
   bodyClass="journal-page"
 >
-  <EntryList entries={items} label={`Journal page ${page.currentPage}`} />
+  <EntryList entries={items} label={`文章第 ${page.currentPage} 页`} />
   <Pagination section="journal" {...page} />
 </ListingLayout>

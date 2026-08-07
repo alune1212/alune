@@ -12,7 +12,7 @@ export type SiteConfig = Omit<typeof rawSite, "socials"> & {
 export const site = rawSite satisfies SiteConfig;
 
 export const primaryNavigation = [
-  { label: "Studio", href: "/studio/" },
-  { label: "Journal", href: "/journal/" },
-  { label: "About", href: "/about/" },
+  { label: "作品", href: "/studio/" },
+  { label: "文章", href: "/journal/" },
+  { label: "关于", href: "/about/" },
 ] as const;

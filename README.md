@@ -28,25 +28,25 @@ pnpm check:release # 质量门加正式发布条件
 pnpm exec playwright install chromium
 ```
 
-`check:release` 当前会因占位站点资料及缺少正式 Studio、Journal 内容而失败，这是预期的发布保护，而不是工程故障。
+`check:release` 当前会因占位站点资料及缺少正式作品（`studio`）、文章（`journal`）内容而失败，这是预期的发布保护，而不是工程故障。
 
 ## 公开结构
 
-主导航固定为 **Studio**、**Journal**、**About**。
+主导航固定为 **作品**、**文章**、**关于**。
 
-| 路径                                | 用途                                    |
-| ----------------------------------- | --------------------------------------- |
-| `/`                                 | 首页、精选内容和近期状态                |
-| `/studio/`、`/studio/page/<n>/`     | 作品列表与分页                          |
-| `/studio/<entry-id>/`               | Studio 详情；entry ID 可以包含嵌套路径  |
-| `/journal/`、`/journal/page/<n>/`   | 文章列表与分页                          |
-| `/journal/<entry-id>/`              | Journal 详情；entry ID 可以包含嵌套路径 |
-| `/about/`                           | 个人介绍与联系方式                      |
-| `/now/`                             | 当前关注与近期状态                      |
-| `/topics/`、`/topics/<topic>/`      | 跨 Studio、Journal 的主题索引           |
-| `/rss.xml`                          | Journal RSS 订阅源                      |
-| `/robots.txt`、`/sitemap-index.xml` | 搜索引擎入口                            |
-| `/404.html`                         | 静态未找到页面                          |
+| 路径                                | 用途                                |
+| ----------------------------------- | ----------------------------------- |
+| `/`                                 | 首页、精选内容和近期状态            |
+| `/studio/`、`/studio/page/<n>/`     | 作品列表与分页                      |
+| `/studio/<entry-id>/`               | 作品详情；entry ID 可以包含嵌套路径 |
+| `/journal/`、`/journal/page/<n>/`   | 文章列表与分页                      |
+| `/journal/<entry-id>/`              | 文章详情；entry ID 可以包含嵌套路径 |
+| `/about/`                           | 关于页、个人介绍与联系方式          |
+| `/now/`                             | 近况页、当前关注与近期状态          |
+| `/topics/`、`/topics/<topic>/`      | 跨作品、文章的主题索引              |
+| `/rss.xml`                          | 文章 RSS 订阅源                     |
+| `/robots.txt`、`/sitemap-index.xml` | 搜索引擎入口                        |
+| `/404.html`                         | 静态未找到页面                      |
 
 ## 文档
 

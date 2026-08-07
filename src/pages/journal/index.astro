@@ -28,9 +28,9 @@ const topics: TopicItem[] = Object.entries(topicCounts).map(
 ---
 
 <ListingLayout
-  title="Journal"
-  eyebrow="JOURNAL / NOTES IN PUBLIC"
-  description="Essays, notes, devlogs, and updates arranged as one continuous record of learning and making."
+  title="文章"
+  eyebrow="文章 / 公开记录"
+  description="长文、笔记、开发日志与近况更新，按时间汇成一条持续学习与创作的记录。"
   bodyClass="journal-page"
 >
   {
@@ -39,16 +39,16 @@ const topics: TopicItem[] = Object.entries(topicCounts).map(
         slot="topics"
         topics={topics}
         baseHref="/topics/"
-        label="Journal topics"
+        label="文章主题"
         class="listing-topics"
       />
     )
   }
   <EntryList
     entries={displayItems}
-    label="Journal entries"
-    emptyTitle="Nothing published in Journal yet."
-    emptyMessage="Essays, notes, devlogs, and updates will appear here."
+    label="文章列表"
+    emptyTitle="还没有发布文章。"
+    emptyMessage="长文、笔记、开发日志与近况更新会出现在这里。"
   />
   <Pagination section="journal" {...page} />
 </ListingLayout>

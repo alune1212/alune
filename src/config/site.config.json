@@ -2,25 +2,25 @@
   "placeholder": true,
   "siteUrl": "https://example.com",
   "name": "alune",
-  "title": "alune — personal digital home",
-  "description": "A personal place for ideas, experiments, writing, and work in progress.",
-  "locale": "en",
+  "title": "alune — 个人数字主页",
+  "description": "一个容纳想法、实验、文字与进行中工作的个人空间。",
+  "locale": "zh-CN",
   "author": {
-    "name": "Your name",
+    "name": "你的名字",
     "email": "hello@example.com"
   },
   "hero": {
-    "eyebrow": "PERSONAL DIGITAL HOME / VERSION 0.1",
-    "title": "A place for ideas, experiments, and work in progress.",
-    "summary": "This first edition defines the system. The final story is still yours to write."
+    "eyebrow": "个人数字主页 / 版本 0.1",
+    "title": "一个容纳想法、实验与进行中工作的地方。",
+    "summary": "第一版定义了系统，最终的故事仍待你书写。"
   },
   "about": {
-    "lead": "This page is reserved for your story, principles, and the threads that connect your work.",
-    "body": "Replace this provisional copy when the personal narrative is ready."
+    "lead": "这里留给你的故事、原则，以及串联工作的线索。",
+    "body": "当个人叙事准备就绪后，请替换这段临时文案。"
   },
   "now": {
     "updatedAt": "2026-08-04",
-    "summary": "The site foundation is taking shape. Content and brand language will follow."
+    "summary": "网站基础正在成形，内容与品牌语言将在之后展开。"
   },
   "socials": []
 }

@@ -12,7 +12,7 @@ const page = await getSingletonPage("now", {
 });
 const rendered = page ? await render(page) : undefined;
 const PageContent = rendered?.Content;
-const title = page?.data.title ?? "Now";
+const title = page?.data.title ?? "近况";
 const description = page?.data.summary ?? site.now.summary;
 const updatedAt =
   page?.data.updatedAt ?? new Date(`${site.now.updatedAt}T00:00:00Z`);
@@ -21,11 +21,10 @@ const updatedAt =
 <BaseLayout title={title} description={description} bodyClass="now-page">
   <article class="site-shell narrative-page narrative-page--now">
     <header class="narrative-page__header">
-      <p class="eyebrow">NOW / CURRENTLY</p>
+      <p class="eyebrow">近况 / 此刻</p>
       <h1>{title}</h1>
       <p>{description}</p>
-      <time datetime={toIsoDate(updatedAt)}
-        >Updated {formatDate(updatedAt)}</time
+      <time datetime={toIsoDate(updatedAt)}>更新于 {formatDate(updatedAt)}</time
       >
     </header>
 
@@ -34,9 +33,9 @@ const updatedAt =
         {PageContent ? <PageContent /> : <p>{site.now.summary}</p>}
       </div>
       <aside class="narrative-page__aside">
-        <p class="eyebrow">ELSEWHERE</p>
-        <ArrowLink href="/about/" label="About" />
-        <ArrowLink href="/studio/" label="Studio" />
+        <p class="eyebrow">继续浏览</p>
+        <ArrowLink href="/about/" label="关于" />
+        <ArrowLink href="/studio/" label="作品" />
       </aside>
     </div>
   </article>

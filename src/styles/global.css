@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-display: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-sans:
+    "Inter", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    "Noto Sans CJK SC", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-display:
+    "Inter", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    "Noto Sans CJK SC", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-mono:
     "SFMono-Regular", "Cascadia Code", "Roboto Mono", Consolas, monospace;
   --color-cobalt: #3155d5;
@@ -25,8 +29,12 @@
   --accent-soft: #e8edff;
   --focus: #3155d5;
   --selection: #dbe4ff;
-  --font-body: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-display: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-body:
+    "Inter", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    "Noto Sans CJK SC", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-display:
+    "Inter", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    "Noto Sans CJK SC", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-code:
     "SFMono-Regular", "Cascadia Code", "Roboto Mono", Consolas, monospace;
   --measure: 70rem;

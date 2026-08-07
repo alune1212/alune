@@ -34,5 +34,5 @@ const linkRel = opensInNewTab ? (rel ?? "noreferrer noopener") : rel;
 >
   <span><slot>{label}</slot></span>
   <span class="arrow-link__arrow" aria-hidden="true">→</span>
-  {opensInNewTab && <span class="sr-only"> (opens in a new tab)</span>}
+  {opensInNewTab && <span class="sr-only">（在新标签页中打开）</span>}
 </a>

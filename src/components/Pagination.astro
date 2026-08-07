@@ -1,5 +1,6 @@
 ---
 import { pageHref } from "../lib/pagination";
+import { sectionLabel } from "../lib/labels";
 
 export interface Props {
   section: "studio" | "journal";
@@ -15,27 +16,27 @@ const { section, currentPage, totalPages, previousPage, nextPage } =
 
 {
   totalPages > 1 && (
-    <nav class="pagination" aria-label={`${section} pagination`}>
+    <nav class="pagination" aria-label={`${sectionLabel(section)}分页`}>
       <div>
         {previousPage ? (
           <a href={pageHref(section, previousPage)} rel="prev">
-            <span aria-hidden="true">←</span> Previous
+            <span aria-hidden="true">←</span> 上一页
           </a>
         ) : (
-          <span aria-hidden="true">← Previous</span>
+          <span aria-hidden="true">← 上一页</span>
         )}
       </div>
       <p>
-        <span class="sr-only">Page </span>
+        <span class="sr-only">第 </span>
         {currentPage} / {totalPages}
       </p>
       <div>
         {nextPage ? (
           <a href={pageHref(section, nextPage)} rel="next">
-            Next <span aria-hidden="true">→</span>
+            下一页 <span aria-hidden="true">→</span>
           </a>
         ) : (
-          <span aria-hidden="true">Next →</span>
+          <span aria-hidden="true">下一页 →</span>
         )}
       </div>
     </nav>

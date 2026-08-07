@@ -30,11 +30,11 @@ const items = page.items.map(studioViewModel);
 ---
 
 <ListingLayout
-  title={`Studio — Page ${page.currentPage}`}
-  eyebrow="STUDIO / ARCHIVE"
-  description="More projects, tools, open-source work, and experiments from the Studio archive."
+  title={`作品 — 第 ${page.currentPage} 页`}
+  eyebrow="作品 / 归档"
+  description="更多已归档的项目、工具、开源作品与实验。"
   bodyClass="studio-page"
 >
-  <EntryList entries={items} label={`Studio page ${page.currentPage}`} />
+  <EntryList entries={items} label={`作品第 ${page.currentPage} 页`} />
   <Pagination section="studio" {...page} />
 </ListingLayout>
