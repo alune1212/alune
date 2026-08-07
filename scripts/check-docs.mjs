@@ -2,6 +2,8 @@ import { access, readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { createLineNumberLookup, markdownLinks } from "./check-docs-utils.mjs";
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const errors = [];
 
@@ -27,35 +29,6 @@ async function walk(directory, extensions) {
   }
 
   return files;
-}
-
-function markdownLinks(source) {
-  const links = [];
-  const pattern = /!?\[[^\]]*\]\(([^)]+)\)/g;
-
-  for (const match of source.matchAll(pattern)) {
-    let target = match[1].trim();
-    if (target.startsWith("<") && target.endsWith(">")) {
-      target = target.slice(1, -1);
-    } else {
-      target = target.split(/\s+["']/u, 1)[0];
-    }
-
-    links.push({
-      target,
-      line: source.slice(0, match.index).split("\n").length,
-    });
-  }
-
-  const referencePattern = /^\s{0,3}\[[^\]]+\]:\s*(?:<([^>]+)>|(\S+))/gmu;
-  for (const match of source.matchAll(referencePattern)) {
-    links.push({
-      target: match[1] ?? match[2],
-      line: source.slice(0, match.index).split("\n").length,
-    });
-  }
-
-  return links;
 }
 
 function localLinkPath(fromFile, target) {
@@ -172,13 +145,14 @@ const pnpmBuiltins = new Set([
 
 for (const file of canonicalDocs) {
   const source = sources.get(file);
+  const lineNumberAt = createLineNumberLookup(source);
   const commandPattern = /\bpnpm\s+(?:run\s+)?([a-z][\w:-]*)/giu;
   for (const match of source.matchAll(commandPattern)) {
     const command = match[1];
     if (pnpmBuiltins.has(command) || packageScripts.has(command)) continue;
     addError(
       file,
-      source.slice(0, match.index).split("\n").length,
+      lineNumberAt(match.index ?? 0),
       `pnpm script does not exist in package.json: ${command}`,
     );
   }
@@ -199,13 +173,14 @@ const patchVersion = /\b(?:pnpm|Node(?:\.js)?)(?:@|\s+v?)(\d+\.\d+\.\d+)\b/giu;
 
 for (const file of canonicalDocs) {
   const source = sources.get(file);
+  const lineNumberAt = createLineNumberLookup(source);
   for (const [label, pattern] of forbiddenReferences) {
     const match = pattern.exec(source);
     pattern.lastIndex = 0;
     if (match) {
       addError(
         file,
-        source.slice(0, match.index).split("\n").length,
+        lineNumberAt(match.index ?? 0),
         `forbidden legacy reference: ${label}`,
       );
     }
@@ -214,7 +189,7 @@ for (const file of canonicalDocs) {
   for (const match of source.matchAll(patchVersion)) {
     addError(
       file,
-      source.slice(0, match.index).split("\n").length,
+      lineNumberAt(match.index ?? 0),
       "do not copy Node.js or pnpm patch versions into docs; reference the canonical config",
     );
   }

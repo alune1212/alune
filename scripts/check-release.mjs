@@ -1,6 +1,8 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
-import { URL } from "node:url";
+import { domainToASCII, URL } from "node:url";
+
+import { parseFrontmatter } from "astro/markdown";
 
 const root = process.cwd();
 const configPath = path.join(root, "src/config/site.config.json");
@@ -19,13 +21,15 @@ const reservedHostSuffixes = [
   ".example.com",
   ".example.org",
   ".example.net",
+  ".localhost",
   ".invalid",
   ".test",
 ];
 
 function isReservedHost(value) {
-  const hostname = value.toLowerCase();
+  const hostname = domainToASCII(value.toLowerCase()).replace(/\.+$/, "");
   return (
+    !hostname ||
     reservedHosts.has(hostname) ||
     reservedHostSuffixes.some((suffix) => hostname.endsWith(suffix))
   );
@@ -91,17 +95,25 @@ async function publishedEntries(collection) {
   const candidates = files.filter(
     (file) =>
       typeof file === "string" &&
-      !file.split(path.sep).some((segment) => segment.startsWith("_")) &&
-      /\.(md|mdx)$/i.test(file),
+      !file.split(path.sep).some((segment) => segment.startsWith(".")) &&
+      /\.(md|mdx)$/.test(file),
   );
 
   const published = [];
   for (const file of candidates) {
     const source = await readFile(path.join(directory, file), "utf8");
-    if (/^draft:\s*true\s*$/im.test(source)) continue;
+    let frontmatter;
+    let frontmatterData;
+    try {
+      const parsed = parseFrontmatter(source);
+      frontmatter = parsed.rawFrontmatter;
+      frontmatterData = parsed.frontmatter;
+    } catch {
+      errors.push(`Invalid YAML frontmatter in ${collection} entry ${file}.`);
+      continue;
+    }
+    if (frontmatterData.draft === true) continue;
 
-    const frontmatter =
-      source.match(/^---\s*\r?\n([\s\S]*?)\r?\n---/)?.[1] ?? "";
     const placeholder = [
       { pattern: /\bTODO\b/i, label: "TODO" },
       { pattern: /\bTBD\b/i, label: "TBD" },
