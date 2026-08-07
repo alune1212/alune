@@ -1,13 +1,13 @@
 {
   "placeholder": true,
   "siteUrl": "https://example.com",
-  "name": "alune",
-  "title": "alune — 个人数字主页",
+  "name": "ALUNE",
+  "title": "ALUNE — 个人数字主页",
   "description": "一个容纳想法、实验、文字与进行中工作的个人空间。",
   "locale": "zh-CN",
   "author": {
-    "name": "你的名字",
-    "email": "hello@example.com"
+    "name": "Alune",
+    "email": "aluneaphelios@icloud.com"
   },
   "hero": {
     "eyebrow": "个人数字主页 / 版本 0.1",
