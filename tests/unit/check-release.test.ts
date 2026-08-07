@@ -21,8 +21,11 @@ function entry(
 }
 
 type FixtureOptions = {
+  authorName?: string;
   email?: string;
   files?: Record<string, string>;
+  omitCollection?: "studio" | "journal";
+  placeholder?: boolean;
   siteUrl?: string;
 };
 
@@ -34,20 +37,39 @@ async function withFixture(
   const files = {
     "src/config/site.config.json": JSON.stringify(
       {
-        placeholder: false,
+        placeholder: options.placeholder ?? false,
         siteUrl: options.siteUrl ?? validSiteUrl,
+        name: "ALUNE",
+        title: "ALUNE Test Site",
+        description: "A complete release fixture.",
+        locale: "zh-CN",
         author: {
-          name: "Alune",
+          name: options.authorName ?? "Alune",
           email: options.email ?? validEmail,
         },
+        hero: {
+          eyebrow: "Test",
+          title: "Test site",
+          summary: "Complete fixture.",
+        },
+        about: { lead: "About", body: "About this fixture." },
+        now: { updatedAt: "2026-08-07", summary: "Testing release readiness." },
+        socials: [],
       },
       null,
       2,
     ),
-    "src/content/studio/visible.md": entry(),
-    "src/content/journal/visible.md": entry(),
+    "src/content/studio/visible.md": entry(
+      "title: Studio\nsummary: Published studio.\nkind: experiment\nstatus: active\nlinks: {}\nrelatedJournal: []\ndraft: false",
+    ),
+    "src/content/journal/visible.md": entry(
+      "title: Journal\nsummary: Published journal.\nkind: note\nrelatedStudio: []\npublishedAt: 2026-08-07\ndraft: false",
+    ),
     ...options.files,
   };
+  if (options.omitCollection) {
+    delete files[`src/content/${options.omitCollection}/visible.md`];
+  }
 
   try {
     for (const [relative, contents] of Object.entries(files)) {
@@ -73,6 +95,63 @@ function runRelease(root: string) {
 }
 
 describe("check-release", () => {
+  it("accepts a complete non-placeholder fixture", async () => {
+    await withFixture({}, (root) => {
+      const result = runRelease(root);
+      expect(result.status).toBe(0);
+      expect(result.output).toContain(
+        "Release metadata and minimum content checks passed.",
+      );
+    });
+  });
+
+  it.each([
+    ["placeholder", { placeholder: true }, "Set `placeholder` to false"],
+    ["HTTP site URL", { siteUrl: "http://alune.dev" }, "siteUrl"],
+    ["reserved site URL", { siteUrl: "https://example.com" }, "siteUrl"],
+    ["placeholder author", { authorName: "TODO" }, "placeholder author name"],
+    ["invalid email", { email: "invalid" }, "placeholder contact email"],
+    [
+      "missing Studio",
+      { omitCollection: "studio" as const },
+      "non-draft studio",
+    ],
+    [
+      "missing Journal",
+      { omitCollection: "journal" as const },
+      "non-draft journal",
+    ],
+  ])("rejects %s", async (_label, options, expected) => {
+    await withFixture(options, (root) => {
+      const result = runRelease(root);
+      expect(result.status).toBe(1);
+      expect(result.output).toContain(expected);
+    });
+  });
+
+  it("rejects published placeholders and invalid frontmatter independently", async () => {
+    await withFixture(
+      {
+        files: {
+          "src/content/studio/todo.md": entry("draft: false", "TODO"),
+          "src/content/journal/invalid.md": entry(
+            "title: Invalid\ndraft: false",
+          ),
+        },
+      },
+      (root) => {
+        const result = runRelease(root);
+        expect(result.status).toBe(1);
+        expect(result.output).toContain(
+          "Replace TODO in published studio entry todo.md.",
+        );
+        expect(result.output).toContain(
+          "Fix invalid frontmatter in journal entry invalid.md.",
+        );
+      },
+    );
+  });
+
   it("reads draft only from boolean YAML frontmatter", async () => {
     await withFixture(
       {

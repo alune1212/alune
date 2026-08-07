@@ -1,0 +1,26 @@
+{
+  "placeholder": false,
+  "siteUrl": "https://fixture.alune.dev",
+  "name": "ALUNE FIXTURE",
+  "title": "ALUNE Fixture — 内容测试站点",
+  "description": "用于验证完整静态内容路径的隔离测试站点。",
+  "locale": "zh-CN",
+  "author": {
+    "name": "Alune Fixture Author",
+    "email": "hello@alune.dev"
+  },
+  "hero": {
+    "eyebrow": "隔离内容测试",
+    "title": "完整内容路径验证。",
+    "summary": "此站点只在系统临时目录中构建。"
+  },
+  "about": {
+    "lead": "一个完整且非占位的测试资料。",
+    "body": "用于验证发布配置与内容页面。"
+  },
+  "now": {
+    "updatedAt": "2026-08-07",
+    "summary": "正在验证静态内容站点。"
+  },
+  "socials": [{ "label": "GitHub", "href": "https://github.com/alune" }]
+}

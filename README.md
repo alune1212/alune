@@ -18,7 +18,7 @@ pnpm dev
 ```bash
 pnpm docs:check    # 检查文档链接、索引和工程事实
 pnpm check         # 文档、代码、格式、类型、单元测试和构建
-pnpm e2e           # Playwright 桌面端与移动端测试
+pnpm e2e           # 当前空内容站点与隔离已发布内容站点的桌面端、移动端测试
 pnpm check:release # 质量门加正式发布条件
 ```
 
@@ -29,6 +29,8 @@ pnpm exec playwright install chromium
 ```
 
 `check:release` 当前会因占位站点资料及缺少正式作品（`studio`）、文章（`journal`）内容而失败，这是预期的发布保护，而不是工程故障。
+
+`pnpm e2e` 会先构建当前仓库站点，再运行基础 E2E 和隔离的完整内容 E2E。隔离套件在系统临时目录中注入非占位 fixture，覆盖分页、嵌套详情、关联、主题、RSS、正文样式和无障碍，不会修改正式内容目录。
 
 ## 公开结构
 

@@ -4,11 +4,18 @@ import { domainToASCII, URL } from "node:url";
 
 import { parseFrontmatter } from "astro/markdown";
 
+import { siteConfigSchema } from "../src/config/site-schema.ts";
+import { journalSchema, studioSchema } from "../src/lib/content.ts";
+
 const root = process.cwd();
 const configPath = path.join(root, "src/config/site.config.json");
 const errors = [];
 
 const config = JSON.parse(await readFile(configPath, "utf8"));
+const parsedConfig = siteConfigSchema.safeParse(config);
+if (!parsedConfig.success) {
+  errors.push("Fix invalid fields in src/config/site.config.json.");
+}
 const reservedHosts = new Set([
   "example.com",
   "example.org",
@@ -138,6 +145,12 @@ async function publishedEntries(collection) {
       errors.push(
         `Replace ${placeholder?.label ?? placeholderFrontmatter?.label} in published ${collection} entry ${file}.`,
       );
+    }
+    const schema = collection === "studio" ? studioSchema : journalSchema;
+    const parsedEntry = schema.safeParse(frontmatterData);
+    if (!parsedEntry.success) {
+      errors.push(`Fix invalid frontmatter in ${collection} entry ${file}.`);
+      continue;
     }
     published.push(file);
   }

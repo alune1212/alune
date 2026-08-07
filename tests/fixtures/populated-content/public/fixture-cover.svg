@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-labelledby="title">
+  <title id="title">Abstract fixture cover</title>
+  <rect width="800" height="600" fill="#3155d5"/>
+  <circle cx="400" cy="300" r="180" fill="#ffffff" opacity="0.85"/>
+</svg>

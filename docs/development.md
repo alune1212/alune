@@ -57,11 +57,14 @@ pnpm dev
 | `pnpm typecheck`     | Astro 与 TypeScript 类型检查                      |
 | `pnpm test`          | 运行 `tests/unit/` 下的 Vitest 单元测试           |
 | `pnpm build`         | 生成 `dist/` 静态站点                             |
-| `pnpm e2e`           | 对生产构建运行桌面端和移动端 Playwright E2E       |
+| `pnpm e2e`           | 构建当前站点并运行基础与隔离内容 Playwright E2E   |
+| `pnpm e2e:preview`   | 预览已有 `dist` 并运行当前站点基础 E2E            |
+| `pnpm e2e:content`   | 在系统临时目录构建完整内容 fixture 并运行 E2E     |
+| `pnpm e2e:ci`        | 顺序运行 preview-only 与隔离内容两套 E2E          |
 | `pnpm check`         | 依次运行文档、lint、格式、类型、单元测试和构建    |
 | `pnpm check:release` | 先检查正式发布资料和最低内容，再运行 `pnpm check` |
 
-首次执行 E2E 前运行 `pnpm exec playwright install chromium`。CI 使用锁文件安装依赖，逐项执行与 `pnpm check` 相同的质量门，再安装 Chromium 并运行 Playwright；CI 只验证，不部署。
+首次执行 E2E 前运行 `pnpm exec playwright install chromium`。CI 使用锁文件安装依赖，运行一次 `pnpm check` 并复用其 `dist`，再安装 Chromium、执行 `pnpm e2e:ci`；隔离内容套件单独构建临时站点。正式仓库仍不把 `check:release` 作为普通 CI 门禁，CI 只验证，不部署。
 
 ## 内容与依赖维护
 

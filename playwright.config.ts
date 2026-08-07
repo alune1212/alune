@@ -25,8 +25,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command:
-      "node_modules/.bin/astro build && node_modules/.bin/astro preview --host 127.0.0.1 --port 4321",
+    command: "node_modules/.bin/astro preview --host 127.0.0.1 --port 4321",
     url: baseURL,
     // These checks assert production-only behavior such as draft filtering and
     // empty states, so never reuse an already-running development server.

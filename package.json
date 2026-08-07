@@ -21,8 +21,11 @@
     "typecheck": "astro check",
     "test": "vitest run",
     "test:watch": "vitest",
-    "e2e": "playwright test",
-    "e2e:list": "playwright test --list",
+    "e2e": "pnpm build && pnpm e2e:ci",
+    "e2e:preview": "playwright test",
+    "e2e:content": "playwright test --config playwright.content.config.ts",
+    "e2e:ci": "pnpm e2e:preview && pnpm e2e:content",
+    "e2e:list": "playwright test --list && playwright test --config playwright.content.config.ts --list",
     "check": "pnpm docs:check && pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build",
     "check:release": "node scripts/check-release.mjs && pnpm check"
   },
