@@ -5,7 +5,6 @@ export interface Props {
   description?: string;
   level?: 1 | 2 | 3 | 4;
   id?: string;
-  align?: "start" | "center";
   class?: string;
 }
 
@@ -15,14 +14,11 @@ const {
   description,
   level = 2,
   id,
-  align = "start",
   class: className,
 } = Astro.props;
 ---
 
-<header
-  class:list={["section-heading", `section-heading--${align}`, className]}
->
+<header class:list={["section-heading", className]}>
   {eyebrow && <p class="eyebrow">{eyebrow}</p>}
   {level === 1 && <h1 id={id}>{title}</h1>}
   {level === 2 && <h2 id={id}>{title}</h2>}

@@ -5,7 +5,7 @@ import sanitizeHtml from "sanitize-html";
 
 import { site } from "../config/site";
 import { getJournalEntries } from "../lib/collections";
-import { sectionLabels } from "../lib/labels";
+import { sectionLabels } from "../config/site";
 import { entryPath } from "../lib/routes";
 
 const markdown = new MarkdownIt({

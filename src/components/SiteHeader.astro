@@ -7,22 +7,13 @@ export interface NavItem {
 }
 
 export interface Props {
-  currentPath?: string;
+  currentPath: string;
   homeHref?: string;
-  wordmark?: string;
-  navItems?: readonly NavItem[];
+  wordmark: string;
+  navItems: readonly NavItem[];
 }
 
-const {
-  currentPath = Astro.url.pathname,
-  homeHref = "/",
-  wordmark = "alune",
-  navItems = [
-    { label: "作品", href: "/studio" },
-    { label: "文章", href: "/journal" },
-    { label: "关于", href: "/about" },
-  ],
-} = Astro.props;
+const { currentPath, homeHref = "/", wordmark, navItems } = Astro.props;
 
 const normalizePath = (path: string) => {
   if (path.length > 1 && path.endsWith("/")) return path.slice(0, -1);

@@ -6,28 +6,28 @@ interface NavItem {
 
 export interface Props {
   year?: number;
-  statement?: string;
+  wordmark: string;
+  statement: string;
   homeHref?: string;
-  navItems?: readonly NavItem[];
+  navItems: readonly NavItem[];
 }
 
 const {
   year = new Date().getFullYear(),
-  statement = "一个安静的空间，留给工作、文字和下一步。",
+  wordmark,
+  statement,
   homeHref = "/",
-  navItems = [
-    { label: "作品", href: "/studio" },
-    { label: "文章", href: "/journal" },
-    { label: "关于", href: "/about" },
-  ],
+  navItems,
 } = Astro.props;
 ---
 
 <footer class="site-footer">
   <div class="site-shell site-footer__inner">
     <div class="site-footer__identity">
-      <a class="site-footer__wordmark" href={homeHref} aria-label="alune 首页"
-        >alune</a
+      <a
+        class="site-footer__wordmark"
+        href={homeHref}
+        aria-label={`${wordmark} 首页`}>{wordmark}</a
       >
       <p>{statement}</p>
     </div>
@@ -44,6 +44,6 @@ const {
       </ul>
     </nav>
 
-    <p class="site-footer__legal"><small>© {year} alune</small></p>
+    <p class="site-footer__legal"><small>© {year} {wordmark}</small></p>
   </div>
 </footer>

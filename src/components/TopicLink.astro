@@ -5,11 +5,9 @@ import { topicPath } from "../lib/routes";
 
 export interface Props {
   topic: TopicValue;
-  class?: string;
-  ariaLabel?: string;
 }
 
-const { topic, class: className, ariaLabel } = Astro.props;
+const { topic } = Astro.props;
 
 const item: TopicItem = typeof topic === "string" ? { slug: topic } : topic;
 const slug = item.slug.trim();
@@ -23,9 +21,9 @@ const count = item.count;
 ---
 
 <a
-  class:list={["topic-link", className]}
+  class="topic-link"
   href={href}
-  aria-label={ariaLabel ?? `主题：${displayLabel}`}
+  aria-label={`主题：${displayLabel}`}
   data-topic={slug}
 >
   <span>{displayLabel}</span>

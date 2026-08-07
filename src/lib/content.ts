@@ -1,14 +1,5 @@
 import { z } from "astro/zod";
 
-import {
-  countTopics,
-  deriveUsedTopics,
-  normalizeTopic,
-  topicLabel,
-} from "./topics";
-
-export { countTopics, deriveUsedTopics, normalizeTopic, topicLabel };
-
 /** Stable slugs are public URL components and are intentionally conservative. */
 export const slugSchema = z
   .string()
@@ -111,9 +102,17 @@ const openSourceLinksSchema = z
   })
   .strict();
 
+export const studioStatusSchema = z.enum([
+  "idea",
+  "building",
+  "active",
+  "paused",
+  "archived",
+]);
+
 const projectFields = {
   kind: z.literal("project"),
-  status: z.enum(["idea", "building", "active", "paused", "archived"]),
+  status: studioStatusSchema,
   links: generalLinksSchema,
   role: nonEmptyString.optional(),
   outcomes: z.array(nonEmptyString).optional(),
@@ -122,21 +121,21 @@ const projectFields = {
 
 const toolFields = {
   kind: z.literal("tool"),
-  status: z.enum(["idea", "building", "active", "paused", "archived"]),
+  status: studioStatusSchema,
   links: toolLinksSchema,
   relatedJournal: referencesSchema,
 };
 
 const experimentFields = {
   kind: z.literal("experiment"),
-  status: z.enum(["idea", "building", "active", "paused", "archived"]),
+  status: studioStatusSchema,
   links: generalLinksSchema,
   relatedJournal: referencesSchema,
 };
 
 const openSourceFields = {
   kind: z.literal("open-source"),
-  status: z.enum(["idea", "building", "active", "paused", "archived"]),
+  status: studioStatusSchema,
   links: openSourceLinksSchema,
   relatedJournal: referencesSchema,
 };
@@ -226,46 +225,16 @@ export const pagesSchema = z
 export type StudioData = z.infer<typeof studioSchema>;
 export type JournalData = z.infer<typeof journalSchema>;
 export type PageData = z.infer<typeof pagesSchema>;
-export type ContentData = StudioData | JournalData | PageData;
-
-export interface ContentEntry<T extends object = ContentData> {
-  id: string;
-  data: T;
-  slug?: string;
-  collection?: string;
-}
-
-export interface VisibilityOptions {
-  production?: boolean;
-}
-
-function productionFrom(
-  options: boolean | VisibilityOptions | undefined,
-): boolean {
-  return typeof options === "boolean"
-    ? options
-    : (options?.production ?? false);
-}
-
-export function isDraftEntry<T extends { draft?: boolean }>(entry: {
-  data: T;
-}): boolean {
-  return entry.data.draft === true;
-}
 
 /** Return a new list, excluding draft entries only for production views. */
 export function filterDrafts<T extends { data: { draft?: boolean } }>(
   entries: readonly T[],
-  options: boolean | VisibilityOptions = {},
+  options: { production?: boolean } = {},
 ): T[] {
-  return productionFrom(options)
-    ? entries.filter((entry) => !isDraftEntry(entry))
+  return options.production
+    ? entries.filter((entry) => entry.data.draft !== true)
     : [...entries];
 }
-
-export const withoutDrafts = filterDrafts;
-export const getVisibleEntries = filterDrafts;
-export const getPublishedEntries = filterDrafts;
 
 function entryDate(entry: {
   data: { updatedAt?: Date | string; publishedAt?: Date | string };
@@ -312,9 +281,6 @@ export function sortByFeaturedAndDate<
   });
 }
 
-export const sortContentEntries = sortByFeaturedAndDate;
-export const sortEntries = sortByFeaturedAndDate;
-
 /** Journal archives stay chronological even when an entry is featured. */
 export function sortByPublishedDate<
   T extends {
@@ -345,132 +311,21 @@ export function sortByPublishedDate<
   });
 }
 
-interface EntryIdentity {
-  id: string;
-  slug?: string;
-  data: object;
-}
-
-function entryKeys(entry: EntryIdentity): string[] {
-  // Astro's loader owns `id` and `slug`; they are intentionally not repeated
-  // in frontmatter schemas (doing so raises ContentSchemaContainsSlugError).
-  const dataSlug = (entry.data as { slug?: unknown }).slug;
-  return [entry.id, entry.slug, dataSlug].filter(
-    (key): key is string => typeof key === "string" && key.length > 0,
-  );
-}
-
-export function resolveReferences<Target extends EntryIdentity>(
-  references: readonly string[] | undefined,
-  targets: readonly Target[],
-): Target[] {
-  if (!references?.length) return [];
-  const byKey = new Map<string, Target>();
-  for (const target of targets) {
-    for (const key of entryKeys(target)) byKey.set(key, target);
-  }
-  const resolved: Target[] = [];
-  const seen = new Set<string>();
-  for (const reference of references) {
-    const target = byKey.get(reference);
-    if (target && !seen.has(target.id)) {
-      resolved.push(target);
-      seen.add(target.id);
-    }
-  }
-  return resolved;
-}
-
-export function resolveRelatedJournal<
-  Studio extends { data: { relatedJournal?: readonly string[] } },
-  Journal extends EntryIdentity & { data: { draft?: boolean } },
->(
-  studio: Studio,
-  journals: readonly Journal[],
-  options: VisibilityOptions = {},
-): Journal[] {
-  return resolveReferences(
-    studio.data.relatedJournal,
-    filterDrafts(journals, options),
-  );
-}
-
-export function resolveRelatedStudio<
-  Journal extends { data: { relatedStudio?: readonly string[] } },
-  Studio extends EntryIdentity & { data: { draft?: boolean } },
->(
-  journal: Journal,
-  studios: readonly Studio[],
-  options: VisibilityOptions = {},
-): Studio[] {
-  return resolveReferences(
-    journal.data.relatedStudio,
-    filterDrafts(studios, options),
-  );
-}
-
-export function resolveStudioRelationships<
-  Studio extends { id: string; data: { relatedJournal?: readonly string[] } },
-  Journal extends EntryIdentity & { data: { draft?: boolean } },
->(
-  studio: Studio,
-  journals: readonly Journal[],
-  options: VisibilityOptions = {},
-) {
-  return resolveRelatedJournal(studio, journals, options);
-}
-
-export function resolveJournalRelationships<
-  Journal extends { id: string; data: { relatedStudio?: readonly string[] } },
-  Studio extends EntryIdentity & { data: { draft?: boolean } },
->(
-  journal: Journal,
-  studios: readonly Studio[],
-  options: VisibilityOptions = {},
-) {
-  return resolveRelatedStudio(journal, studios, options);
-}
-
-export function findDuplicateSlugs<T extends EntryIdentity>(
-  entries: readonly T[],
-): string[] {
-  const seen = new Set<string>();
-  const duplicates = new Set<string>();
-  for (const entry of entries) {
-    const slug = entryKeys(entry).at(-1) ?? entry.id;
-    if (seen.has(slug)) duplicates.add(slug);
-    seen.add(slug);
-  }
-  return [...duplicates].sort();
-}
-
-export function assertUniqueSlugs<T extends EntryIdentity>(
-  entries: readonly T[],
-  collectionName = "content",
-): void {
-  const duplicates = findDuplicateSlugs(entries);
-  if (duplicates.length) {
-    throw new Error(
-      `${collectionName} contains duplicate slugs: ${duplicates.join(", ")}`,
-    );
-  }
-}
-
-export function findMissingReferences<
+function findMissingReferences<
   Source extends { id: string; data: object },
-  Target extends EntryIdentity,
+  Target extends { id: string },
 >(
   sources: readonly Source[],
   targets: readonly Target[],
   relation: "relatedJournal" | "relatedStudio",
 ): Array<{ sourceId: string; reference: string }> {
-  const targetKeys = new Set(targets.flatMap(entryKeys));
+  const targetIds = new Set(targets.map(({ id }) => id));
   const missing: Array<{ sourceId: string; reference: string }> = [];
   for (const source of sources) {
     const references = (source.data as Record<string, unknown>)[relation];
     if (!Array.isArray(references)) continue;
     for (const reference of references) {
-      if (typeof reference === "string" && !targetKeys.has(reference)) {
+      if (typeof reference === "string" && !targetIds.has(reference)) {
         missing.push({ sourceId: source.id, reference });
       }
     }
@@ -480,7 +335,7 @@ export function findMissingReferences<
 
 export function assertValidReferences<
   Source extends { id: string; data: object },
-  Target extends EntryIdentity,
+  Target extends { id: string },
 >(
   sources: readonly Source[],
   targets: readonly Target[],

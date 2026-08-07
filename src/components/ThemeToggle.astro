@@ -1,15 +1,9 @@
 ---
-export interface Props {
-  /** A more specific label is useful when the control appears outside a header. */
-  label?: string;
-  class?: string;
-}
-
-const { label = "切换颜色主题", class: className } = Astro.props;
+const label = "切换颜色主题";
 ---
 
 <button
-  class:list={["theme-toggle", className]}
+  class="theme-toggle"
   type="button"
   data-theme-toggle
   aria-label={label}
@@ -32,71 +26,3 @@ const { label = "切换颜色主题", class: className } = Astro.props;
   </span>
   <span class="sr-only" data-theme-toggle-label>切换颜色主题</span>
 </button>
-
-<script is:inline>
-  (() => {
-    const STORAGE_KEY = "alune-theme";
-    const root = document.documentElement;
-    const media = window.matchMedia("(prefers-color-scheme: dark)");
-
-    const readStoredTheme = () => {
-      try {
-        const stored = window.localStorage.getItem(STORAGE_KEY);
-        return stored === "dark" || stored === "light" ? stored : null;
-      } catch {
-        return null;
-      }
-    };
-
-    const setTheme = (theme, persist = false) => {
-      root.dataset.theme = theme;
-      root.style.colorScheme = theme;
-      if (persist) {
-        try {
-          window.localStorage.setItem(STORAGE_KEY, theme);
-        } catch {
-          // Storage can be unavailable in privacy-restricted contexts.
-        }
-      }
-
-      document.querySelectorAll("[data-theme-toggle]").forEach((control) => {
-        const button = control;
-        button.setAttribute("aria-pressed", String(theme === "dark"));
-        const nextTheme = theme === "dark" ? "light" : "dark";
-        const nextThemeLabel = nextTheme === "dark" ? "深色" : "浅色";
-        const nextLabel = `切换到${nextThemeLabel}主题`;
-        button.setAttribute("aria-label", nextLabel);
-        button.setAttribute("title", nextLabel);
-        const label = button.querySelector("[data-theme-toggle-label]");
-        if (label) label.textContent = nextLabel;
-      });
-    };
-
-    const storedTheme = readStoredTheme();
-    setTheme(storedTheme ?? (media.matches ? "dark" : "light"));
-
-    document.querySelectorAll("[data-theme-toggle]").forEach((control) => {
-      control.addEventListener("click", () => {
-        const current = root.dataset.theme === "dark" ? "dark" : "light";
-        setTheme(current === "dark" ? "light" : "dark", true);
-      });
-    });
-
-    if (!storedTheme) {
-      const followSystem = (event) =>
-        setTheme(event.matches ? "dark" : "light");
-      if (typeof media.addEventListener === "function") {
-        media.addEventListener("change", followSystem);
-      }
-    }
-
-    window.addEventListener("storage", (event) => {
-      if (
-        event.key === STORAGE_KEY &&
-        (event.newValue === "dark" || event.newValue === "light")
-      ) {
-        setTheme(event.newValue);
-      }
-    });
-  })();
-</script>

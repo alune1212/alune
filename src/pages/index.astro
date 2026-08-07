@@ -15,13 +15,11 @@ const production = import.meta.env.PROD;
 const studioEntries = await getStudioEntries({ production });
 const journalEntries = await getJournalEntries({ production });
 
-const studioItems = studioEntries.map(studioViewModel);
-const journalItems = journalEntries.map(journalViewModel);
-const featuredStudio = studioItems.filter((entry) => entry.featured);
-const homeStudio = (
-  featuredStudio.length > 0 ? featuredStudio : studioItems
-).slice(0, 3);
-const homeJournal = journalItems.slice(0, 3);
+const featuredStudio = studioEntries.filter((entry) => entry.data.featured);
+const homeStudio = (featuredStudio.length > 0 ? featuredStudio : studioEntries)
+  .slice(0, 3)
+  .map(studioViewModel);
+const homeJournal = journalEntries.slice(0, 3).map(journalViewModel);
 const nowUpdatedAt = formatDate(site.now.updatedAt);
 
 const studioDisplay =

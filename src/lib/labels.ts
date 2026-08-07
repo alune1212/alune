@@ -4,15 +4,9 @@
  * Route segments and content discriminators remain stable English identifiers;
  * these maps are only for the text rendered to visitors and assistive tech.
  */
-export const sectionLabels = {
-  studio: "作品",
-  journal: "文章",
-  about: "关于",
-  now: "近况",
-  topics: "主题",
-} as const;
+import type { JournalData, StudioData } from "./content";
 
-const kindLabels: Record<string, string> = {
+const kindLabels = {
   project: "项目",
   tool: "工具",
   experiment: "实验",
@@ -21,27 +15,30 @@ const kindLabels: Record<string, string> = {
   note: "笔记",
   devlog: "开发日志",
   update: "更新",
-};
+} satisfies Record<StudioData["kind"] | JournalData["kind"], string>;
 
-const statusLabels: Record<string, string> = {
+type StudioStatus = StudioData["status"];
+type UiStatus = StudioStatus | "preview";
+
+const statusLabels = {
   idea: "构想",
   building: "构建中",
   active: "进行中",
   paused: "已暂停",
   archived: "已归档",
   preview: "预览",
-};
-
-export function sectionLabel(value: string): string {
-  return sectionLabels[value as keyof typeof sectionLabels] ?? value;
-}
+} satisfies Record<UiStatus, string>;
 
 export function kindLabel(value: string): string {
-  return kindLabels[value] ?? value;
+  return value in kindLabels
+    ? kindLabels[value as keyof typeof kindLabels]
+    : value;
 }
 
 export function statusLabel(value: string): string {
-  return statusLabels[value] ?? value;
+  return value in statusLabels
+    ? statusLabels[value as keyof typeof statusLabels]
+    : value;
 }
 
 export function topicCountLabel(count: number): string {

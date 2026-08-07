@@ -4,7 +4,7 @@
 
 alune 是单包 Astro 静态站点。Astro 在构建期读取配置和仓库内容，输出可由任意静态文件服务器托管的 HTML、CSS 与必要 JavaScript。
 
-当前使用的构建能力包括 Astro Content Collections、MDX、sitemap、Tailwind CSS Vite 插件和 RSS 生成。它们都不改变当前边界：仓库没有后端 API、SSR、数据库、登录、CMS、队列、定时任务或部署 workflow。
+当前使用的构建能力包括 Astro Content Collections、MDX、sitemap 和 RSS 生成。它们都不改变当前边界：仓库没有后端 API、SSR、数据库、登录、CMS、队列、定时任务或部署 workflow。
 
 ## 单一事实来源
 

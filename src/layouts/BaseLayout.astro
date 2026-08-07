@@ -2,8 +2,7 @@
 import SEO from "../components/SEO.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import SiteHeader from "../components/SiteHeader.astro";
-import { primaryNavigation, site } from "../config/site";
-import { sectionLabels } from "../lib/labels";
+import { primaryNavigation, sectionLabels, site } from "../config/site";
 import type { StructuredData } from "../lib/structured-data";
 import "../styles/global.css";
 
@@ -79,6 +78,9 @@ const {
         }
       })();
     </script>
+    <script>
+      import "../scripts/theme-controller";
+    </script>
   </head>
   <body class:list={[bodyClass]}>
     <SiteHeader
@@ -90,6 +92,7 @@ const {
       <slot />
     </main>
     <SiteFooter
+      wordmark={site.name}
       navItems={primaryNavigation}
       statement="一个不断生长的个人数字主页。"
     />

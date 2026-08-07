@@ -1,10 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  assertUniqueSlugs,
   assertValidReferences,
   filterDrafts,
-  resolveRelatedJournal,
   sortByPublishedDate,
   sortByFeaturedAndDate,
 } from "../../src/lib/content";
@@ -73,26 +71,7 @@ describe("content helpers", () => {
     ]);
   });
 
-  it("resolves related entries by Astro entry id and can hide draft targets", () => {
-    const studio = entry("project", { relatedJournal: ["journal-note"] });
-    const journals = [
-      entry("journal-note", { draft: true }),
-      entry("journal-public", { draft: false }),
-    ];
-    expect(
-      resolveRelatedJournal(studio, journals, { production: false }).map(
-        ({ id }) => id,
-      ),
-    ).toEqual(["journal-note"]);
-    expect(
-      resolveRelatedJournal(studio, journals, { production: true }),
-    ).toEqual([]);
-  });
-
-  it("reports duplicate IDs and missing references before publishing", () => {
-    const entries = [entry("same", {}), entry("same", {})];
-    expect(() => assertUniqueSlugs(entries)).toThrow(/duplicate/);
-
+  it("reports references missing from Astro entry IDs", () => {
     const source = [entry("project", { relatedJournal: ["missing"] })];
     const target = [entry("journal", {})];
     expect(() =>

@@ -1,6 +1,6 @@
 ---
 import { pageHref } from "../lib/pagination";
-import { sectionLabel } from "../lib/labels";
+import { sectionLabels } from "../config/site";
 
 export interface Props {
   section: "studio" | "journal";
@@ -16,7 +16,7 @@ const { section, currentPage, totalPages, previousPage, nextPage } =
 
 {
   totalPages > 1 && (
-    <nav class="pagination" aria-label={`${sectionLabel(section)}分页`}>
+    <nav class="pagination" aria-label={`${sectionLabels[section]}分页`}>
       <div>
         {previousPage ? (
           <a href={pageHref(section, previousPage)} rel="prev">

@@ -17,12 +17,9 @@ const {
   kind,
   status,
   date,
-  dateLabel,
-  meta,
   topics = [],
   cover,
   coverAlt = "",
-  featured = false,
   actionLabel,
   class: className,
 } = Astro.props;
@@ -30,10 +27,9 @@ const {
 const dateValue =
   date instanceof Date ? date : date ? new Date(date) : undefined;
 const formattedDate =
-  dateLabel ??
-  (dateValue && !Number.isNaN(dateValue.getTime())
+  dateValue && !Number.isNaN(dateValue.getTime())
     ? formatDate(dateValue)
-    : undefined);
+    : undefined;
 const isoDate =
   dateValue && !Number.isNaN(dateValue.getTime())
     ? dateValue.toISOString().slice(0, 10)
@@ -41,7 +37,6 @@ const isoDate =
 const metadata = [
   kind ? kindLabel(kind) : undefined,
   status ? statusLabel(status) : undefined,
-  ...(typeof meta === "string" ? [meta] : (meta ?? [])),
 ].filter((value): value is string => Boolean(value));
 const resolvedActionLabel =
   actionLabel ??
@@ -49,7 +44,7 @@ const resolvedActionLabel =
 ---
 
 <article
-  class:list={["entry-preview", { "is-featured": featured }, className]}
+  class:list={["entry-preview", className]}
   data-entry-id={id}
   data-entry-kind={kind}
 >

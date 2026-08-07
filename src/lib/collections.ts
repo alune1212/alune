@@ -1,11 +1,10 @@
 import { getCollection, type CollectionEntry } from "astro:content";
 
 import {
-  assertUniqueSlugs,
   assertValidReferences,
   filterDrafts,
-  sortContentEntries,
   sortByPublishedDate,
+  sortByFeaturedAndDate,
 } from "./content";
 
 const studioFiles = import.meta.glob("../content/studio/**/*.{md,mdx}");
@@ -24,8 +23,6 @@ async function getContentGraph(): Promise<ContentGraph> {
     getCollection("studio"),
     getCollection("journal"),
   ]).then(([studio, journal]) => {
-    assertUniqueSlugs(studio, "studio");
-    assertUniqueSlugs(journal, "journal");
     assertValidReferences(
       studio,
       journal,
@@ -47,7 +44,7 @@ async function getContentGraph(): Promise<ContentGraph> {
 export async function getStudioEntries(options: { production?: boolean } = {}) {
   if (Object.keys(studioFiles).length === 0) return [];
   const { studio } = await getContentGraph();
-  return sortContentEntries(filterDrafts(studio, options));
+  return sortByFeaturedAndDate(filterDrafts(studio, options));
 }
 
 export async function getJournalEntries(

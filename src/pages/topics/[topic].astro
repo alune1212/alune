@@ -2,7 +2,7 @@
 import EntryList from "../../components/EntryList.astro";
 import ListingLayout from "../../layouts/ListingLayout.astro";
 import { getJournalEntries, getStudioEntries } from "../../lib/collections";
-import { deriveUsedTopics, topicLabel } from "../../lib/content";
+import { deriveUsedTopics, topicLabel } from "../../lib/topics";
 import { journalViewModel, studioViewModel } from "../../lib/view-models";
 
 export async function getStaticPaths() {
