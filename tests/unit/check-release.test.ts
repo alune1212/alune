@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -20,6 +20,13 @@ function entry(
   return `---\n${frontmatter}\n---\n\n${body}\n`;
 }
 
+function fixedPage(kind = "about", draft = false, body = "A complete page.") {
+  return entry(
+    `kind: ${kind}\ntitle: About this site\nsummary: A complete page.\nupdatedAt: 2026-08-07\ndraft: ${draft}`,
+    body,
+  );
+}
+
 type FixtureOptions = {
   authorName?: string;
   email?: string;
@@ -27,6 +34,7 @@ type FixtureOptions = {
   omitCollection?: "studio" | "journal";
   placeholder?: boolean;
   siteUrl?: string;
+  config?: Record<string, unknown>;
 };
 
 async function withFixture(
@@ -55,6 +63,7 @@ async function withFixture(
         about: { lead: "About", body: "About this fixture." },
         now: { updatedAt: "2026-08-07", summary: "Testing release readiness." },
         socials: [],
+        ...options.config,
       },
       null,
       2,
@@ -103,6 +112,218 @@ describe("check-release", () => {
         "Release metadata and minimum content checks passed.",
       );
     });
+  });
+
+  it.each(["eyebrow", "title", "summary"])(
+    "rejects a placeholder hero.%s",
+    async (field) => {
+      await withFixture(
+        {
+          config: {
+            hero: {
+              eyebrow: "Test",
+              title: "Test site",
+              summary: "Complete fixture.",
+              [field]: "待补充",
+            },
+          },
+        },
+        (root) => {
+          const result = runRelease(root);
+          expect(result.status).toBe(1);
+          expect(result.output).toContain(`site config hero.${field}`);
+        },
+      );
+    },
+  );
+
+  it.each([
+    [
+      "hero",
+      {
+        eyebrow: "Test",
+        title: "Test",
+        summary: "第一版定义了系统，最终的故事仍待你书写。",
+      },
+      "hero.summary",
+    ],
+    [
+      "about",
+      {
+        lead: "这里留给你的故事、原则，以及串联工作的线索。",
+        body: "A complete story.",
+      },
+      "about.lead",
+    ],
+    ["about", { lead: "About", body: "请替换这段临时文案。" }, "about.body"],
+    [
+      "now",
+      {
+        updatedAt: "2026-08-07",
+        summary: "网站基础正在成形，内容与品牌语言将在之后展开。",
+      },
+      "now.summary",
+    ],
+  ])("rejects existing scaffold copy in %s", async (section, value, field) => {
+    await withFixture({ config: { [section]: value } }, (root) => {
+      const result = runRelease(root);
+      expect(result.status).toBe(1);
+      expect(result.output).toContain(`site config ${field}`);
+    });
+  });
+
+  it("checks the homepage now summary even with a published now page", async () => {
+    await withFixture(
+      {
+        config: { now: { updatedAt: "2026-08-07", summary: "TODO" } },
+        files: { "src/content/pages/now.md": fixedPage("now") },
+      },
+      (root) => {
+        const result = runRelease(root);
+        expect(result.status).toBe(1);
+        expect(result.output).toContain("site config now.summary");
+      },
+    );
+  });
+
+  it("checks about fallback when the only about page is a draft", async () => {
+    await withFixture(
+      {
+        config: { about: { lead: "TODO", body: "A complete story." } },
+        files: {
+          "src/content/pages/about.md": fixedPage("about", true, "TODO"),
+        },
+      },
+      (root) => {
+        const result = runRelease(root);
+        expect(result.status).toBe(1);
+        expect(result.output).toContain("site config about.lead");
+        expect(result.output).not.toContain("published pages entry about.md");
+      },
+    );
+  });
+
+  it("accepts the existing name story and ignores unused about fallback and YAML comments", async () => {
+    const story = await readFile(
+      new URL("../../src/content/pages/about.md", import.meta.url),
+      "utf8",
+    );
+    await withFixture(
+      {
+        config: { about: { lead: "TODO", body: "占位" } },
+        files: {
+          "src/content/pages/about.md": story.replace(
+            "kind: about",
+            "# TODO: authoring note\nkind: about",
+          ),
+        },
+      },
+      (root) => {
+        const result = runRelease(root);
+        expect(result.status).toBe(0);
+      },
+    );
+  });
+
+  it.each(["title", "summary", "body"])(
+    "rejects placeholders in published page %s",
+    async (field) => {
+      const page =
+        field === "body"
+          ? fixedPage("about", false, "待填写")
+          : fixedPage().replace(
+              `${field}: ${field === "title" ? "About this site" : "A complete page."}`,
+              `${field}: 待填写`,
+            );
+      await withFixture(
+        { files: { "src/content/pages/about.md": page } },
+        (root) => {
+          const result = runRelease(root);
+          expect(result.status).toBe(1);
+          expect(result.output).toContain(
+            "Replace 待填写 in published pages entry about.md.",
+          );
+        },
+      );
+    },
+  );
+
+  it.each(["TODO", "TBD", "placeholder"])(
+    "rejects %s on a later line of a YAML block scalar",
+    async (marker) => {
+      const page = fixedPage().replace(
+        "summary: A complete page.",
+        `summary: |\n  A first line.\n  ${marker}`,
+      );
+      await withFixture(
+        { files: { "src/content/pages/about.md": page } },
+        (root) => {
+          const result = runRelease(root);
+          expect(result.status).toBe(1);
+          expect(result.output).toContain("published pages entry about.md");
+        },
+      );
+    },
+  );
+
+  it.each([
+    ["invalid schema", entry("kind: contact"), "Fix invalid frontmatter"],
+    ["invalid YAML", entry("kind: ["), "Invalid YAML frontmatter"],
+    [
+      "string draft",
+      fixedPage().replace("draft: false", 'draft: "true"'),
+      "Fix invalid frontmatter",
+    ],
+  ])("rejects a page with %s", async (_label, page, expected) => {
+    await withFixture(
+      { files: { "src/content/pages/about.md": page } },
+      (root) => {
+        const result = runRelease(root);
+        expect(result.status).toBe(1);
+        expect(result.output).toContain(`${expected} in pages entry about.md.`);
+      },
+    );
+  });
+
+  it("rejects duplicate published singleton pages", async () => {
+    await withFixture(
+      {
+        files: {
+          "src/content/pages/about.md": fixedPage(),
+          "src/content/pages/nested/about.md": fixedPage(),
+        },
+      },
+      (root) => {
+        const result = runRelease(root);
+        expect(result.status).toBe(1);
+        expect(result.output).toContain(
+          "Keep at most one non-draft about page.",
+        );
+      },
+    );
+  });
+
+  it("uses the same glob exclusions and boolean draft filtering for pages", async () => {
+    await withFixture(
+      {
+        config: { about: { lead: "TODO", body: "A complete story." } },
+        files: {
+          "src/content/pages/.hidden.md": fixedPage("about", false, "TODO"),
+          "src/content/pages/.private/nested.md": fixedPage(
+            "about",
+            false,
+            "TODO",
+          ),
+          "src/content/pages/UPPER.MD": fixedPage("about", false, "TODO"),
+          "src/content/pages/draft.md": fixedPage("about", true, "TODO"),
+          "src/content/pages/_group/about.md": fixedPage(),
+        },
+      },
+      (root) => {
+        const result = runRelease(root);
+        expect(result.status).toBe(0);
+      },
+    );
   });
 
   it.each([
