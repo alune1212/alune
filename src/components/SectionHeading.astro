@@ -25,5 +25,7 @@ const {
   {level === 3 && <h3 id={id}>{title}</h3>}
   {level === 4 && <h4 id={id}>{title}</h4>}
   {description && <p class="section-heading__description">{description}</p>}
-  <div class="section-heading__action"><slot name="action" /></div>
+  <div class="section-heading__action">
+    <slot name="action" />
+  </div>
 </header>

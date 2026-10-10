@@ -59,21 +59,17 @@ const displayStatus = status ? statusLabel(status) : undefined;
       <div class="article-header__meta metadata-row">
         <span>{displayKind}</span>
         {displayStatus && <span>{displayStatus}</span>}
-        {
-          publishedAt && (
-            <time datetime={toIsoDate(publishedAt)}>
-              {formatDate(publishedAt)}
+        {publishedAt && (
+          <time datetime={toIsoDate(publishedAt)}>
+            {formatDate(publishedAt)}
+          </time>
+        )}
+        {updatedAt &&
+          (!publishedAt || updatedAt.getTime() !== publishedAt.getTime()) && (
+            <time datetime={toIsoDate(updatedAt)}>
+              更新于 {formatDate(updatedAt)}
             </time>
-          )
-        }
-        {
-          updatedAt &&
-            (!publishedAt || updatedAt.getTime() !== publishedAt.getTime()) && (
-              <time datetime={toIsoDate(updatedAt)}>
-                更新于 {formatDate(updatedAt)}
-              </time>
-            )
-        }
+          )}
       </div>
       <h1>{title}</h1>
       <p class="article-header__summary">{description}</p>

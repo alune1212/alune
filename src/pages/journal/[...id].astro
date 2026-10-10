@@ -39,27 +39,23 @@ const relatedStudio = studios.filter((studio) => relatedIds.has(studio.id));
   <Content />
 
   <div slot="aside" class="content-facts">
-    {
-      entry.data.series && (
-        <div>
-          <p class="eyebrow">系列</p>
-          <p>{entry.data.series}</p>
-        </div>
-      )
-    }
-    {
-      relatedStudio.length > 0 && (
-        <div>
-          <p class="eyebrow">相关作品</p>
-          <ul class="related-links">
-            {relatedStudio.map((studio) => (
-              <li>
-                <a href={`/studio/${studio.id}/`}>{studio.data.title}</a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )
-    }
+    {entry.data.series && (
+      <div>
+        <p class="eyebrow">系列</p>
+        <p>{entry.data.series}</p>
+      </div>
+    )}
+    {relatedStudio.length > 0 && (
+      <div>
+        <p class="eyebrow">相关作品</p>
+        <ul class="related-links">
+          {relatedStudio.map((studio) => (
+            <li>
+              <a href={`/studio/${studio.id}/`}>{studio.data.title}</a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
   </div>
 </ContentLayout>

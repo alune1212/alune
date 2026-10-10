@@ -48,31 +48,31 @@ const resolvedActionLabel =
   data-entry-id={id}
   data-entry-kind={kind}
 >
-  {
-    cover && (
-      <div class="entry-preview__media">
-        <img src={cover} alt={coverAlt} loading="lazy" decoding="async" />
-      </div>
-    )
-  }
+  {cover && (
+    <div class="entry-preview__media">
+      <img src={cover} alt={coverAlt} loading="lazy" decoding="async" />
+    </div>
+  )}
   <div class="entry-preview__body">
     <div class="entry-preview__meta" aria-label="条目元数据">
-      {metadata.map((value) => <span>{value}</span>)}
+      {metadata.map((value) => (
+        <span>{value}</span>
+      ))}
       {formattedDate && <time datetime={isoDate}>{formattedDate}</time>}
     </div>
-    <h3><a href={href}>{title}</a></h3>
+    <h3>
+      <a href={href}>{title}</a>
+    </h3>
     <p class="entry-preview__summary">{summary}</p>
-    {
-      topics.length > 0 && (
-        <ul class="entry-preview__topics" aria-label="主题">
-          {topics.map((topic) => (
-            <li>
-              <TopicLink topic={topic} />
-            </li>
-          ))}
-        </ul>
-      )
-    }
+    {topics.length > 0 && (
+      <ul class="entry-preview__topics" aria-label="主题">
+        {topics.map((topic) => (
+          <li>
+            <TopicLink topic={topic} />
+          </li>
+        ))}
+      </ul>
+    )}
     <ArrowLink href={href} label={resolvedActionLabel} />
   </div>
 </article>

@@ -27,11 +27,9 @@ const count = item.count;
   data-topic={slug}
 >
   <span>{displayLabel}</span>
-  {
-    typeof count === "number" && (
-      <span class="topic-link__count" aria-label={topicCountLabel(count)}>
-        {count}
-      </span>
-    )
-  }
+  {typeof count === "number" && (
+    <span class="topic-link__count" aria-label={topicCountLabel(count)}>
+      {count}
+    </span>
+  )}
 </a>

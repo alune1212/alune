@@ -30,7 +30,9 @@ const isCurrent = (href: string) => {
 ---
 
 <header class="site-header">
-  <a class="skip-link" href="#main-content">跳转到主要内容</a>
+  <a class="skip-link" href="#main-content">
+    跳转到主要内容
+  </a>
   <div class="site-shell site-header__inner">
     <a
       class="site-header__wordmark"
@@ -42,19 +44,17 @@ const isCurrent = (href: string) => {
 
     <nav class="site-header__nav site-header__nav--desktop" aria-label="主导航">
       <ul>
-        {
-          navItems.map((item) => (
-            <li>
-              <a
-                href={item.href}
-                class:list={{ "is-current": isCurrent(item.href) }}
-                aria-current={isCurrent(item.href) ? "page" : undefined}
-              >
-                {item.label}
-              </a>
-            </li>
-          ))
-        }
+        {navItems.map((item) => (
+          <li>
+            <a
+              href={item.href}
+              class:list={{ "is-current": isCurrent(item.href) }}
+              aria-current={isCurrent(item.href) ? "page" : undefined}
+            >
+              {item.label}
+            </a>
+          </li>
+        ))}
       </ul>
     </nav>
 
@@ -63,25 +63,24 @@ const isCurrent = (href: string) => {
       <details class="site-header__menu">
         <summary aria-label="打开导航菜单">
           <span>菜单</span>
-          <span class="site-header__menu-icon" aria-hidden="true"
-            ><i></i><i></i></span
-          >
+          <span class="site-header__menu-icon" aria-hidden="true">
+            <i></i>
+            <i></i>
+          </span>
         </summary>
         <nav aria-label="移动导航">
           <ul>
-            {
-              navItems.map((item) => (
-                <li>
-                  <a
-                    href={item.href}
-                    class:list={{ "is-current": isCurrent(item.href) }}
-                    aria-current={isCurrent(item.href) ? "page" : undefined}
-                  >
-                    {item.label}
-                  </a>
-                </li>
-              ))
-            }
+            {navItems.map((item) => (
+              <li>
+                <a
+                  href={item.href}
+                  class:list={{ "is-current": isCurrent(item.href) }}
+                  aria-current={isCurrent(item.href) ? "page" : undefined}
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))}
           </ul>
         </nav>
       </details>

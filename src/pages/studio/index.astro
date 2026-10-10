@@ -31,16 +31,14 @@ const topics: TopicItem[] = Object.entries(topicCounts).map(
   description="这里收录项目、工具、开源作品与实验，无论已经完成，还是仍在生长。"
   bodyClass="studio-page"
 >
-  {
-    topics.length > 0 && (
-      <TopicList
-        slot="topics"
-        topics={topics}
-        label="作品主题"
-        class="listing-topics"
-      />
-    )
-  }
+  {topics.length > 0 && (
+    <TopicList
+      slot="topics"
+      topics={topics}
+      label="作品主题"
+      class="listing-topics"
+    />
+  )}
   <EntryList
     entries={displayItems}
     label="作品列表"

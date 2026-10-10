@@ -11,16 +11,14 @@ export interface Props {
 const { topics, label = "主题", class: className } = Astro.props;
 ---
 
-{
-  topics.length > 0 && (
-    <nav class:list={["topic-list", className]} aria-label={label}>
-      <ul>
-        {topics.map((topic) => (
-          <li>
-            <TopicLink topic={topic} />
-          </li>
-        ))}
-      </ul>
-    </nav>
-  )
-}
+{topics.length > 0 && (
+  <nav class:list={["topic-list", className]} aria-label={label}>
+    <ul>
+      {topics.map((topic) => (
+        <li>
+          <TopicLink topic={topic} />
+        </li>
+      ))}
+    </ul>
+  </nav>
+)}
