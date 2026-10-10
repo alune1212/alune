@@ -77,16 +77,14 @@ const journalDisplay =
     >
       <ArrowLink slot="action" href="/studio/" label="查看全部作品" />
     </SectionHeading>
-    {
-      studioDisplay.length > 0 ? (
-        <EntryList entries={studioDisplay} label="精选作品列表" />
-      ) : (
-        <EmptyState
-          title="作品正在准备中。"
-          message="发布后的项目、工具与实验会出现在这里。"
-        />
-      )
-    }
+    {studioDisplay.length > 0 ? (
+      <EntryList entries={studioDisplay} label="精选作品列表" />
+    ) : (
+      <EmptyState
+        title="作品正在准备中。"
+        message="发布后的项目、工具与实验会出现在这里。"
+      />
+    )}
   </section>
 
   <section class="site-shell home-section" aria-labelledby="latest-journal">
@@ -98,16 +96,14 @@ const journalDisplay =
     >
       <ArrowLink slot="action" href="/journal/" label="查看全部文章" />
     </SectionHeading>
-    {
-      journalDisplay.length > 0 ? (
-        <EntryList entries={journalDisplay} label="最新文章列表" />
-      ) : (
-        <EmptyState
-          title="第一篇文章还在酝酿中。"
-          message="发布后的文字会出现在这里。"
-        />
-      )
-    }
+    {journalDisplay.length > 0 ? (
+      <EntryList entries={journalDisplay} label="最新文章列表" />
+    ) : (
+      <EmptyState
+        title="第一篇文章还在酝酿中。"
+        message="发布后的文字会出现在这里。"
+      />
+    )}
   </section>
 
   <section class="site-shell now-block" aria-labelledby="now-title">

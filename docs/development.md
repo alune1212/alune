@@ -70,6 +70,8 @@ pnpm dev
 
 新增内容时从 `src/content/_templates/` 复制对应模板，并遵循 [内容指南](content-guide.md)。修改 schema 时同步模板、内容指南和单元测试；修改页面或交互时同步 Playwright 覆盖。
 
+TypeScript 按[官方并存方案](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#running-side-by-side-with-typescript-6.0)安装：`@typescript/native` 保留 TypeScript 7 编译器，`typescript` 指向 `@typescript/typescript6` 兼容包。`pnpm exec tsc` 使用 7.x；ESLint 和 `astro check` 导入 6.x API，因为当前工具尚不支持 TypeScript 7 的程序接口。版本与解析结果仍以 `package.json` 和锁文件为准。
+
 依赖更新以根 `package.json` 和锁文件为准。Dependabot 每周检查 npm 与 GitHub Actions；合并依赖更新前至少运行：
 
 ```bash

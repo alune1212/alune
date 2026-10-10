@@ -25,7 +25,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "node_modules/.bin/astro preview --host 127.0.0.1 --port 4321",
+    // Keep Playwright in control of the foreground preview process in agent environments.
+    command:
+      "node_modules/.bin/astro preview --ignore-lock --host 127.0.0.1 --port 4321",
     url: baseURL,
     // These checks assert production-only behavior such as draft filtering and
     // empty states, so never reuse an already-running development server.

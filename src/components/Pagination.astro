@@ -14,31 +14,29 @@ const { section, currentPage, totalPages, previousPage, nextPage } =
   Astro.props;
 ---
 
-{
-  totalPages > 1 && (
-    <nav class="pagination" aria-label={`${sectionLabels[section]}分页`}>
-      <div>
-        {previousPage ? (
-          <a href={pageHref(section, previousPage)} rel="prev">
-            <span aria-hidden="true">←</span> 上一页
-          </a>
-        ) : (
-          <span aria-hidden="true">← 上一页</span>
-        )}
-      </div>
-      <p>
-        <span class="sr-only">第 </span>
-        {currentPage} / {totalPages}
-      </p>
-      <div>
-        {nextPage ? (
-          <a href={pageHref(section, nextPage)} rel="next">
-            下一页 <span aria-hidden="true">→</span>
-          </a>
-        ) : (
-          <span aria-hidden="true">下一页 →</span>
-        )}
-      </div>
-    </nav>
-  )
-}
+{totalPages > 1 && (
+  <nav class="pagination" aria-label={`${sectionLabels[section]}分页`}>
+    <div>
+      {previousPage ? (
+        <a href={pageHref(section, previousPage)} rel="prev">
+          <span aria-hidden="true">←</span> 上一页
+        </a>
+      ) : (
+        <span aria-hidden="true">← 上一页</span>
+      )}
+    </div>
+    <p>
+      <span class="sr-only">第 </span>
+      {currentPage} / {totalPages}
+    </p>
+    <div>
+      {nextPage ? (
+        <a href={pageHref(section, nextPage)} rel="next">
+          下一页 <span aria-hidden="true">→</span>
+        </a>
+      ) : (
+        <span aria-hidden="true">下一页 →</span>
+      )}
+    </div>
+  </nav>
+)}

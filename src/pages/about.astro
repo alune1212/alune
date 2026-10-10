@@ -28,13 +28,11 @@ const description = page?.data.summary ?? site.about.lead;
       <p class="eyebrow">关于 / ALUNE</p>
       <h1>{title}</h1>
       <p>{description}</p>
-      {
-        page?.data.updatedAt && (
-          <time datetime={toIsoDate(page.data.updatedAt)}>
-            更新于 {formatDate(page.data.updatedAt)}
-          </time>
-        )
-      }
+      {page?.data.updatedAt && (
+        <time datetime={toIsoDate(page.data.updatedAt)}>
+          更新于 {formatDate(page.data.updatedAt)}
+        </time>
+      )}
     </header>
 
     <div class="narrative-page__grid">

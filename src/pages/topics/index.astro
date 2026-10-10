@@ -25,14 +25,12 @@ const topics: TopicItem[] = Object.entries(counts).map(([slug, count]) => ({
   description="连接作品与文章的共同主题。"
   bodyClass="topics-page"
 >
-  {
-    topics.length > 0 ? (
-      <TopicList topics={topics} label="全部主题" class="topics-index" />
-    ) : (
-      <EmptyState
-        title="还没有主题。"
-        message="当发布的作品和文章使用主题后，这里会自动生成索引。"
-      />
-    )
-  }
+  {topics.length > 0 ? (
+    <TopicList topics={topics} label="全部主题" class="topics-index" />
+  ) : (
+    <EmptyState
+      title="还没有主题。"
+      message="当发布的作品和文章使用主题后，这里会自动生成索引。"
+    />
+  )}
 </ListingLayout>

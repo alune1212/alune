@@ -32,7 +32,11 @@ const linkRel = opensInNewTab ? (rel ?? "noreferrer noopener") : rel;
   rel={linkRel}
   data-arrow-link
 >
-  <span><slot>{label}</slot></span>
-  <span class="arrow-link__arrow" aria-hidden="true">→</span>
+  <span>
+    <slot>{label}</slot>
+  </span>
+  <span class="arrow-link__arrow" aria-hidden="true">
+    →
+  </span>
   {opensInNewTab && <span class="sr-only">（在新标签页中打开）</span>}
 </a>

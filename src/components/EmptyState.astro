@@ -23,12 +23,12 @@ const {
   role="status"
   aria-live="polite"
 >
-  <span class="empty-state__mark" aria-hidden="true">—</span>
+  <span class="empty-state__mark" aria-hidden="true">
+    —
+  </span>
   <h2>{title}</h2>
   {message && <p>{message}</p>}
-  {
-    actionHref && actionLabel && (
-      <ArrowLink href={actionHref} label={actionLabel} />
-    )
-  }
+  {actionHref && actionLabel && (
+    <ArrowLink href={actionHref} label={actionLabel} />
+  )}
 </section>

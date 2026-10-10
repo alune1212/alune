@@ -93,9 +93,19 @@ try {
     tempRoot,
   ]);
 
+  // Keep the fixture server in control of the foreground preview process in agent environments.
   preview = spawn(
     path.join(root, "node_modules/.bin/astro"),
-    ["preview", "--root", tempRoot, "--host", "127.0.0.1", "--port", "4322"],
+    [
+      "preview",
+      "--ignore-lock",
+      "--root",
+      tempRoot,
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "4322",
+    ],
     {
       cwd: tempRoot,
       stdio: "inherit",

@@ -24,22 +24,20 @@ const {
 } = Astro.props;
 ---
 
-{
-  entries.length > 0 ? (
-    <ul class:list={["entry-list", className]} aria-label={label}>
-      {entries.map((entry) => (
-        <li>
-          <EntryPreview {...entry} />
-        </li>
-      ))}
-    </ul>
-  ) : (
-    <EmptyState
-      class:list={[className]}
-      title={emptyTitle}
-      message={emptyMessage}
-      actionHref={emptyActionHref}
-      actionLabel={emptyActionLabel}
-    />
-  )
-}
+{entries.length > 0 ? (
+  <ul class:list={["entry-list", className]} aria-label={label}>
+    {entries.map((entry) => (
+      <li>
+        <EntryPreview {...entry} />
+      </li>
+    ))}
+  </ul>
+) : (
+  <EmptyState
+    class:list={[className]}
+    title={emptyTitle}
+    message={emptyMessage}
+    actionHref={emptyActionHref}
+    actionLabel={emptyActionLabel}
+  />
+)}

@@ -50,55 +50,47 @@ const links = Object.entries(entry.data.links).filter(
   <Content />
 
   <div slot="aside" class="content-facts">
-    {
-      entry.data.kind === "project" && entry.data.role && (
+    {entry.data.kind === "project" && entry.data.role && (
+      <div>
+        <p class="eyebrow">角色</p>
+        <p>{entry.data.role}</p>
+      </div>
+    )}
+    {entry.data.kind === "project" &&
+      entry.data.outcomes &&
+      entry.data.outcomes.length > 0 && (
         <div>
-          <p class="eyebrow">角色</p>
-          <p>{entry.data.role}</p>
-        </div>
-      )
-    }
-    {
-      entry.data.kind === "project" &&
-        entry.data.outcomes &&
-        entry.data.outcomes.length > 0 && (
-          <div>
-            <p class="eyebrow">成果</p>
-            <ul>
-              {entry.data.outcomes.map((outcome) => (
-                <li>{outcome}</li>
-              ))}
-            </ul>
-          </div>
-        )
-    }
-    {
-      links.length > 0 && (
-        <div>
-          <p class="eyebrow">链接</p>
-          {links.map(([label, href]) => (
-            <ArrowLink
-              href={href}
-              label={linkLabels[label]}
-              external={isExternalHref(href)}
-            />
-          ))}
-        </div>
-      )
-    }
-    {
-      relatedJournal.length > 0 && (
-        <div>
-          <p class="eyebrow">相关文章</p>
-          <ul class="related-links">
-            {relatedJournal.map((journal) => (
-              <li>
-                <a href={`/journal/${journal.id}/`}>{journal.data.title}</a>
-              </li>
+          <p class="eyebrow">成果</p>
+          <ul>
+            {entry.data.outcomes.map((outcome) => (
+              <li>{outcome}</li>
             ))}
           </ul>
         </div>
-      )
-    }
+      )}
+    {links.length > 0 && (
+      <div>
+        <p class="eyebrow">链接</p>
+        {links.map(([label, href]) => (
+          <ArrowLink
+            href={href}
+            label={linkLabels[label]}
+            external={isExternalHref(href)}
+          />
+        ))}
+      </div>
+    )}
+    {relatedJournal.length > 0 && (
+      <div>
+        <p class="eyebrow">相关文章</p>
+        <ul class="related-links">
+          {relatedJournal.map((journal) => (
+            <li>
+              <a href={`/journal/${journal.id}/`}>{journal.data.title}</a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
   </div>
 </ContentLayout>

@@ -31,16 +31,14 @@ const topics: TopicItem[] = Object.entries(topicCounts).map(
   description="长文、笔记、开发日志与近况更新，按时间汇成一条持续学习与创作的记录。"
   bodyClass="journal-page"
 >
-  {
-    topics.length > 0 && (
-      <TopicList
-        slot="topics"
-        topics={topics}
-        label="文章主题"
-        class="listing-topics"
-      />
-    )
-  }
+  {topics.length > 0 && (
+    <TopicList
+      slot="topics"
+      topics={topics}
+      label="文章主题"
+      class="listing-topics"
+    />
+  )}
   <EntryList
     entries={displayItems}
     label="文章列表"
