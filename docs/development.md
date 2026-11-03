@@ -8,17 +8,21 @@ alune 是单包 Astro 静态站点。Astro 在构建期读取配置和仓库内�
 
 ## 单一事实来源
 
-| 事实              | 来源                                          |
-| ----------------- | --------------------------------------------- |
-| Node.js 版本      | `.node-version`                               |
-| pnpm 版本         | `package.json` 的 `packageManager`            |
-| 依赖与脚本        | `package.json`、`pnpm-lock.yaml`              |
-| pnpm 安装策略     | `pnpm-workspace.yaml`                         |
-| 站点资料          | `src/config/site.config.json`                 |
-| 主导航            | `src/config/site.ts`                          |
-| 内容集合与 schema | `src/content.config.ts`、`src/lib/content.ts` |
-| 页面与输出路由    | `src/pages/`、`astro.config.ts`               |
-| CI 行为           | `.github/workflows/ci.yml`                    |
+| 事实              | 来源                                                           |
+| ----------------- | -------------------------------------------------------------- |
+| Node.js 版本      | `.node-version`                                                |
+| pnpm 版本         | `package.json` 的 `packageManager`                             |
+| 依赖与脚本        | `package.json`、`pnpm-lock.yaml`                               |
+| pnpm 安装策略     | `pnpm-workspace.yaml`                                          |
+| 站点资料          | `src/config/site.config.json`                                  |
+| 主导航            | `src/config/site.ts`                                           |
+| 内容集合与 schema | `src/content.config.ts`、`src/lib/content.ts`                  |
+| 页面与输出路由    | `src/pages/`、`astro.config.ts`                                |
+| 协作流程          | 本文「协作流程」、`CONTRIBUTING.md`                            |
+| 议题与 PR 模板    | `.github/ISSUE_TEMPLATE/`、`.github/pull_request_template.md`  |
+| CI 与安全扫描     | `.github/workflows/`                                           |
+| 依赖更新          | `.github/dependabot.yml`                                       |
+| 本地提交钩子      | `package.json` 的 `prepare`、`simple-git-hooks`、`lint-staged` |
 
 `pnpm-workspace.yaml` 没有声明子包；它只承载 pnpm 的依赖构建许可和版本覆盖。项目仍然是单包。
 
@@ -69,7 +73,57 @@ pnpm dev
 | `pnpm check`         | 依次运行文档、lint、格式、类型、单元测试和构建    |
 | `pnpm check:release` | 先检查正式发布资料和最低内容，再运行 `pnpm check` |
 
-首次执行 E2E 前运行 `pnpm exec playwright install chromium`。CI 在推送到 `main`、拉取请求和 `workflow_dispatch` 时触发：按锁文件安装依赖，运行一次 `pnpm check` 并复用其 `dist`，再执行 `pnpm exec playwright install --with-deps chromium` 与 `pnpm e2e:ci`。隔离内容套件单独构建临时站点。`check:release` 不是这条 workflow 的步骤。workflow 只有 `contents: read`，没有部署。
+首次执行 E2E 前运行 `pnpm exec playwright install chromium`。质量 workflow 的触发条件、权限和另外两条检查见下方「协作流程」。`pnpm check:release` 不在 CI 里。仓库没有部署 workflow。
+
+## 协作流程
+
+一个人维护。GitHub 上的分支保护、合并方式和删除分支是仓库设置，不在本仓库文件里，这里只记录它们现在的值和仓库内已经落地的部分。
+
+### 分支
+
+从 `main` 拉出短分支，命名为 `<type>/<short-description>`，例如 `fix/theme-toggle`、`docs/contributing`。`type` 与 Conventional Commits 的类型一致。Dependabot 使用自己的 `dependabot/` 分支。
+
+### 本地提交
+
+普通本地克隆里，`pnpm install` 会运行 `prepare`，由 `simple-git-hooks` 把 pre-commit 写到 `.git/hooks`。CI、`pnpm install --prod`（开发依赖未安装），以及没有 `.git` 目录时，`prepare` 跳过钩子并成功退出。钩子只执行 `pnpm exec lint-staged`：
+
+- `*.js`、`*.mjs`、`*.cjs`、`*.ts`、`*.tsx`、`*.astro` 先 `eslint --max-warnings=0 --fix`，再 Prettier。
+- 其余暂存文件交给 Prettier，未知类型跳过。
+- `pnpm-lock.yaml` 不交给 Prettier。
+
+钩子不跑文档检查、类型检查、单元测试、构建或 E2E。完整门禁仍是提交前的 `pnpm check`，以及改了页面、交互、路由或样式时的 `pnpm e2e`。`git commit --no-verify` 可以跳过钩子。质量 workflow 仍会运行 `pnpm check` 和 `pnpm e2e:ci`。
+
+`pnpm-workspace.yaml` 把 `simple-git-hooks` 的依赖构建设为 `false`。它的安装脚本只做写钩子这一件事，根目录的 `prepare` 已经负责；pnpm 11 对未列入 `allowBuilds` 的依赖构建会让安装失败。钩子缺失时执行 `pnpm exec simple-git-hooks`。
+
+本地提交说明不强制 Conventional Commits。合进 `main` 的提交说明来自拉取请求标题。
+
+### 拉取请求
+
+使用 `.github/pull_request_template.md`，写清改了什么、为什么、怎么验证，并勾选 `pnpm check` 和需要时的 `pnpm e2e`。标题遵循 [Conventional Commits](https://www.conventionalcommits.org/zh-v1.0.0/)：`<type>[optional scope]: <subject>`。未额外收窄类型，因此默认接受 `feat`、`fix`、`docs`、`style`、`refactor`、`perf`、`test`、`build`、`ci`、`chore`、`revert`。破坏性变更写在类型后面的 `!`。
+
+`.github/workflows/pr-title.yml` 在拉取请求打开、编辑、重新打开和推送新提交时检查标题。job 名称是 `Validate PR title`。这条 workflow 使用 `pull_request_target`，只读标题，不检出拉取请求代码；用的是默认分支上的 workflow 文件。第一次把它合进 `main` 之前，当前拉取请求上不会出现这次检查，也不要提前把它设成必需检查。
+
+议题模板在 `.github/ISSUE_TEMPLATE/`：缺陷报告、功能请求，以及关闭空白议题的 `config.yml`。
+
+### 持续集成
+
+| Workflow                         | 何时运行                            | job 名称            | 做什么                                                                                                                                                                                          |
+| -------------------------------- | ----------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.github/workflows/ci.yml`       | 推送 `main`、拉取请求、手动         | `Quality gates`     | 按锁文件安装依赖，运行一次 `pnpm check` 并复用其 `dist`，再执行 `pnpm exec playwright install --with-deps chromium` 与 `pnpm e2e:ci`。隔离内容套件单独构建临时站点。权限只有 `contents: read`。 |
+| `.github/workflows/pr-title.yml` | 拉取请求打开、编辑、重新打开、同步  | `Validate PR title` | 检查标题是否为 Conventional Commits。权限是 `pull-requests: read`。                                                                                                                             |
+| `.github/workflows/codeql.yml`   | 推送 `main`、拉取请求、每周一、手动 | `CodeQL`            | 用 CodeQL 扫描 JavaScript / TypeScript，不编译站点。权限含 `security-events: write`。                                                                                                           |
+
+`ci.yml` 和 `codeql.yml` 使用主版本标签，例如 `actions/checkout@v7`。`pr-title.yml` 在 `pull_request_target` 里把第三方 action 钉到完整提交 SHA。没有部署 job，`pnpm check:release` 也不是其中任何一步。
+
+分支保护要把状态检查设为必需时，使用这三个 job 名称：`Quality gates`、`Validate PR title`、`CodeQL`。
+
+### 审查与合并
+
+审查确认改动和模板里的验证说明一致。当前 GitHub 仓库设置是：只允许 squash merge，squash 提交标题使用拉取请求标题，提交正文使用拉取请求正文，合并后删除分支。
+
+### 部署
+
+部署仍未决定。域名、托管、缓存、回滚和中国大陆三网直连的验收方式写在[路线图](roadmap.md)的部署决策门。这些决定完成之前，不添加 deployment workflow。
 
 ## 内容与依赖维护
 
@@ -77,7 +131,7 @@ pnpm dev
 
 TypeScript 按[官方并存方案](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#running-side-by-side-with-typescript-6.0)安装：`@typescript/native` 保留 TypeScript 7 编译器，`typescript` 指向 `@typescript/typescript6` 兼容包。`pnpm exec tsc` 使用 7.x；ESLint 和 `astro check` 导入 6.x API，因为当前工具尚不支持 TypeScript 7 的程序接口。版本与解析结果仍以 `package.json` 和锁文件为准。
 
-依赖更新以根 `package.json` 和锁文件为准。Dependabot 每周检查 npm 与 GitHub Actions；合并依赖更新前至少运行：
+依赖更新以根 `package.json` 和锁文件为准。Dependabot 每周把 npm 更新合成一组、把 GitHub Actions 更新合成一组。npm 拉取请求标题使用 `chore(deps)` 或 `chore(deps-dev)`，Actions 使用 `ci(deps)`，以便通过 `Validate PR title`。合并依赖更新前至少运行：
 
 ```bash
 pnpm install --frozen-lockfile
@@ -126,3 +180,4 @@ pnpm e2e
 - 页面缺失：检查 `src/pages/`、内容 entry ID、草稿状态和生产构建输出。
 - Playwright 缺少浏览器：运行 `pnpm exec playwright install chromium`；报告目录不应提交。
 - 文档检查失败：根据输出修复断链、孤立文档、无效命令或与主导航不一致的描述。
+- pre-commit 失败：看 ESLint 或 Prettier 的输出并重新暂存。钩子不代替 `pnpm check`。

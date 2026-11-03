@@ -55,9 +55,12 @@ function localLinkPath(fromFile, target) {
   }
 }
 
-const rootMarkdown = ["README.md", "AGENTS.md", "CONTENT_LICENSE.md"].map(
-  (file) => path.join(root, file),
-);
+const rootMarkdown = [
+  "README.md",
+  "AGENTS.md",
+  "CONTENT_LICENSE.md",
+  "CONTRIBUTING.md",
+].map((file) => path.join(root, file));
 const docsDirectory = path.join(root, "docs");
 const contentDirectory = path.join(root, "src", "content");
 const docsFiles = await walk(docsDirectory, new Set([".md", ".mdx"]));

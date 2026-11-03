@@ -43,25 +43,25 @@ Node.js 以 [`.node-version`](.node-version) 为准，pnpm 以 `package.json` �
 
 ## 仓库结构
 
-| 路径                              | 内容                                           |
-| --------------------------------- | ---------------------------------------------- |
-| `src/pages/`                      | 路由。页面文件决定公开 URL                     |
-| `src/content/studio/`             | 作品                                           |
-| `src/content/journal/`            | 文章                                           |
-| `src/content/pages/`              | 关于、近况的可选正文                           |
-| `src/content/_templates/`         | 写作模板，loader 不会发布                      |
-| `src/components/`、`src/layouts/` | 界面与页面骨架                                 |
-| `src/lib/`                        | schema、集合、分页、路由和结构化数据           |
-| `src/config/site.config.json`     | 可编辑的站点资料                               |
-| `src/config/site.ts`              | 解析后的配置和主导航                           |
-| `src/styles/global.css`           | 颜色、字体、间距和亮色 / 暗色 token            |
-| `src/scripts/theme-controller.ts` | 主题切换                                       |
-| `public/`                         | `favicon.svg` 与默认分享图 `og-default.svg`    |
-| `docs/`                           | 工程、内容、设计和路线图                       |
-| `tests/`                          | Vitest，以及当前站点 / 隔离内容两套 Playwright |
-| `scripts/`                        | 文档检查、发布检查、隔离内容的临时构建         |
-| `astro.config.ts`                 | 静态输出、末尾斜杠、MDX、sitemap、代码高亮     |
-| `.github/workflows/ci.yml`        | 质量检查。没有部署 job                         |
+| 路径                              | 内容                                                                |
+| --------------------------------- | ------------------------------------------------------------------- |
+| `src/pages/`                      | 路由。页面文件决定公开 URL                                          |
+| `src/content/studio/`             | 作品                                                                |
+| `src/content/journal/`            | 文章                                                                |
+| `src/content/pages/`              | 关于、近况的可选正文                                                |
+| `src/content/_templates/`         | 写作模板，loader 不会发布                                           |
+| `src/components/`、`src/layouts/` | 界面与页面骨架                                                      |
+| `src/lib/`                        | schema、集合、分页、路由和结构化数据                                |
+| `src/config/site.config.json`     | 可编辑的站点资料                                                    |
+| `src/config/site.ts`              | 解析后的配置和主导航                                                |
+| `src/styles/global.css`           | 颜色、字体、间距和亮色 / 暗色 token                                 |
+| `src/scripts/theme-controller.ts` | 主题切换                                                            |
+| `public/`                         | `favicon.svg` 与默认分享图 `og-default.svg`                         |
+| `docs/`                           | 工程、内容、设计和路线图                                            |
+| `tests/`                          | Vitest，以及当前站点 / 隔离内容两套 Playwright                      |
+| `scripts/`                        | 文档检查、发布检查、隔离内容的临时构建                              |
+| `astro.config.ts`                 | 静态输出、末尾斜杠、MDX、sitemap、代码高亮                          |
+| `.github/`                        | 议题与 PR 模板、Dependabot、质量检查、PR 标题、CodeQL。没有部署 job |
 
 `pnpm-workspace.yaml` 没有子包。它只保存 pnpm 的依赖构建许可和版本覆盖。
 
@@ -165,15 +165,14 @@ pnpm exec playwright install chromium
 
 ## 持续集成与部署
 
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) 在推送到 `main`、拉取请求和手动触发时运行：按锁文件安装依赖，执行 `pnpm check`，安装带系统依赖的 Chromium，再执行 `pnpm e2e:ci`。workflow 只有读权限，没有部署步骤。`check:release` 不在 CI 里。
-
-Dependabot 每周检查 npm 依赖和 GitHub Actions，并把更新分组开出拉取请求。
+持续集成、拉取请求标题、CodeQL、Dependabot 分组和合并规则写在[开发与维护](docs/development.md)的「协作流程」。`.github/workflows/ci.yml` 只有 `contents: read`。`check:release` 不在 CI 里。仓库没有部署步骤。
 
 部署仍未决定。域名、托管、缓存、回滚和中国大陆三网直连的验收方式写在[路线图](docs/roadmap.md) 的部署决策门；这些决定完成之前，仓库不添加 deployment workflow。
 
 ## 文档
 
-- [开发与维护](docs/development.md)：数据流、RSS 清洗、质量门和发布检查。
+- [开发与维护](docs/development.md)：数据流、协作流程、RSS 清洗、质量门和发布检查。
+- [参与协作](CONTRIBUTING.md)：分支、提交钩子、拉取请求和合并前要跑的命令。
 - [内容指南](docs/content-guide.md)：集合、entry ID、frontmatter 和模板。
 - [设计方向](docs/design-direction.md)：视觉、主题、排版和无障碍。
 - [路线图](docs/roadmap.md)：当前阶段和明确不做什么。
@@ -181,6 +180,6 @@ Dependabot 每周检查 npm 依赖和 GitHub Actions，并把更新分组开出�
 
 ## 协作与许可
 
-改动页面、交互、路由或样式时，提交前运行 `pnpm check` 和 `pnpm e2e`。只改文档或纯逻辑时，`pnpm check` 是仓库要求的门禁。构建产物、测试报告、环境文件和编辑器缓存不要提交。
+改动页面、交互、路由或样式时，提交前运行 `pnpm check` 和 `pnpm e2e`。只改文档或纯逻辑时，`pnpm check` 是仓库要求的门禁。分支命名、提交钩子和拉取请求标题见[参与协作](CONTRIBUTING.md)。构建产物、测试报告、环境文件和编辑器缓存不要提交。
 
 代码使用 [LICENSE](LICENSE) 中基于 MIT 文本修改的许可。该文件限定代码范围，并排除内容与品牌素材；以全文为准。`package.json` 用 `SEE LICENSE IN LICENSE` 指向它。原创文章、品牌名称、视觉识别和其他品牌素材见 [CONTENT_LICENSE.md](CONTENT_LICENSE.md)。

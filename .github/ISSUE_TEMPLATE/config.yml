@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 开发与维护
+    url: https://github.com/alune1212/alune/blob/main/docs/development.md
+    about: 安装、质量检查、协作流程和发布门禁。先看文档，再决定要不要开议题。
