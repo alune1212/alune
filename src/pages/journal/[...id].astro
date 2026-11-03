@@ -3,6 +3,7 @@ import { render, type CollectionEntry } from "astro:content";
 
 import ContentLayout from "../../layouts/ContentLayout.astro";
 import { getJournalEntries, getStudioEntries } from "../../lib/collections";
+import { entryPath } from "../../lib/routes";
 import { journalStructuredData } from "../../lib/structured-data";
 
 export async function getStaticPaths() {
@@ -51,7 +52,7 @@ const relatedStudio = studios.filter((studio) => relatedIds.has(studio.id));
         <ul class="related-links">
           {relatedStudio.map((studio) => (
             <li>
-              <a href={`/studio/${studio.id}/`}>{studio.data.title}</a>
+              <a href={entryPath("studio", studio.id)}>{studio.data.title}</a>
             </li>
           ))}
         </ul>
