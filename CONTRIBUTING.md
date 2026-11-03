@@ -3,7 +3,7 @@
 完整说明在[开发与维护](docs/development.md)的「协作流程」。打开拉取请求前：
 
 1. 从 `main` 拉分支，命名为 `<type>/<short-description>`，例如 `fix/theme-toggle`。
-2. `pnpm install` 会装上 pre-commit。钩子只格式化并 lint 暂存文件，不跑测试或构建。
+2. 在本地克隆里，`pnpm install` 会装上 pre-commit。CI 和生产安装会跳过。钩子只格式化并 lint 暂存文件，不跑测试或构建。
 3. 拉取请求标题使用 [Conventional Commits](https://www.conventionalcommits.org/zh-v1.0.0/)：`<type>[optional scope]: <subject>`。正文按模板写清改了什么、为什么、怎么验证。
 4. 运行 `pnpm check`。改了页面、交互、路由或样式时再运行 `pnpm e2e`。
 5. 审查通过后 squash merge。squash 提交标题使用 PR 标题，合并后删除分支。这两项是 GitHub 仓库设置，不是仓库里的脚本。

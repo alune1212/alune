@@ -85,7 +85,7 @@ pnpm dev
 
 ### 本地提交
 
-`pnpm install` 会运行 `prepare`，由 `simple-git-hooks` 把 pre-commit 写到 `.git/hooks`。钩子只执行 `pnpm exec lint-staged`：
+普通本地克隆里，`pnpm install` 会运行 `prepare`，由 `simple-git-hooks` 把 pre-commit 写到 `.git/hooks`。CI、`pnpm install --prod`（开发依赖未安装），以及没有 `.git` 目录时，`prepare` 跳过钩子并成功退出。钩子只执行 `pnpm exec lint-staged`：
 
 - `*.js`、`*.mjs`、`*.cjs`、`*.ts`、`*.tsx`、`*.astro` 先 `eslint --max-warnings=0 --fix`，再 Prettier。
 - 其余暂存文件交给 Prettier，未知类型跳过。
@@ -113,7 +113,7 @@ pnpm dev
 | `.github/workflows/pr-title.yml` | 拉取请求打开、编辑、重新打开、同步  | `Validate PR title` | 检查标题是否为 Conventional Commits。权限是 `pull-requests: read`。                                                                                                                             |
 | `.github/workflows/codeql.yml`   | 推送 `main`、拉取请求、每周一、手动 | `CodeQL`            | 用 CodeQL 扫描 JavaScript / TypeScript，不编译站点。权限含 `security-events: write`。                                                                                                           |
 
-Action 版本使用与 `ci.yml` 相同的主版本标签，例如 `actions/checkout@v7`。没有部署 job，`pnpm check:release` 也不是其中任何一步。
+`ci.yml` 和 `codeql.yml` 使用主版本标签，例如 `actions/checkout@v7`。`pr-title.yml` 在 `pull_request_target` 里把第三方 action 钉到完整提交 SHA。没有部署 job，`pnpm check:release` 也不是其中任何一步。
 
 分支保护要把状态检查设为必需时，使用这三个 job 名称：`Quality gates`、`Validate PR title`、`CodeQL`。
 

@@ -28,7 +28,7 @@
     "e2e:list": "playwright test --list && playwright test --config playwright.content.config.ts --list",
     "check": "pnpm docs:check && pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build",
     "check:release": "node scripts/check-release.mjs && pnpm check",
-    "prepare": "simple-git-hooks"
+    "prepare": "node scripts/install-git-hooks.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "8.1.2",
