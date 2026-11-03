@@ -62,17 +62,3 @@ export function countTopics<T extends TopicCarrier>(
   }
   return Object.fromEntries(counts);
 }
-
-export function sortTopics(topics: readonly string[]): string[];
-export function sortTopics<T extends { topic: string }>(
-  topics: readonly T[],
-): T[];
-export function sortTopics<T extends string | { topic: string }>(
-  topics: readonly T[],
-): T[] {
-  return [...topics].sort((left, right) => {
-    const leftTopic = typeof left === "string" ? left : left.topic;
-    const rightTopic = typeof right === "string" ? right : right.topic;
-    return leftTopic.localeCompare(rightTopic);
-  }) as T[];
-}

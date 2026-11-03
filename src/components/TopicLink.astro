@@ -2,6 +2,7 @@
 import type { TopicItem, TopicValue } from "./types";
 import { topicCountLabel } from "../lib/labels";
 import { topicPath } from "../lib/routes";
+import { topicLabel } from "../lib/topics";
 
 export interface Props {
   topic: TopicValue;
@@ -11,11 +12,7 @@ const { topic } = Astro.props;
 
 const item: TopicItem = typeof topic === "string" ? { slug: topic } : topic;
 const slug = item.slug.trim();
-const displayLabel =
-  item.label ??
-  slug
-    .replace(/[-_]+/g, " ")
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+const displayLabel = item.label ?? topicLabel(slug);
 const href = topicPath(slug);
 const count = item.count;
 ---

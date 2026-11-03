@@ -4,7 +4,7 @@ import { render, type CollectionEntry } from "astro:content";
 import ArrowLink from "../../components/ArrowLink.astro";
 import ContentLayout from "../../layouts/ContentLayout.astro";
 import { getJournalEntries, getStudioEntries } from "../../lib/collections";
-import { isExternalHref } from "../../lib/routes";
+import { entryPath, isExternalHref } from "../../lib/routes";
 import { studioStructuredData } from "../../lib/structured-data";
 
 export async function getStaticPaths() {
@@ -86,7 +86,9 @@ const links = Object.entries(entry.data.links).filter(
         <ul class="related-links">
           {relatedJournal.map((journal) => (
             <li>
-              <a href={`/journal/${journal.id}/`}>{journal.data.title}</a>
+              <a href={entryPath("journal", journal.id)}>
+                {journal.data.title}
+              </a>
             </li>
           ))}
         </ul>
