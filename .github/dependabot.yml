@@ -10,6 +10,10 @@ updates:
       npm-dependencies:
         patterns:
           - "*"
+    commit-message:
+      prefix: chore
+      prefix-development: chore
+      include: scope
 
   - package-ecosystem: github-actions
     directory: /
@@ -20,3 +24,6 @@ updates:
       github-actions:
         patterns:
           - "*"
+    commit-message:
+      prefix: ci
+      include: scope
