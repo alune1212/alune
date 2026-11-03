@@ -34,6 +34,9 @@ jobs:
     name: release-please
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      # steps.if cannot read secrets. This value is only "true" or "false".
+      HAS_RELEASE_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN != '' }}
 
     steps:
       - name: Run release-please
@@ -44,6 +47,7 @@ jobs:
 
       - name: Warn when branch protection cannot see release PR checks
         if:
-          steps.release.outputs.prs != '' && secrets.RELEASE_PLEASE_TOKEN == ''
+          steps.release.outputs.prs_created == 'true' && env.HAS_RELEASE_TOKEN
+          != 'true'
         run: |
           echo "::warning title=RELEASE_PLEASE_TOKEN missing::This release pull request was opened with GITHUB_TOKEN. Validate PR title will not run, and Quality gates and CodeQL stay pending until a maintainer approves the workflows. Add the RELEASE_PLEASE_TOKEN secret so the required checks run on their own."
