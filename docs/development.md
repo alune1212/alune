@@ -20,7 +20,7 @@ alune 是单包 Astro 静态站点。Astro 在构建期读取配置和仓库内�
 | 页面与输出路由    | `src/pages/`、`astro.config.ts`               |
 | CI 行为           | `.github/workflows/ci.yml`                    |
 
-`pnpm-workspace.yaml` 没有声明子包；它只承载 pnpm 的依赖构建许可、版本覆盖和发布年龄例外。项目仍然是单包。
+`pnpm-workspace.yaml` 没有声明子包；它只承载 pnpm 的依赖构建许可和版本覆盖。项目仍然是单包。
 
 `package.json` 的 `engines` 声明可运行范围：Node.js `>=26.3.0 <27`，pnpm `>=11.20.0 <12`。CI 和本地钉选仍以上表的 `.node-version` 与 `packageManager` 为准。
 

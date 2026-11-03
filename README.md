@@ -27,17 +27,17 @@ alune 是单包 [Astro](https://astro.build/) 站点。页面在构建期生成 
 
 | 角色            | 包                                                              | 版本         |
 | --------------- | --------------------------------------------------------------- | ------------ |
-| 站点框架        | `astro`                                                         | 7.3.5        |
-| MDX             | `@astrojs/mdx`                                                  | 8.0.2        |
+| 站点框架        | `astro`                                                         | 7.4.4        |
+| MDX             | `@astrojs/mdx`                                                  | 8.1.2        |
 | RSS             | `@astrojs/rss`                                                  | 4.0.19       |
 | Sitemap         | `@astrojs/sitemap`                                              | 3.7.4        |
-| 订阅源 Markdown | `markdown-it`                                                   | 15.0.2       |
-| HTML 清洗       | `sanitize-html`                                                 | 2.17.7       |
+| 订阅源 Markdown | `markdown-it`                                                   | 15.0.3       |
+| HTML 清洗       | `sanitize-html`                                                 | 2.18.1       |
 | TypeScript      | `typescript`（`@typescript/typescript6`）、`@typescript/native` | 6.0.2、7.0.2 |
-| 单元测试        | `vitest`                                                        | 5.0.2        |
-| 浏览器测试      | `@playwright/test`                                              | 1.63.0       |
-| Lint            | `eslint`                                                        | 10.11.0      |
-| 格式            | `prettier`                                                      | 3.9.9        |
+| 单元测试        | `vitest`                                                        | 5.0.5        |
+| 浏览器测试      | `@playwright/test`                                              | 1.64.1       |
+| Lint            | `eslint`                                                        | 10.14.0      |
+| 格式            | `prettier`                                                      | 3.9.10       |
 
 Node.js 以 [`.node-version`](.node-version) 为准，pnpm 以 `package.json` 的 `packageManager` 为准。`engines` 允许的范围是 Node `>=26.3.0 <27`、pnpm `>=11.20.0 <12`。TypeScript 7 与 6 的并存方式写在[开发与维护](docs/development.md)。
 
@@ -63,7 +63,7 @@ Node.js 以 [`.node-version`](.node-version) 为准，pnpm 以 `package.json` �
 | `astro.config.ts`                 | 静态输出、末尾斜杠、MDX、sitemap、代码高亮     |
 | `.github/workflows/ci.yml`        | 质量检查。没有部署 job                         |
 
-`pnpm-workspace.yaml` 没有子包。它只保存 pnpm 的依赖构建许可、版本覆盖和发布年龄例外。
+`pnpm-workspace.yaml` 没有子包。它只保存 pnpm 的依赖构建许可和版本覆盖。
 
 ## 公开路径
 
