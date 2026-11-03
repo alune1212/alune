@@ -20,7 +20,9 @@ alune 是单包 Astro 静态站点。Astro 在构建期读取配置和仓库内�
 | 页面与输出路由    | `src/pages/`、`astro.config.ts`               |
 | CI 行为           | `.github/workflows/ci.yml`                    |
 
-`pnpm-workspace.yaml` 没有声明子包；它只承载 pnpm 的依赖构建许可、版本覆盖和发布年龄例外。项目仍然是单包，而不是 monorepo。
+`pnpm-workspace.yaml` 没有声明子包；它只承载 pnpm 的依赖构建许可、版本覆盖和发布年龄例外。项目仍然是单包。
+
+`package.json` 的 `engines` 声明可运行范围：Node.js `>=26.3.0 <27`，pnpm `>=11.20.0 <12`。CI 和本地钉选仍以上表的 `.node-version` 与 `packageManager` 为准。
 
 ## 内容与页面数据流
 
@@ -53,18 +55,21 @@ pnpm dev
 | -------------------- | ------------------------------------------------- |
 | `pnpm docs:check`    | 检查文档链接、索引、脚本引用和关键工程事实        |
 | `pnpm lint`          | ESLint 与 Astro 静态检查                          |
+| `pnpm format`        | 用 Prettier 写回格式                              |
 | `pnpm format:check`  | 检查 Prettier 格式，不写入文件                    |
 | `pnpm typecheck`     | Astro 与 TypeScript 类型检查                      |
 | `pnpm test`          | 运行 `tests/unit/` 下的 Vitest 单元测试           |
+| `pnpm test:watch`    | Vitest 监听模式                                   |
 | `pnpm build`         | 生成 `dist/` 静态站点                             |
 | `pnpm e2e`           | 构建当前站点并运行基础与隔离内容 Playwright E2E   |
 | `pnpm e2e:preview`   | 预览已有 `dist` 并运行当前站点基础 E2E            |
 | `pnpm e2e:content`   | 在系统临时目录构建完整内容 fixture 并运行 E2E     |
 | `pnpm e2e:ci`        | 顺序运行 preview-only 与隔离内容两套 E2E          |
+| `pnpm e2e:list`      | 列出当前站点与隔离内容两套 Playwright 用例        |
 | `pnpm check`         | 依次运行文档、lint、格式、类型、单元测试和构建    |
 | `pnpm check:release` | 先检查正式发布资料和最低内容，再运行 `pnpm check` |
 
-首次执行 E2E 前运行 `pnpm exec playwright install chromium`。CI 使用锁文件安装依赖，运行一次 `pnpm check` 并复用其 `dist`，再安装 Chromium、执行 `pnpm e2e:ci`；隔离内容套件单独构建临时站点。正式仓库仍不把 `check:release` 作为普通 CI 门禁，CI 只验证，不部署。
+首次执行 E2E 前运行 `pnpm exec playwright install chromium`。CI 在推送到 `main`、拉取请求和 `workflow_dispatch` 时触发：按锁文件安装依赖，运行一次 `pnpm check` 并复用其 `dist`，再执行 `pnpm exec playwright install --with-deps chromium` 与 `pnpm e2e:ci`。隔离内容套件单独构建临时站点。`check:release` 不是这条 workflow 的步骤。workflow 只有 `contents: read`，没有部署。
 
 ## 内容与依赖维护
 
@@ -96,6 +101,23 @@ pnpm e2e
 自动检查识别 TODO、TBD、replace-me、待填写、待补充、占位和当前回退文案等明确标记；示例域名与英文 `placeholder` 只检查配置和 frontmatter 值。它不判断文案是否完整、事实是否真实或链接是否属于维护者，发布前仍需人工复核。frontmatter 注释不作为公开文案检查；正文中的 TODO 等标记（包括代码示例）仍会触发保护。
 
 当前仓库尚未满足这些条件，因此该命令应失败；普通工程验收使用 `pnpm check` 和 `pnpm e2e`。确定域名、托管、缓存与回滚方案后，才能新增部署配置。
+
+## 订阅源与索引
+
+`/rss.xml` 只收录生产构建中的非草稿文章，顺序与文章列表相同。频道标题是站点名加「文章」，频道描述是站点描述。每条的 `description` 是摘要，`content` 是清洗后的正文，`categories` 是 `topics`；存在 `publishedAt` 时写入 `pubDate`。
+
+订阅源不使用页面上的 Astro / MDX 渲染。`src/pages/rss.xml.ts` 用 markdown-it 把 `entry.body` 转成 HTML（关闭原始 HTML，开启 linkify 和 typographer），再用 sanitize-html 清洗：
+
+- 允许的标签是 sanitize-html 的默认集合，再加 `img`。
+- `a` 保留 `href` 和 `title`；`img` 保留 `src`、`alt`、`title`、`width` 和 `height`；`code` 保留 `class`。
+- URL 协议只允许 `http`、`https` 和 `mailto`，不接受协议相对地址。
+- 相对链接和图片地址按 `site.siteUrl` 改成绝对地址。解析失败的地址会被去掉；没有 `alt` 的图片会补上空字符串。
+
+因此 MDX 组件、表达式和原始 HTML 不会进入订阅源。
+
+`src/config/site.config.json` 的 `placeholder` 为 `true` 时，布局输出 `noindex, nofollow`，`/robots.txt` 写入 `Disallow: /`。改为 `false` 后，普通页面可以被索引，`robots.txt` 改为 `Allow: /`。两种情况下都会声明 `sitemap-index.xml`。`/404.html` 始终 `noindex`，并且不输出 canonical。
+
+首页和关于页输出 schema.org `Person`。文章详情输出 `Article`。作品详情在 `kind` 为 `tool` 时输出 `SoftwareApplication`，其他作品输出 `CreativeWork`。近况页不附加结构化数据。分享图默认是 `/og-default.svg`；文章提供 `cover` 时，详情页改用这张封面。
 
 ## 常见排查
 

@@ -1,5 +1,4 @@
 ---
-# 将此文件复制到 src/content/pages/about.md 或 now.md。
 kind: about
 title: ALUNE 拉露恩
 summary: 关于这个名字
