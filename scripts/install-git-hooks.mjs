@@ -3,11 +3,7 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-export function gitHookSkipReason({
-  ci = process.env.CI,
-  hasGit = existsSync(".git"),
-  hasHooksPackage = existsSync("node_modules/simple-git-hooks"),
-} = {}) {
+export function gitHookSkipReason({ ci, hasGit, hasHooksPackage }) {
   if (isEnabled(ci)) return "CI";
   if (!hasGit) return "no .git directory";
   if (!hasHooksPackage) return "simple-git-hooks is not installed";
@@ -25,7 +21,11 @@ const isDirectRun =
   pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url;
 
 if (isDirectRun) {
-  const reason = gitHookSkipReason();
+  const reason = gitHookSkipReason({
+    ci: process.env.CI,
+    hasGit: existsSync(".git"),
+    hasHooksPackage: existsSync("node_modules/simple-git-hooks"),
+  });
   if (reason) {
     console.log(`Skipping git hook install (${reason}).`);
     process.exit(0);

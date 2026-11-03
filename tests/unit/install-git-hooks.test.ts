@@ -12,12 +12,16 @@ describe("git hook install", () => {
   it("skips CI, a missing git checkout, and a production install", () => {
     expect(gitHookSkipReason({ ...installed, ci: "true" })).toBe("CI");
     expect(gitHookSkipReason({ ...installed, ci: "1" })).toBe("CI");
-    expect(gitHookSkipReason({ ...installed, hasGit: false })).toBe(
-      "no .git directory",
-    );
-    expect(gitHookSkipReason({ ...installed, hasHooksPackage: false })).toBe(
-      "simple-git-hooks is not installed",
-    );
+    expect(
+      gitHookSkipReason({ ...installed, ci: undefined, hasGit: false }),
+    ).toBe("no .git directory");
+    expect(
+      gitHookSkipReason({
+        ...installed,
+        ci: undefined,
+        hasHooksPackage: false,
+      }),
+    ).toBe("simple-git-hooks is not installed");
   });
 
   it("still installs when CI is explicitly disabled", () => {
