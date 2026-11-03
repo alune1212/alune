@@ -22,7 +22,7 @@ src/content/studio/alune.md          → alune          → /studio/alune/
 src/content/journal/notes/first.md   → notes/first    → /journal/notes/first/
 ```
 
-文件公开后尽量不要移动或改名。`relatedJournal` 和 `relatedStudio` 填目标 entry ID，而不是标题或完整 URL；构建会拒绝不存在的关联。
+文件公开后尽量不要移动或改名。`relatedJournal` 和 `relatedStudio` 填目标 entry ID，而不是标题或完整 URL。同一列表里的 ID 不能重复；构建会拒绝不存在的关联。
 
 ## 共享字段
 
@@ -38,7 +38,7 @@ src/content/journal/notes/first.md   → notes/first    → /journal/notes/first
 | `order`            | 默认 `0`；数字越小越靠前              |
 | `topics`           | 小写 kebab-case、不可重复，默认空数组 |
 
-日期使用 ISO 格式。只有内容发生实质变化时才更新 `updatedAt`。文章归档始终按 `publishedAt` 倒序；作品依次按 featured、order 和日期排序。
+日期使用 ISO 格式。只有内容发生实质变化时才更新 `updatedAt`。文章列表按 `publishedAt` 倒序。作品依次按 `featured`、`order` 和日期排序；日期优先取 `updatedAt`，没有则取 `publishedAt`。
 
 ## 作品（`studio`）
 
@@ -56,7 +56,7 @@ links: {}
 - `open-source`：`links.source` 必填，`links.primary` 可选。
 - 只有 `project` 可以使用可选的 `role` 和 `outcomes`。
 
-外链必须使用 HTTPS；仅 localhost、127.0.0.1 和 `[::1]` 可以使用 HTTP。不同 kind 的完整起始结构以 `_templates/` 中对应模板为准。
+外链必须使用 HTTPS。主机名是 `localhost`、以 `.localhost` 结尾、`127.0.0.1` 或 `[::1]` 时可以使用 HTTP。未知的 `links` 字段会被 schema 拒绝。不同 kind 的完整起始结构以 `_templates/` 中对应模板为准。
 
 ## 文章（`journal`）
 
@@ -64,15 +64,15 @@ links: {}
 kind: note # essay | note | devlog | update
 series: "系列名" # 可选
 relatedStudio: []
-cover: "/images/example.webp" # 可选；也可使用 HTTPS URL
+cover: "/images/example.webp" # 可选；根相对路径，或与外链相同规则的 URL
 coverAlt: "准确描述封面内容" # 使用 cover 时必填
 ```
 
-`cover` 和 `coverAlt` 必须同时出现。正文先给出上下文，再使用短段落和明确标题；代码、外部事实和个人判断应清楚区分，引用外部资料时保留来源链接。
+`cover` 和 `coverAlt` 必须同时出现。有封面时，文章详情的分享图使用这张封面，否则使用 `public/og-default.svg`。正文先给出上下文，再使用短段落和明确标题；代码、外部事实和个人判断应清楚区分，引用外部资料时保留来源链接。
 
 ## 固定页面
 
-`pages` 集合仅接受 `about`、`now`，并要求 `title`、`summary`、`updatedAt`；`draft` 未填写时默认为 `false`。没有对应内容文件时，页面使用 `src/config/site.config.json` 的占位文案；补充真实正文后，内容集合会覆盖该回退。
+`pages` 集合的 `kind` 只能是 `about` 或 `now`，并要求 `title`、`summary`、`updatedAt`；`draft` 未填写时默认为 `false`。页面按 `kind` 选取，不按文件名。同一种 kind 在当前构建里最多出现一条可见页面，多了会失败；生产构建会先排除草稿。没有可用正文时，关于页和近况页回退到 `src/config/site.config.json`。首页近况区块始终读取配置里的 `now.summary` 和 `now.updatedAt`，不读取 `pages` 集合。
 
 ## 发布前检查
 

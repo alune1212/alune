@@ -14,6 +14,10 @@ alune 是一个安静、有编辑感的个人数字主页：让作品、文字�
 
 颜色、字体、间距和断点以 `src/styles/global.css` 的 tokens 为准，组件不得自行维护第二套变量。当前主导航的名称与顺序以 `src/config/site.ts` 为准。
 
+## 主题
+
+亮色 token 对应当前的明亮画布，同一文件里还有一套暗色 token。没有手动选择时跟随 `prefers-color-scheme`。页头按钮把选择写入 `localStorage` 的 `alune-theme`（`light` 或 `dark`）。首屏内联脚本在绘制前写入 `data-theme`。关闭 JavaScript、根节点也没有该属性时，暗色系统偏好由 CSS 媒体查询承接。代码高亮使用 `github-light` 与 `github-dark`。
+
 ## 页面节奏
 
 - 首页先给出明确定位，再展示精选作品、文章和近况入口。
