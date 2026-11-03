@@ -1,0 +1,49 @@
+name: Release Please
+
+# Runs on push to main. The release pull request is opened by this workflow.
+#
+# A pull request created with the default GITHUB_TOKEN does not run
+# pull_request_target, so "Validate PR title" never reports. pull_request
+# workflows (Quality gates, CodeQL) are created but wait for a maintainer to
+# approve them. workflow_dispatch checks do not appear on the pull request
+# and do not satisfy branch protection.
+#
+# Set the RELEASE_PLEASE_TOKEN secret to a fine-grained PAT or a GitHub App
+# installation token (contents, pull requests, and issues: read and write).
+# release-please then opens the pull request as that identity, and the three
+# required checks run as they do for any other pull request. Without the
+# secret this workflow still falls back to GITHUB_TOKEN.
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+  # "autorelease: pending" and the other release labels use the issues API.
+  issues: write
+
+concurrency:
+  group: release-please-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    name: release-please
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Run release-please
+        id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Warn when branch protection cannot see release PR checks
+        if:
+          steps.release.outputs.prs != '' && secrets.RELEASE_PLEASE_TOKEN == ''
+        run: |
+          echo "::warning title=RELEASE_PLEASE_TOKEN missing::This release pull request was opened with GITHUB_TOKEN. Validate PR title will not run, and Quality gates and CodeQL stay pending until a maintainer approves the workflows. Add the RELEASE_PLEASE_TOKEN secret so the required checks run on their own."

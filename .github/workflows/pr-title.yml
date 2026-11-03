@@ -2,6 +2,9 @@ name: PR title
 
 # pull_request_target reads the title with the default-branch workflow.
 # Do not checkout the pull request head here.
+# A pull request opened with GITHUB_TOKEN does not emit pull_request_target.
+# release-please.yml uses RELEASE_PLEASE_TOKEN when that secret exists so
+# this check still runs on release pull requests.
 
 on:
   pull_request_target:

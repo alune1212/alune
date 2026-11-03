@@ -21,6 +21,7 @@ alune 是单包 Astro 静态站点。Astro 在构建期读取配置和仓库内�
 | 协作流程          | 本文「协作流程」、`CONTRIBUTING.md`                            |
 | 议题与 PR 模板    | `.github/ISSUE_TEMPLATE/`、`.github/pull_request_template.md`  |
 | CI 与安全扫描     | `.github/workflows/`                                           |
+| 版本与更新日志    | `release-please-config.json`、`.release-please-manifest.json`  |
 | 依赖更新          | `.github/dependabot.yml`                                       |
 | 本地提交钩子      | `package.json` 的 `prepare`、`simple-git-hooks`、`lint-staged` |
 
@@ -73,7 +74,7 @@ pnpm dev
 | `pnpm check`         | 依次运行文档、lint、格式、类型、单元测试和构建    |
 | `pnpm check:release` | 先检查正式发布资料和最低内容，再运行 `pnpm check` |
 
-首次执行 E2E 前运行 `pnpm exec playwright install chromium`。质量 workflow 的触发条件、权限和另外两条检查见下方「协作流程」。`pnpm check:release` 不在 CI 里。仓库没有部署 workflow。
+首次执行 E2E 前运行 `pnpm exec playwright install chromium`。各 workflow 的触发条件、权限和 job 名称见下方「协作流程」。`pnpm check:release` 不在 CI 里。仓库没有部署 workflow。
 
 ## 协作流程
 
@@ -101,25 +102,44 @@ pnpm dev
 
 使用 `.github/pull_request_template.md`，写清改了什么、为什么、怎么验证，并勾选 `pnpm check` 和需要时的 `pnpm e2e`。标题遵循 [Conventional Commits](https://www.conventionalcommits.org/zh-v1.0.0/)：`<type>[optional scope]: <subject>`。未额外收窄类型，因此默认接受 `feat`、`fix`、`docs`、`style`、`refactor`、`perf`、`test`、`build`、`ci`、`chore`、`revert`。破坏性变更写在类型后面的 `!`。
 
-`.github/workflows/pr-title.yml` 在拉取请求打开、编辑、重新打开和推送新提交时检查标题。job 名称是 `Validate PR title`。这条 workflow 使用 `pull_request_target`，只读标题，不检出拉取请求代码；用的是默认分支上的 workflow 文件。第一次把它合进 `main` 之前，当前拉取请求上不会出现这次检查，也不要提前把它设成必需检查。
+`.github/workflows/pr-title.yml` 在拉取请求打开、编辑、重新打开和推送新提交时检查标题。job 名称是 `Validate PR title`。这条 workflow 使用 `pull_request_target`，只读标题，不检出拉取请求代码；用的是默认分支上的 workflow 文件。第一次把它合进 `main` 之前，当前拉取请求上不会出现这次检查，也不要提前把它设成必需检查。用默认 `GITHUB_TOKEN` 打开的拉取请求不会触发 `pull_request_target`。发布流程如何处理这一点见下方「版本与更新日志」。
 
 议题模板在 `.github/ISSUE_TEMPLATE/`：缺陷报告、功能请求，以及关闭空白议题的 `config.yml`。
 
 ### 持续集成
 
-| Workflow                         | 何时运行                            | job 名称            | 做什么                                                                                                                                                                                          |
-| -------------------------------- | ----------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `.github/workflows/ci.yml`       | 推送 `main`、拉取请求、手动         | `Quality gates`     | 按锁文件安装依赖，运行一次 `pnpm check` 并复用其 `dist`，再执行 `pnpm exec playwright install --with-deps chromium` 与 `pnpm e2e:ci`。隔离内容套件单独构建临时站点。权限只有 `contents: read`。 |
-| `.github/workflows/pr-title.yml` | 拉取请求打开、编辑、重新打开、同步  | `Validate PR title` | 检查标题是否为 Conventional Commits。权限是 `pull-requests: read`。                                                                                                                             |
-| `.github/workflows/codeql.yml`   | 推送 `main`、拉取请求、每周一、手动 | `CodeQL`            | 用 CodeQL 扫描 JavaScript / TypeScript，不编译站点。权限含 `security-events: write`。                                                                                                           |
+| Workflow                               | 何时运行                            | job 名称            | 做什么                                                                                                                                                                                          |
+| -------------------------------------- | ----------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.github/workflows/ci.yml`             | 推送 `main`、拉取请求、手动         | `Quality gates`     | 按锁文件安装依赖，运行一次 `pnpm check` 并复用其 `dist`，再执行 `pnpm exec playwright install --with-deps chromium` 与 `pnpm e2e:ci`。隔离内容套件单独构建临时站点。权限只有 `contents: read`。 |
+| `.github/workflows/pr-title.yml`       | 拉取请求打开、编辑、重新打开、同步  | `Validate PR title` | 检查标题是否为 Conventional Commits。权限是 `pull-requests: read`。                                                                                                                             |
+| `.github/workflows/codeql.yml`         | 推送 `main`、拉取请求、每周一、手动 | `CodeQL`            | 用 CodeQL 扫描 JavaScript / TypeScript，不编译站点。权限含 `security-events: write`。                                                                                                           |
+| `.github/workflows/release-please.yml` | 推送 `main`                         | `release-please`    | 按 Conventional Commits 维护版本和更新日志。权限是 `contents: write`、`pull-requests: write`、`issues: write`。不发布到 npm，也不部署站点。细节见「版本与更新日志」。                           |
 
-`ci.yml` 和 `codeql.yml` 使用主版本标签，例如 `actions/checkout@v7`。`pr-title.yml` 在 `pull_request_target` 里把第三方 action 钉到完整提交 SHA。没有部署 job，`pnpm check:release` 也不是其中任何一步。
+`ci.yml` 和 `codeql.yml` 使用主版本标签，例如 `actions/checkout@v7`。`pr-title.yml` 和 `release-please.yml` 把第三方 action 钉到完整提交 SHA。没有部署 job，`pnpm check:release` 也不是其中任何一步。
 
 分支保护要把状态检查设为必需时，使用这三个 job 名称：`Quality gates`、`Validate PR title`、`CodeQL`。
 
 ### 审查与合并
 
 审查确认改动和模板里的验证说明一致。当前 GitHub 仓库设置是：只允许 squash merge，squash 提交标题使用拉取请求标题，提交正文使用拉取请求正文，合并后删除分支。
+
+### 版本与更新日志
+
+仓库版本和 `CHANGELOG.md` 由 [release-please](https://github.com/googleapis/release-please) 维护。配置在 `release-please-config.json`，已发布版本在 `.release-please-manifest.json`。`package.json` 是 `private: true`。这条 workflow 只更新版本、更新日志和 manifest，并在 GitHub 上创建标签和 Release。它不执行 `npm publish`，也不部署站点。GitHub Release 不是站点上线。站点能否去掉占位，仍由下方「发布门禁」和 `pnpm check:release` 决定。
+
+`bootstrap-sha` 是引入这条流程时的 `main` HEAD。release-please 只收集这个提交之后的变更，这样第一次更新日志不会倒出全部历史。第一条由它生成的发布拉取请求合并之后，这个字段不再起作用，可以删掉。不要改成 `last-release-sha`。那个字段会一直生效，之后每次发布都会从同一个旧提交重新数。
+
+当前版本低于 1.0.0，所以同时打开 `bump-minor-pre-major` 和 `bump-patch-for-minor-pre-major`。破坏性变更升 minor，例如 `0.1.0` 到 `0.2.0`，不会自动变成 `1.0.0`。功能以及其他会发布的变更升 patch，例如 `0.1.0` 到 `0.1.1`。0.x 里 minor 因此只表示不兼容变更。进入 1.0.0 需要显式指定版本，而不是靠一次 `feat!`。
+
+会写入更新日志并打开发布拉取请求的类型是 `feat`、`fix`、`perf`、`refactor`、`docs`、`revert`。`style`、`chore`、`test`、`build`、`ci` 默认隐藏，单独出现时不发布；带破坏性标记时仍会发布。Dependabot 的 `chore(deps)` 和 `ci(deps)` 因此不会各自产生一个版本。
+
+推送到 `main` 之后运行 `.github/workflows/release-please.yml`。有可发布提交时，它打开或更新一条拉取请求。标题形如 `chore(main): release alune 0.1.1`，分支名以 `release-please--` 开头。审查后照常 squash merge，并且不要改标题。squash 提交标题就是拉取请求标题，release-please 靠它认出发布提交，再在下一次推送 `main` 时创建标签（形如 `v0.1.1`）和 GitHub Release。
+
+分支保护要求 `Quality gates`、`CodeQL`、`Validate PR title`，并且分支必须和 `main` 同步。用默认 `GITHUB_TOKEN` 创建的拉取请求不会触发 `pull_request_target`，所以 `Validate PR title` 不会出现。`Quality gates` 和 `CodeQL` 走 `pull_request`，会停在待批准状态，需要有写权限的人在页面上批准 workflow。`workflow_dispatch` 产生的检查不会出现在拉取请求的检查列表里，也不能满足分支保护，所以不用它去补跑这三条检查。
+
+把细粒度个人访问令牌或 GitHub App 安装令牌存成 Actions secret `RELEASE_PLEASE_TOKEN` 之后，workflow 改用这个令牌。发布拉取请求会像普通拉取请求一样触发三条必需检查。令牌需要本仓库的 Contents、Pull requests 和 Issues 读写权限。经典 PAT 使用 `repo` scope。没有这个 secret 时，workflow 回退到 `GITHUB_TOKEN`：发布拉取请求仍会打开，但合并会被分支保护挡住。secret 未设置且本次确实打开或更新了发布拉取请求时，运行日志里会有 warning。
+
+`CHANGELOG.md` 由机器人重写，已列入 `.prettierignore`，避免发布拉取请求在 `pnpm format:check` 上失败。不要手改这个文件来记账，下一次发布会覆盖它。
 
 ### 部署
 
@@ -143,7 +163,7 @@ pnpm e2e
 
 ## 发布门禁
 
-`pnpm check:release` 额外要求：
+`pnpm check:release` 检查站点内容能否对外发布。它不由 release-please 运行，通过与否也不决定有没有 GitHub Release。它额外要求：
 
 1. `src/config/site.config.json` 的 `placeholder` 为 `false`。
 2. 使用非保留域名的 HTTPS 生产地址。

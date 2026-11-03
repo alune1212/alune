@@ -43,25 +43,25 @@ Node.js 以 [`.node-version`](.node-version) 为准，pnpm 以 `package.json` �
 
 ## 仓库结构
 
-| 路径                              | 内容                                                                |
-| --------------------------------- | ------------------------------------------------------------------- |
-| `src/pages/`                      | 路由。页面文件决定公开 URL                                          |
-| `src/content/studio/`             | 作品                                                                |
-| `src/content/journal/`            | 文章                                                                |
-| `src/content/pages/`              | 关于、近况的可选正文                                                |
-| `src/content/_templates/`         | 写作模板，loader 不会发布                                           |
-| `src/components/`、`src/layouts/` | 界面与页面骨架                                                      |
-| `src/lib/`                        | schema、集合、分页、路由和结构化数据                                |
-| `src/config/site.config.json`     | 可编辑的站点资料                                                    |
-| `src/config/site.ts`              | 解析后的配置和主导航                                                |
-| `src/styles/global.css`           | 颜色、字体、间距和亮色 / 暗色 token                                 |
-| `src/scripts/theme-controller.ts` | 主题切换                                                            |
-| `public/`                         | `favicon.svg` 与默认分享图 `og-default.svg`                         |
-| `docs/`                           | 工程、内容、设计和路线图                                            |
-| `tests/`                          | Vitest，以及当前站点 / 隔离内容两套 Playwright                      |
-| `scripts/`                        | 文档检查、发布检查、隔离内容的临时构建                              |
-| `astro.config.ts`                 | 静态输出、末尾斜杠、MDX、sitemap、代码高亮                          |
-| `.github/`                        | 议题与 PR 模板、Dependabot、质量检查、PR 标题、CodeQL。没有部署 job |
+| 路径                              | 内容                                                                                |
+| --------------------------------- | ----------------------------------------------------------------------------------- |
+| `src/pages/`                      | 路由。页面文件决定公开 URL                                                          |
+| `src/content/studio/`             | 作品                                                                                |
+| `src/content/journal/`            | 文章                                                                                |
+| `src/content/pages/`              | 关于、近况的可选正文                                                                |
+| `src/content/_templates/`         | 写作模板，loader 不会发布                                                           |
+| `src/components/`、`src/layouts/` | 界面与页面骨架                                                                      |
+| `src/lib/`                        | schema、集合、分页、路由和结构化数据                                                |
+| `src/config/site.config.json`     | 可编辑的站点资料                                                                    |
+| `src/config/site.ts`              | 解析后的配置和主导航                                                                |
+| `src/styles/global.css`           | 颜色、字体、间距和亮色 / 暗色 token                                                 |
+| `src/scripts/theme-controller.ts` | 主题切换                                                                            |
+| `public/`                         | `favicon.svg` 与默认分享图 `og-default.svg`                                         |
+| `docs/`                           | 工程、内容、设计和路线图                                                            |
+| `tests/`                          | Vitest，以及当前站点 / 隔离内容两套 Playwright                                      |
+| `scripts/`                        | 文档检查、发布检查、隔离内容的临时构建                                              |
+| `astro.config.ts`                 | 静态输出、末尾斜杠、MDX、sitemap、代码高亮                                          |
+| `.github/`                        | 议题与 PR 模板、Dependabot、质量检查、PR 标题、CodeQL、release-please。没有部署 job |
 
 `pnpm-workspace.yaml` 没有子包。它只保存 pnpm 的依赖构建许可和版本覆盖。
 
@@ -165,7 +165,7 @@ pnpm exec playwright install chromium
 
 ## 持续集成与部署
 
-持续集成、拉取请求标题、CodeQL、Dependabot 分组和合并规则写在[开发与维护](docs/development.md)的「协作流程」。`.github/workflows/ci.yml` 只有 `contents: read`。`check:release` 不在 CI 里。仓库没有部署步骤。
+持续集成、拉取请求标题、CodeQL、Dependabot 分组、版本与更新日志、合并规则写在[开发与维护](docs/development.md)的「协作流程」。`.github/workflows/ci.yml` 只有 `contents: read`。版本 workflow 需要写入内容和拉取请求，令牌要求见同一节。`check:release` 不在 CI 里。仓库没有部署步骤。GitHub Release 只记录仓库版本，不表示站点已经上线。
 
 部署仍未决定。域名、托管、缓存、回滚和中国大陆三网直连的验收方式写在[路线图](docs/roadmap.md) 的部署决策门；这些决定完成之前，仓库不添加 deployment workflow。
 
