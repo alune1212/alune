@@ -27,7 +27,8 @@
     "e2e:ci": "pnpm e2e:preview && pnpm e2e:content",
     "e2e:list": "playwright test --list && playwright test --config playwright.content.config.ts --list",
     "check": "pnpm docs:check && pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build",
-    "check:release": "node scripts/check-release.mjs && pnpm check"
+    "check:release": "node scripts/check-release.mjs && pnpm check",
+    "prepare": "simple-git-hooks"
   },
   "dependencies": {
     "@astrojs/mdx": "8.1.2",
@@ -47,10 +48,22 @@
     "@typescript/native": "npm:typescript@7.0.2",
     "eslint": "10.14.0",
     "eslint-plugin-astro": "3.2.1",
+    "lint-staged": "17.6.0",
     "prettier": "3.9.10",
     "prettier-plugin-astro": "1.1.2",
+    "simple-git-hooks": "2.14.0",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "typescript-eslint": "8.72.1",
     "vitest": "5.0.5"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm exec lint-staged"
+  },
+  "lint-staged": {
+    "*.{js,mjs,cjs,ts,tsx,astro}": [
+      "eslint --max-warnings=0 --fix",
+      "prettier --write"
+    ],
+    "!(*.js|*.mjs|*.cjs|*.ts|*.tsx|*.astro|pnpm-lock.yaml)": "prettier --write --ignore-unknown"
   }
 }

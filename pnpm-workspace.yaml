@@ -1,5 +1,7 @@
 allowBuilds:
   esbuild: true
   msw: false
+  # 安装脚本只写 git hooks；根目录 prepare 负责这件事。
+  simple-git-hooks: false
 overrides:
   vite: 8.3.5
