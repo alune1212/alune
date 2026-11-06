@@ -34,7 +34,7 @@
     "@astrojs/mdx": "8.1.2",
     "@astrojs/rss": "4.0.19",
     "@astrojs/sitemap": "3.7.4",
-    "astro": "7.4.4",
+    "astro": "7.4.5",
     "markdown-it": "15.0.3",
     "sanitize-html": "2.18.1"
   },
@@ -54,7 +54,7 @@
     "simple-git-hooks": "2.14.0",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "typescript-eslint": "8.72.1",
-    "vitest": "5.0.5"
+    "vitest": "5.1.0"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm exec lint-staged"
